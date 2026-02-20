@@ -42,3 +42,6 @@ verify_jwt = false
 
 [functions.health]
 verify_jwt = false
+
+[functions.public-listing-trace]
+verify_jwt = false
