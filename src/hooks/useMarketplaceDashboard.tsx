@@ -246,25 +246,12 @@ export const useCreateOrder = () => {
       notes?: string;
     }) => {
       if (!buyer?.id) throw new Error('Buyer profile not found');
-      
-      const { data: result, error } = await supabase
-        .from('market_orders')
-        .insert({
-          buyer_id: buyer.id,
-          crop_id: data.crop_id,
-          farmer_id: data.farmer_id,
-          quantity: data.quantity,
-          quantity_unit: data.quantity_unit || 'quintals',
-          price_offered: data.price_offered,
-          delivery_address: data.delivery_address,
-          notes: data.notes,
-          status: 'pending',
-        })
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return result;
+      // Use Edge function / RPC via marketplaceApi
+      const { placeOrder } = await import('@/lib/marketplaceApi');
+      const res = await placeOrder(data.crop_id, data.quantity, data.notes || null);
+      if (!res || !res.success) throw new Error(res?.error || 'Order failed');
+      // Invalidate buyer orders to refresh UI
+      return res;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['buyer-orders'] });
