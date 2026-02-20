@@ -45,6 +45,16 @@ export async function signAndUpload(
 
   if (uploadRes.error) throw new Error(`Upload failed: ${uploadRes.error.message}`);
 
+  // If server returned a file_id, confirm upload (marks status='ready')
+  if (result.file_id) {
+    try {
+      await supabase.functions.invoke('storage-confirm-upload-v1', { body: { file_id: result.file_id } });
+    } catch (e) {
+      // Non-fatal: caller can cleanup via storage-delete-v1 if needed
+      console.warn('storage-confirm-upload-v1 failed:', e);
+    }
+  }
+
   // return file identifier (if available) to be stored in DB
   return result.file_id || result.path;
 }

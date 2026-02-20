@@ -90,17 +90,30 @@ const AgentNotesSection = () => {
 
     setAudioLoading(note.id);
 
-    try {
-      // Get signed URL
-      const { data: signedUrl, error } = await supabase.storage
-        .from('voice_media')
-        .createSignedUrl(note.audio_path, 300);
-
-      if (error || !signedUrl?.signedUrl) {
-        throw new Error('Could not get audio URL');
+      try {
+      // If audio_path is a file_id (UUID), request signed read via Edge function
+      let signedUrlStr: string | null = null;
+      const isUuid = /^[0-9a-fA-F-]{36}$/.test(note.audio_path);
+      if (isUuid) {
+        try {
+          const { data } = await supabase.functions.invoke('storage-sign-read-v1', { body: { file_id: note.audio_path } });
+          signedUrlStr = data?.signed_read_url || null;
+        } catch (e) {
+          console.warn('storage-sign-read-v1 failed:', e);
+        }
       }
 
-      audioRef.current = new Audio(signedUrl.signedUrl);
+      if (!signedUrlStr) {
+        const { data: signedUrl, error } = await supabase.storage
+          .from('voice_media')
+          .createSignedUrl(note.audio_path, 300);
+        if (error || !signedUrl?.signedUrl) {
+          throw new Error('Could not get audio URL');
+        }
+        signedUrlStr = signedUrl.signedUrl;
+      }
+
+      audioRef.current = new Audio(signedUrlStr);
       audioRef.current.onended = () => {
         setPlayingNoteId(null);
       };
