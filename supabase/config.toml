@@ -84,3 +84,19 @@ verify_jwt = false
 [functions."cancel-trip"]
   path = "supabase/functions/cancel-trip"
   verify_jwt = true
+
+[functions."place-order"]
+  path = "supabase/functions/place-order"
+  verify_jwt = true
+
+[functions."confirm-order"]
+  path = "supabase/functions/confirm-order"
+  verify_jwt = true
+
+[functions."reject-order"]
+  path = "supabase/functions/reject-order"
+  verify_jwt = true
+
+[functions."update-order-status"]
+  path = "supabase/functions/update-order-status"
+  verify_jwt = true
