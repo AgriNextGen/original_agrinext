@@ -57,6 +57,7 @@ import PendingUpdates from "./pages/admin/PendingUpdates";
 import CallbackHandler from "./pages/Auth/CallbackHandler";
 import AccountSwitcher from "./pages/AccountSwitcher";
 import DevConsole from "./components/DevConsole/DevConsole";
+import RoleSelect from "./pages/Onboard/RoleSelect";
  import ListingTrace from "./pages/trace/ListingTrace";
 const queryClient = new QueryClient();
 
@@ -330,6 +331,7 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route path="/onboard/role-select" element={<RoleSelect />} />
             
             {/* Protected Admin Routes */}
             <Route
