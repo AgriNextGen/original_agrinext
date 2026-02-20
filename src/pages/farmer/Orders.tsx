@@ -90,6 +90,30 @@ const FarmerOrders = () => {
       setTimeline([]);
     }
   };
+ 
+  const viewProof = async (fileId: string | null) => {
+    if (!fileId) return;
+    try {
+      const { supabase } = await import('@/integrations/supabase/client');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/storage-sign-read-v1`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        },
+        body: JSON.stringify({ file_id: fileId }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json?.signed_url) throw new Error(json?.error || 'Failed to sign read url');
+      window.open(json.signed_url, '_blank');
+    } catch (err) {
+      console.error('viewProof error', err);
+      toast.error('Unable to open proof file');
+    }
+  };
 
   const handleStatusUpdate = (newStatus: string) => {
     if (!selectedOrder) return;
@@ -328,18 +352,35 @@ const FarmerOrders = () => {
             )}
             {/* Timeline */}
             <div className="pt-4 border-t border-border">
-              <h4 className="text-sm font-medium mb-2">Timeline</h4>
-              {timeline.length === 0 ? <p className="text-sm text-muted-foreground">No events yet</p> : (
-                <ul className="text-sm space-y-2">
-                  {timeline.map((e: any) => (
-                    <li key={e.event_id}>
-                      <div className="text-xs text-muted-foreground">{new Date(e.created_at).toLocaleString()}</div>
-                      <div className="font-medium">{e.event_type}</div>
-                      <pre className="text-xs text-muted-foreground">{JSON.stringify(e.payload)}</pre>
-                    </li>
-                  ))}
-                </ul>
-              )}
+            <h4 className="text-sm font-medium mb-3">Timeline</h4>
+            {timeline.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No events yet</p>
+            ) : (
+              <ol className="relative border-l border-muted/50 ml-2">
+                {timeline.map((e: any) => (
+                  <li key={e.event_id} className="mb-6 ml-6">
+                    <span className="absolute -left-3 flex h-6 w-6 items-center justify-center rounded-full bg-white ring-2 ring-primary">
+                      <svg className="h-3 w-3 text-primary" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" /></svg>
+                    </span>
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <div>{new Date(e.created_at).toLocaleString()}</div>
+                      <div className="ml-2">{e.event_type}</div>
+                    </div>
+                    <div className="mt-1 text-sm">
+                      <div className="text-xs text-muted-foreground mb-1">{JSON.stringify(e.payload)}</div>
+                      {/* If payload contains proof_file_id show view button */}
+                      {((e.payload && (e.payload.proof_file_id || e.payload.proof || e.payload.file_id)) || (e.payload && e.payload.file_id)) && (
+                        <div className="mt-2">
+                          <Button size="sm" variant="outline" onClick={() => viewProof(e.payload.proof_file_id || e.payload.file_id || e.payload.proof)}>
+                            View proof
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            )}
             </div>
             <DialogFooter className="flex-col sm:flex-row gap-2">
               {selectedOrder?.status === 'pending' && (
