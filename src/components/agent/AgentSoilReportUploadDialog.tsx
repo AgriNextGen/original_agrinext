@@ -155,41 +155,50 @@ export default function AgentSoilReportUploadDialog({
       const isImage = file.type.startsWith('image/');
 
       // Upload via signed URL
-      const filePath = await signAndUpload(file, {
+      const fileIdOrPath = await signAndUpload(file, {
         bucket: 'soil-reports',
         contentType: file.type,
         sizeBytes: file.size,
         entity: { type: 'soil_report', id: formData.farmland_id },
       });
 
-      // Insert database record
-      const { error: dbError } = await supabase
-        .from('soil_test_reports')
-        .insert({
-          farmland_id: formData.farmland_id,
-          farmer_id: formData.farmer_id,
-          uploaded_by: user.id,
-          source_role: 'agent',
-          report_date: formData.report_date,
-          lab_name: formData.lab_name || null,
-          report_file_path: filePath,
-          report_file_type: isImage ? 'image' : 'pdf',
-          report_mime_type: file.type,
-          notes: formData.notes || null,
-          consent_captured: formData.consent_captured,
-          consent_note: formData.consent_note || null,
-          consent_at: new Date().toISOString(),
-          ph: formData.ph ?? null,
-          ec: formData.ec ?? null,
-          organic_carbon: formData.organic_carbon ?? null,
-          nitrogen: formData.nitrogen ?? null,
-          phosphorus: formData.phosphorus ?? null,
-          potassium: formData.potassium ?? null,
-        });
+      // If signAndUpload returned a file_id (uuid), use it; otherwise treat as path
+      const fileId = fileIdOrPath && fileIdOrPath.length === 36 ? fileIdOrPath : null;
+      const filePath = fileId ? null : fileIdOrPath;
+
+      // Insert database record (store file_id when available)
+      const insertPayload: any = {
+        farmland_id: formData.farmland_id,
+        farmer_id: formData.farmer_id,
+        uploaded_by: user.id,
+        source_role: 'agent',
+        report_date: formData.report_date,
+        lab_name: formData.lab_name || null,
+        report_file_type: isImage ? 'image' : 'pdf',
+        report_mime_type: file.type,
+        notes: formData.notes || null,
+        consent_captured: formData.consent_captured,
+        consent_note: formData.consent_note || null,
+        consent_at: new Date().toISOString(),
+        ph: formData.ph ?? null,
+        ec: formData.ec ?? null,
+        organic_carbon: formData.organic_carbon ?? null,
+        nitrogen: formData.nitrogen ?? null,
+        phosphorus: formData.phosphorus ?? null,
+        potassium: formData.potassium ?? null,
+      };
+      if (fileId) insertPayload.report_file_id = fileId;
+      else insertPayload.report_file_path = filePath;
+
+      const { error: dbError } = await supabase.from('soil_test_reports').insert(insertPayload);
 
       if (dbError) {
-        // Cleanup uploaded file if DB insert fails
-        await supabase.storage.from('soil-reports').remove([filePath]);
+        // Request deletion via Edge function (service role) to cleanup
+        if (fileId) {
+          await supabase.functions.invoke('storage-delete-v1', { body: { file_id: fileId } }).catch(()=>null);
+        } else if (filePath) {
+          await supabase.functions.invoke('storage-delete-v1', { body: { bucket: 'soil-reports', path: filePath } }).catch(()=>null);
+        }
         throw new Error(`Failed to save report: ${dbError.message}`);
       }
 
