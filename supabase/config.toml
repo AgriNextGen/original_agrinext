@@ -43,5 +43,11 @@ verify_jwt = false
 [functions.health]
 verify_jwt = false
 
+[functions.dev-create-acting-session]
+verify_jwt = true
+
+[functions.dev-revoke-acting-session]
+verify_jwt = true
+
 [functions.public-listing-trace]
 verify_jwt = false

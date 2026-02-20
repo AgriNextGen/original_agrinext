@@ -54,6 +54,9 @@ import SeedData from "./pages/admin/SeedData";
 import MysuruDemoSeed from "./pages/admin/MysruDemoSeed";
 import DataHealth from "./pages/admin/DataHealth";
 import PendingUpdates from "./pages/admin/PendingUpdates";
+import CallbackHandler from "./pages/Auth/CallbackHandler";
+import AccountSwitcher from "./pages/AccountSwitcher";
+import DevConsole from "./components/DevConsole/DevConsole";
  import ListingTrace from "./pages/trace/ListingTrace";
 const queryClient = new QueryClient();
 
@@ -69,6 +72,9 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/auth/callback" element={<CallbackHandler />} />
+            <Route path="/account/switch" element={<AccountSwitcher />} />
+            <Route path="/dev-console" element={<DevConsole />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
             
