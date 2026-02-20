@@ -51,6 +51,14 @@ verify_jwt = true
 
 [functions.complete-role-onboard]
 verify_jwt = true
+[functions.storage-sign-upload-v1]
+verify_jwt = true
+
+[functions.storage-confirm-upload-v1]
+verify_jwt = true
+
+[functions.storage-sign-read-v1]
+verify_jwt = true
 
 [functions.public-listing-trace]
 verify_jwt = false
