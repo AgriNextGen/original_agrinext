@@ -285,14 +285,10 @@ export const useFarmerUpdateOrderStatus = () => {
 
   return useMutation({
     mutationFn: async ({ orderId, newStatus }: { orderId: string; newStatus: string }) => {
-      const { data, error } = await supabase
-        .rpc('farmer_update_order_status', {
-          p_order_id: orderId,
-          p_new_status: newStatus,
-        });
-
-      if (error) throw error;
-      return data;
+      const { updateOrderStatus } = await import('@/lib/marketplaceApi');
+      const res = await updateOrderStatus(orderId, newStatus);
+      if (!res || !res.success) throw new Error(res?.error || 'Update failed');
+      return res;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['farmer-orders'] });

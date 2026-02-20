@@ -78,6 +78,19 @@ const FarmerOrders = () => {
     setIsDetailOpen(true);
   };
 
+  // timeline state
+  const [timeline, setTimeline] = useState<any[]>([]);
+  const fetchTimeline = async (orderId: string) => {
+    try {
+      const { data, error } = await (await import('@/integrations/supabase/client')).supabase.rpc('get_order_timeline_v1', { p_order_id: orderId });
+      if (error) throw error;
+      setTimeline(data || []);
+    } catch (err) {
+      console.error('Failed to load timeline', err);
+      setTimeline([]);
+    }
+  };
+
   const handleStatusUpdate = (newStatus: string) => {
     if (!selectedOrder) return;
     updateStatus.mutate(
@@ -313,6 +326,21 @@ const FarmerOrders = () => {
                 )}
               </div>
             )}
+            {/* Timeline */}
+            <div className="pt-4 border-t border-border">
+              <h4 className="text-sm font-medium mb-2">Timeline</h4>
+              {timeline.length === 0 ? <p className="text-sm text-muted-foreground">No events yet</p> : (
+                <ul className="text-sm space-y-2">
+                  {timeline.map((e: any) => (
+                    <li key={e.event_id}>
+                      <div className="text-xs text-muted-foreground">{new Date(e.created_at).toLocaleString()}</div>
+                      <div className="font-medium">{e.event_type}</div>
+                      <pre className="text-xs text-muted-foreground">{JSON.stringify(e.payload)}</pre>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
             <DialogFooter className="flex-col sm:flex-row gap-2">
               {selectedOrder?.status === 'pending' && (
                 <>
