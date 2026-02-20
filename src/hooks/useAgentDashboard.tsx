@@ -331,8 +331,17 @@ export const useAIVisitPrioritization = () => {
   
   return useMutation({
     mutationFn: async (tasks: AgentTask[]) => {
-      const { data, error } = await supabase.functions.invoke('agent-ai', {
-        body: {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-gateway/agent-ai`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        },
+        body: JSON.stringify({
           type: 'visit_prioritization',
           context: {
             tasks: tasks.map(t => ({
@@ -346,11 +355,11 @@ export const useAIVisitPrioritization = () => {
               estimatedQuantity: t.crop?.estimated_quantity || 0,
             })),
           },
-        },
+        }),
       });
-      
-      if (error) throw error;
-      
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error?.message || 'Function error');
+
       // Log the AI usage
       await supabase.from('ai_agent_logs').insert({
         agent_id: user?.id,
@@ -358,7 +367,7 @@ export const useAIVisitPrioritization = () => {
         input_context: { taskCount: tasks.length },
         output_text: data.result,
       });
-      
+
       return data.result;
     },
   });
@@ -370,15 +379,24 @@ export const useAIClusterSummary = () => {
   
   return useMutation({
     mutationFn: async (clusterData: any) => {
-      const { data, error } = await supabase.functions.invoke('agent-ai', {
-        body: {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-gateway/agent-ai`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        },
+        body: JSON.stringify({
           type: 'cluster_summary',
           context: { clusterData },
-        },
+        }),
       });
-      
-      if (error) throw error;
-      
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error?.message || 'Function error');
+
       // Log the AI usage
       await supabase.from('ai_agent_logs').insert({
         agent_id: user?.id,
@@ -386,7 +404,7 @@ export const useAIClusterSummary = () => {
         input_context: clusterData,
         output_text: data.result,
       });
-      
+
       return data.result;
     },
   });

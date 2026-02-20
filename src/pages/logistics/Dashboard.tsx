@@ -77,16 +77,24 @@ const LogisticsDashboard = () => {
         quantity_unit: load.quantity_unit,
         preferred_date: load.preferred_date,
       }));
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
 
-      const { data, error } = await supabase.functions.invoke('transport-ai', {
-        body: {
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-gateway/transport-ai`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        },
+        body: JSON.stringify({
           type: 'route_optimization',
           loads,
           currentLocation: profile?.operating_village || 'Base',
-        },
+        }),
       });
-
-      if (error) throw error;
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error?.message || 'Function error');
       setAiSuggestion(data.result);
       toast.success('Route optimization complete!');
     } catch (error) {
@@ -100,16 +108,25 @@ const LogisticsDashboard = () => {
   const handleReverseLogistics = async () => {
     setReverseLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('transport-ai', {
-        body: {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-gateway/transport-ai`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        },
+        body: JSON.stringify({
           type: 'reverse_logistics',
           currentLocation: 'Market/Mandi',
           homeBase: profile?.operating_village || 'Base village',
           loads: [],
-        },
+        }),
       });
-
-      if (error) throw error;
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error?.message || 'Function error');
       setReverseSuggestion(data.result);
       toast.success('Reverse load suggestions ready!');
     } catch (error) {

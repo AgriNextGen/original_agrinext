@@ -62,11 +62,20 @@ const ProductDetail = () => {
     
     setPriceLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('marketplace-ai', {
-        body: { type: 'price_forecast', product }
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-gateway/marketplace-ai`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        },
+        body: JSON.stringify({ type: 'price_forecast', product }),
       });
-      
-      if (error) throw error;
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error?.message || 'Function error');
       setPriceForecast(data.result);
     } catch (error) {
       console.error('AI error:', error);
@@ -81,11 +90,20 @@ const ProductDetail = () => {
     
     setAltLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('marketplace-ai', {
-        body: { type: 'alternatives', product }
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-gateway/marketplace-ai`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        },
+        body: JSON.stringify({ type: 'alternatives', product }),
       });
-      
-      if (error) throw error;
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error?.message || 'Function error');
       setAlternatives(data.result);
     } catch (error) {
       console.error('AI error:', error);

@@ -16,13 +16,23 @@ export const useGeminiChat = () => {
     setMessages((prev) => [...prev, { role: 'user', content: message }]);
 
     try {
-      const { data, error } = await supabase.functions.invoke('gemini-chat', {
-        body: { user_id: userId, session_id: sessionId, message },
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-gateway/gemini/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        },
+        body: JSON.stringify({ user_id: userId, session_id: sessionId, message }),
       });
+      const data = await res.json();
 
-      if (error) throw error;
+      if (!res.ok) throw new Error(data?.error?.message || 'Function error');
 
-      setSessionId(data.session_id);
+      setSessionId(data.session_id ?? sessionId);
       setMessages((prev) => [...prev, { role: 'model', content: data.reply }]);
       return data;
     } catch (err) {
