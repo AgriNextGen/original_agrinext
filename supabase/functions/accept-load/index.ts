@@ -30,10 +30,9 @@ Deno.serve(async (req: Request) => {
       return new Response(JSON.stringify({ error: "transport_request_id required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const { data: rpcResult, error: rpcError } = await supabase.rpc("accept_transport_load", {
+    const { data: rpcResult, error: rpcError } = await supabase.rpc("accept_transport_load_v1", {
       p_transport_request_id: transport_request_id,
       p_vehicle_id: vehicle_id || null,
-      p_caller_id: user.id,
     });
 
     if (rpcError) {
