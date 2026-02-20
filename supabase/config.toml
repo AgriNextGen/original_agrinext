@@ -64,3 +64,23 @@ verify_jwt = true
 
 [functions.public-listing-trace]
 verify_jwt = false
+
+[functions."analytics-rollup-daily"]
+  path = "supabase/functions/analytics-rollup-daily"
+  verify_jwt = false
+
+[functions."analytics-rollup-manual"]
+  path = "supabase/functions/analytics-rollup-manual"
+  verify_jwt = true
+
+[functions."accept-load"]
+  path = "supabase/functions/accept-load"
+  verify_jwt = true
+
+[functions."update-trip-status"]
+  path = "supabase/functions/update-trip-status"
+  verify_jwt = true
+
+[functions."cancel-trip"]
+  path = "supabase/functions/cancel-trip"
+  verify_jwt = true
