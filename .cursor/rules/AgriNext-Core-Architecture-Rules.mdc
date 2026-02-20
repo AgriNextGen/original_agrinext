@@ -1,0 +1,28 @@
+---
+alwaysApply: true
+---
+
+You are building AgriNext Gen.
+
+Always follow the documents inside:
+docs/all_imp_rules/
+
+Specifically:
+- PRODUCT_OVERVIEW.md
+- ENTERPRISE_SECURITY_MODEL_V2_1.md
+- ENTERPRISE_DATA_ARCHITECTURE.md
+- ENTERPRISE_RLS_POLICY_MATRIX.md
+- ENTERPRISE_EDGE_FUNCTION_STANDARD.md
+- API_CONTRACTS.md
+- DEPLOYMENT_SOP.md
+
+Non-negotiable rules:
+
+1. Never expose service_role to frontend.
+2. All tables must have RLS policies.
+3. All state transitions must use RPC or Edge functions.
+4. Tier-4 data must stay inside secure schema.
+5. All sensitive actions must create audit logs.
+6. No destructive migrations.
+7. Follow API_CONTRACTS response format.
+8. Follow DEPLOYMENT_SOP for environment separation.

@@ -1,0 +1,349 @@
+openapi: 3.0.3
+info:
+  title: AgriNextGen MVP API Contracts
+  version: 0.1.0
+  description: Minimal contract-first API for MVP implementation.
+servers:
+  - url: http://localhost:4000
+tags:
+  - name: auth
+  - name: farmer
+  - name: agent
+  - name: transporter
+  - name: marketplace
+  - name: storage
+  - name: admin
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+  /auth/send-otp:
+    post:
+      tags: [auth]
+      summary: Send OTP to user phone
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendOtpRequest"
+      responses:
+        "200":
+          description: OTP sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OtpSentResponse"
+  /auth/verify-otp:
+    post:
+      tags: [auth]
+      summary: Verify OTP and return tokens
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifyOtpRequest"
+      responses:
+        "200":
+          description: Auth successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+  /auth/me:
+    get:
+      tags: [auth]
+      summary: Current authenticated user
+      responses:
+        "200":
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+  /farmer/profile:
+    get:
+      tags: [farmer]
+      summary: Fetch farmer profile
+      responses:
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+    put:
+      tags: [farmer]
+      summary: Update farmer profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FarmerProfileUpdate"
+      responses:
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /farmer/crops:
+    post:
+      tags: [farmer]
+      summary: Create crop entry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCropRequest"
+      responses:
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /farmer/crops/{crop_id}/ready:
+    post:
+      tags: [farmer]
+      summary: Mark crop as ready for harvest
+      parameters:
+        - in: path
+          name: crop_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /agent/farmer:
+    post:
+      tags: [agent]
+      summary: Register farmer via field agent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgentRegisterFarmerRequest"
+      responses:
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /agent/crop-verification:
+    post:
+      tags: [agent]
+      summary: Submit crop verification
+      responses:
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /agent/transport-request:
+    post:
+      tags: [agent]
+      summary: Create load request
+      responses:
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /transporter/jobs:
+    get:
+      tags: [transporter]
+      summary: List assigned jobs
+      responses:
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /transporter/jobs/{job_id}/accept:
+    post:
+      tags: [transporter]
+      summary: Accept transport job
+      parameters:
+        - in: path
+          name: job_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /transporter/jobs/{job_id}/pickup:
+    post:
+      tags: [transporter]
+      summary: Confirm pickup
+      parameters:
+        - in: path
+          name: job_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /transporter/jobs/{job_id}/deliver:
+    post:
+      tags: [transporter]
+      summary: Confirm delivery
+      parameters:
+        - in: path
+          name: job_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /marketplace/lots:
+    get:
+      tags: [marketplace]
+      summary: List lots
+      responses:
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /marketplace/create-lot:
+    post:
+      tags: [marketplace]
+      summary: Create lot
+      responses:
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /buyer/orders:
+    post:
+      tags: [marketplace]
+      summary: Place order
+      responses:
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /storage/list:
+    get:
+      tags: [storage]
+      summary: List storage facilities
+      responses:
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /storage/book:
+    post:
+      tags: [storage]
+      summary: Create storage booking
+      responses:
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /notifications:
+    get:
+      tags: [admin]
+      summary: List notifications
+      responses:
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /admin/dashboard:
+    get:
+      tags: [admin]
+      summary: Admin dashboard snapshot
+      responses:
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+components:
+  responses:
+    NotImplemented:
+      description: Endpoint contract exists but implementation is pending.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/NotImplementedResponse"
+  schemas:
+    SendOtpRequest:
+      type: object
+      required: [phone]
+      properties:
+        phone:
+          type: string
+    VerifyOtpRequest:
+      type: object
+      required: [phone, otp]
+      properties:
+        phone:
+          type: string
+        otp:
+          type: string
+    OtpSentResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        expires_in_seconds:
+          type: integer
+    AuthResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+        expires_in_seconds:
+          type: integer
+        user:
+          $ref: "#/components/schemas/Profile"
+    Profile:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        full_name:
+          type: string
+        role:
+          type: string
+        phone:
+          type: string
+    FarmerProfileUpdate:
+      type: object
+      properties:
+        full_name:
+          type: string
+        village:
+          type: string
+        district:
+          type: string
+        state:
+          type: string
+    CreateCropRequest:
+      type: object
+      required: [crop_name]
+      properties:
+        crop_name:
+          type: string
+        plot_id:
+          type: string
+          format: uuid
+        expected_harvest_date:
+          type: string
+          format: date
+        estimated_yield:
+          type: number
+    AgentRegisterFarmerRequest:
+      type: object
+      required: [full_name, phone]
+      properties:
+        full_name:
+          type: string
+        phone:
+          type: string
+        village:
+          type: string
+        district:
+          type: string
+    NotImplementedResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        contract:
+          type: object
+          properties:
+            method:
+              type: string
+            path:
+              type: string
+            owner:
+              type: string

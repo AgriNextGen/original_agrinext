@@ -1,73 +1,113 @@
-# Welcome to your Lovable project
+# AgriNext Gen
 
-## Project info
+Multi-role agri-platform for farmer operations, agent workflows, logistics, marketplace trading, and admin governance. Built on React + Supabase.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Architecture
 
-## How can I edit this code?
+- **Frontend**: Vite, React 18, TypeScript, Tailwind, shadcn UI
+- **Backend**: Supabase (Postgres, Auth, Storage, Edge Functions)
+- **State**: TanStack Query + local component state
 
-There are several ways of editing your application.
+See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for deployment details.
 
-**Use Lovable**
+## Local Setup
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+### Prerequisites
 
-Changes made via Lovable will be committed automatically to this repo.
+- Node.js 18+
+- npm
+- [Supabase CLI](https://supabase.com/docs/guides/cli) (optional, for local DB and migrations)
 
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+### Install and Run
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
+# Clone and install
 git clone <YOUR_GIT_URL>
+cd original_agrinext
+npm install
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# Copy env template and set values
+cp .env.example .env
+# Edit .env: VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY
 
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start dev server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+App runs at `http://localhost:8080`.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Environment Variables
 
-**Use GitHub Codespaces**
+| Variable | Description |
+|----------|-------------|
+| `VITE_SUPABASE_URL` | Supabase project URL (e.g. `https://xxx.supabase.co`) |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Anon/publishable key from Supabase Dashboard → Settings → API |
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Role Matrix
 
-## What technologies are used for this project?
+| Role | Description | Key Routes |
+|------|-------------|------------|
+| `farmer` | Farm records, crops, listings, transport requests | `/farmer/*` |
+| `agent` | Field tasks, farmer assignments, crop verification | `/agent/*` |
+| `logistics` | Transport loads, trips, proof capture | `/logistics/*` |
+| `buyer` | Marketplace, orders | `/marketplace/*` |
+| `admin` | Monitoring, seed data, data health | `/admin/*` |
 
-This project is built with:
+## Edge Function Catalog
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+| Function | Purpose | Auth |
+|----------|---------|------|
+| `accept-load` | Transporter accepts transport request | JWT |
+| `update-trip-status` | Transporter updates trip status | JWT |
+| `agent-create-task` | Agent creates task | JWT |
+| `agent-update-task-status` | Agent updates task status | JWT |
+| `agent-update-crop-status` | Agent updates crop status | JWT |
+| `send-sms` | MSG91 SMS webhook for Phone OTP | Webhook (no JWT) |
+| `notify` | Notification queue | JWT |
+| `health` | Health check | Public |
 
-## How can I deploy this project?
+## Migrations and Deploy
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+### Apply Migrations
 
-## Can I connect a custom domain to my Lovable project?
+```sh
+# Link to your Supabase project (first time)
+supabase link --project-ref <PROJECT_REF>
 
-Yes, you can!
+# Push migrations
+supabase db push
+```
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+### Deploy Edge Functions
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+```sh
+supabase functions deploy accept-load
+supabase functions deploy update-trip-status
+supabase functions deploy agent-create-task
+supabase functions deploy agent-update-task-status
+supabase functions deploy agent-update-crop-status
+supabase functions deploy send-sms --no-verify-jwt
+supabase functions deploy notify
+supabase functions deploy health --no-verify-jwt
+```
+
+### Production Build
+
+```sh
+npm run build
+# Output: dist/
+```
+
+## Scripts
+
+| Script | Description |
+|--------|-------------|
+| `npm run dev` | Start dev server (port 8080) |
+| `npm run build` | Production build |
+| `npm run preview` | Preview production build |
+| `npm run lint` | Run ESLint |
+
+## Documentation
+
+- [Auth Setup (Google, Phone OTP)](docs/AUTH_SETUP.md)
+- [Deployment Guide](docs/DEPLOYMENT.md)
