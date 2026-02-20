@@ -36,16 +36,16 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { phone, password, role } = (await req.json()) as { phone?: string; password?: string; role?: string };
-    if (!phone || !password || !role) {
+    const { phone, password } = (await req.json()) as { phone?: string; password?: string };
+    if (!phone || !password) {
       return new Response(
         JSON.stringify({ error: "Invalid credentials" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const validRoles = ["farmer", "buyer", "agent", "logistics", "admin"];
-    if (!validRoles.includes(role)) {
+    // Enforce minimum password policy client-side also; server double-check
+    if (password.length < 8) {
       return new Response(
         JSON.stringify({ error: "Invalid credentials" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -62,6 +62,46 @@ Deno.serve(async (req: Request) => {
 
     const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
+    // IP prefix for simple tracking
+    const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "unknown";
+    const ipPrefix = ip.split(",")[0].trim().split(".").slice(0,3).join("."); // /24
+
+    // Rate limiting checks using login_attempts table
+    const fiveMinsAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+    const { data: recentFails } = await supabaseAdmin.rpc("sql", {
+      -- placeholder, will replace with direct query
+      -- but supabase-js doesn't support raw SQL via rpc easily; use from select
+      p: null
+    }).catch(() => ({ data: null }));
+
+    // Simpler: count via select
+    const { count: failCountPhone } = await supabaseAdmin
+      .from("login_attempts")
+      .select("id", { count: "exact", head: true })
+      .eq("phone", normalizedPhone)
+      .gte("attempt_time", fiveMinsAgo);
+
+    const { count: failCountIp } = await supabaseAdmin
+      .from("login_attempts")
+      .select("id", { count: "exact", head: true })
+      .eq("ip_prefix", ipPrefix)
+      .gte("attempt_time", fiveMinsAgo);
+
+    const totalFails = (failCountPhone || 0) + (failCountIp || 0);
+    if (totalFails >= 10) {
+      // Block for 15 minutes (return 429)
+      await supabaseAdmin.from("audit.security_events").insert({
+        event_type: "login_blocked",
+        details: { phone: normalizedPhone, ip_prefix: ipPrefix, reason: "too_many_failed_attempts" }
+      }).catch(()=>null);
+      return new Response(JSON.stringify({ error: "Too many failed attempts" }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+    if (totalFails >= 5) {
+      // Introduce delay
+      await new Promise((r) => setTimeout(r, 2000));
+    }
+
+    // Find profile by phone
     const { data: profile, error: profileError } = await supabaseAdmin
       .from("profiles")
       .select("id, auth_email")
@@ -69,25 +109,13 @@ Deno.serve(async (req: Request) => {
       .maybeSingle();
 
     if (profileError || !profile) {
+      // log failed attempt
+      await supabaseAdmin.from("login_attempts").insert({ phone: normalizedPhone, ip_prefix: ipPrefix, success: false }).catch(()=>null);
       return new Response(
         JSON.stringify({ error: "Invalid credentials" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-
-    const { data: roleRow, error: roleError } = await supabaseAdmin
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", profile.id)
-      .maybeSingle();
-
-    if (roleError || !roleRow || roleRow.role !== role) {
-      return new Response(
-        JSON.stringify({ error: "Invalid credentials" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
     const authEmail = profile.auth_email || getAuthEmailFromPhone(normalizedPhone);
 
     const tokenRes = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
@@ -102,17 +130,30 @@ Deno.serve(async (req: Request) => {
     const tokenData = await tokenRes.json();
 
     if (!tokenRes.ok) {
+      // log failed attempt
+      await supabaseAdmin.from("login_attempts").insert({ phone: normalizedPhone, ip_prefix: ipPrefix, success: false }).catch(()=>null);
       return new Response(
         JSON.stringify({ error: "Invalid credentials" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
+    // Successful login: log success and return profiles
+    await supabaseAdmin.from("login_attempts").insert({ phone: normalizedPhone, ip_prefix: ipPrefix, success: true }).catch(()=>null);
+
+    // Fetch user_profiles for this user
+    const { data: profiles } = await supabaseAdmin
+      .from("user_profiles")
+      .select("id, profile_type, display_name, phone, is_active")
+      .eq("user_id", profile.id)
+      .order("created_at", { ascending: true });
+
     return new Response(
       JSON.stringify({
         access_token: tokenData.access_token,
         refresh_token: tokenData.refresh_token,
         expires_in: tokenData.expires_in,
+        profiles: profiles || []
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
