@@ -14,6 +14,8 @@ import {
   User,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { rpcJson } from '@/lib/readApi';
 import {
   useBuyerProfile,
   useCreateBuyerProfile,
@@ -25,7 +27,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useLanguage } from '@/hooks/useLanguage';
-import PageShell from '@/components/layout/PageShell';
+import PageHeader from '@/components/shared/PageHeader';
+import EmptyState from '@/components/shared/EmptyState';
 import KpiCard from '@/components/dashboard/KpiCard';
 import ActionPanel from '@/components/dashboard/ActionPanel';
 
@@ -36,8 +39,19 @@ const MarketplaceDashboard = () => {
   const { data: profile, isLoading: profileLoading } = useBuyerProfile();
   const createProfile = useCreateBuyerProfile();
   const { data: products } = useMarketProducts();
-  const stats = useMarketplaceDashboardStats();
   const { data: orders } = useBuyerOrders();
+  const { data: rpcStats, isLoading: rpcLoading } = useQuery({
+    queryKey: ['buyer-dashboard'],
+    queryFn: async () => {
+      return await rpcJson('buyer_dashboard_v1');
+    }
+  });
+  const stats = {
+    totalProducts: products?.length || 0,
+    freshHarvest: rpcStats?.recent_orders_top10 ? rpcStats.recent_orders_top10.length : 0,
+    oneWeekAway: 0,
+    activeOrders: rpcStats?.recent_orders_top10 ? rpcStats.recent_orders_top10.length : 0,
+  };
 
   const [aiLoading, setAiLoading] = useState(false);
   const [stockAdvice, setStockAdvice] = useState<string | null>(null);
@@ -125,11 +139,11 @@ const MarketplaceDashboard = () => {
 
   return (
     <DashboardLayout title={t('nav.dashboard')}>
-      <PageShell
+      <PageHeader
         title={t('marketplace.browseMarketplace')}
         subtitle={`Welcome, ${profile.name} - ${profile.company_name || profile.buyer_type}`}
         actions={
-          <Button onClick={() => navigate('/marketplace/browse')}>
+          <Button aria-label="Browse marketplace" onClick={() => navigate('/marketplace/browse')}>
             <ShoppingCart className="mr-2 h-4 w-4" />
             {t('marketplace.browseProducts')}
           </Button>
@@ -157,10 +171,7 @@ const MarketplaceDashboard = () => {
             </CardHeader>
             <CardContent>
               {freshProducts.length === 0 ? (
-                <div className="py-8 text-center text-muted-foreground">
-                  <Leaf className="mx-auto mb-3 h-12 w-12 opacity-50" />
-                  <p>{t('marketplace.noProductsFound')}</p>
-                </div>
+                <EmptyState icon={Leaf} title={t('marketplace.noProductsFound')} description={t('marketplace.tryDifferentFilters')} />
               ) : (
                 <div className="space-y-3">
                   {freshProducts.map((product) => (
@@ -194,11 +205,7 @@ const MarketplaceDashboard = () => {
             </CardHeader>
             <CardContent>
               {activeOrders.length === 0 ? (
-                <div className="py-8 text-center text-muted-foreground">
-                  <ShoppingCart className="mx-auto mb-3 h-12 w-12 opacity-50" />
-                  <p>{t('orders.noOrdersYet')}</p>
-                  <Button variant="link" onClick={() => navigate('/marketplace/browse')}>{t('marketplace.browseProducts')}</Button>
-                </div>
+                <EmptyState icon={ShoppingCart} title={t('orders.noOrdersYet')} description={t('marketplace.browseProducts')} actionLabel={t('marketplace.browseProducts')} onAction={() => navigate('/marketplace/browse')} />
               ) : (
                 <div className="space-y-3">
                   {activeOrders.map((order) => (
@@ -230,7 +237,7 @@ const MarketplaceDashboard = () => {
             <p className="text-muted-foreground">Get AI-powered recommendations based on market trends and your buyer profile.</p>
           )}
         </ActionPanel>
-      </PageShell>
+      </PageHeader>
     </DashboardLayout>
   );
 };

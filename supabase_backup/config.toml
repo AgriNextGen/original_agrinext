@@ -1,0 +1,102 @@
+project_id = "agrinextgen-mvp"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 15
+
+[studio]
+enabled = true
+port = 54323
+
+[inbucket]
+enabled = true
+port = 54324
+
+[auth]
+enabled = true
+site_url = "http://localhost:8080"
+additional_redirect_urls = ["http://localhost:8080"]
+jwt_expiry = 3600
+enable_signup = true
+
+[storage]
+enabled = true
+file_size_limit = "20MiB"
+
+# Edge Functions auth classification (verify_jwt = true by default)
+# Authenticated: accept-load, update-trip-status, agent-update-task-status, agent-update-crop-status, notify
+# Public/Webhook: send-sms (SMS hook), health (health check)
+[functions]
+verify_jwt = true
+
+[functions.send-sms]
+verify_jwt = false
+
+[functions.health]
+verify_jwt = false
+
+[functions.dev-create-acting-session]
+verify_jwt = true
+
+[functions.dev-revoke-acting-session]
+verify_jwt = true
+
+[functions.complete-role-onboard]
+verify_jwt = true
+[functions.storage-sign-upload-v1]
+verify_jwt = true
+
+[functions.storage-confirm-upload-v1]
+verify_jwt = true
+
+[functions.storage-sign-read-v1]
+verify_jwt = true
+[functions.storage-delete-v1]
+verify_jwt = true
+
+[functions.public-listing-trace]
+verify_jwt = false
+
+[functions."analytics-rollup-daily"]
+  path = "supabase/functions/analytics-rollup-daily"
+  verify_jwt = false
+
+[functions."analytics-rollup-manual"]
+  path = "supabase/functions/analytics-rollup-manual"
+  verify_jwt = true
+
+[functions."accept-load"]
+  path = "supabase/functions/accept-load"
+  verify_jwt = true
+
+[functions."update-trip-status"]
+  path = "supabase/functions/update-trip-status"
+  verify_jwt = true
+
+[functions."cancel-trip"]
+  path = "supabase/functions/cancel-trip"
+  verify_jwt = true
+
+[functions."place-order"]
+  path = "supabase/functions/place-order"
+  verify_jwt = true
+
+[functions."confirm-order"]
+  path = "supabase/functions/confirm-order"
+  verify_jwt = true
+
+[functions."reject-order"]
+  path = "supabase/functions/reject-order"
+  verify_jwt = true
+
+[functions."update-order-status"]
+  path = "supabase/functions/update-order-status"
+  verify_jwt = true

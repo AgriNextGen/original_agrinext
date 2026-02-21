@@ -267,13 +267,13 @@ export const useProofSignedUrl = (filePath: string | null) => {
     queryKey: ['proof-url', filePath],
     queryFn: async () => {
       if (!filePath) return null;
-
-      const { data, error } = await supabase.storage
-        .from('trip-proofs')
-        .createSignedUrl(filePath, 600); // 10 min expiry
-
+      // request signed read URL from Edge Function using file_id
+      const { data, error } = await supabase.functions.invoke('storage-sign-read-v1', {
+        body: { file_id: filePath },
+      });
       if (error) throw error;
-      return data.signedUrl;
+      if (data?.error) throw new Error(data.error);
+      return data.signed_read_url;
     },
     enabled: !!filePath,
     staleTime: 5 * 60 * 1000, // Cache for 5 min

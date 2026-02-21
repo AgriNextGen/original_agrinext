@@ -28,7 +28,8 @@ import { format, parseISO } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useLanguage } from '@/hooks/useLanguage';
-import PageShell from '@/components/layout/PageShell';
+import PageHeader from '@/components/shared/PageHeader';
+import EmptyState from '@/components/shared/EmptyState';
 import KpiCard from '@/components/dashboard/KpiCard';
 import ActionPanel from '@/components/dashboard/ActionPanel';
 
@@ -177,11 +178,11 @@ const LogisticsDashboard = () => {
 
   return (
     <DashboardLayout title={t('nav.dashboard')}>
-      <PageShell
+      <PageHeader
         title="Transporter Dashboard"
         subtitle={`Welcome back, ${profile.name} - ${profile.operating_village || 'Set your location'}`}
         actions={
-          <Button variant="outline" onClick={() => navigate('/logistics/profile')}>
+          <Button aria-label="Open profile" variant="outline" onClick={() => navigate('/logistics/profile')}>
             <User className="mr-2 h-4 w-4" />
             {t('nav.profile')}
           </Button>
@@ -211,9 +212,8 @@ const LogisticsDashboard = () => {
               {tripsLoading ? (
                 <div className="space-y-3">{[1, 2].map((i) => <Skeleton key={i} className="h-20" />)}</div>
               ) : !activeTrips || activeTrips.length === 0 ? (
-                <div className="py-8 text-center text-muted-foreground">
-                  <Truck className="mx-auto mb-3 h-12 w-12 opacity-50" />
-                  <p>{t('logistics.noActiveTrips')}</p>
+                <div className="p-4">
+                  <EmptyState icon={Truck} title={t('logistics.noActiveTrips')} description={''} />
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -252,9 +252,8 @@ const LogisticsDashboard = () => {
               {loadsLoading ? (
                 <div className="space-y-3">{[1, 2].map((i) => <Skeleton key={i} className="h-20" />)}</div>
               ) : !availableLoads || availableLoads.length === 0 ? (
-                <div className="py-8 text-center text-muted-foreground">
-                  <Package className="mx-auto mb-3 h-12 w-12 opacity-50" />
-                  <p>{t('logistics.noLoadsFound')}</p>
+                <div className="p-4">
+                  <EmptyState icon={Package} title={t('logistics.noLoadsFound')} description={''} />
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -297,7 +296,7 @@ const LogisticsDashboard = () => {
             </div>
           </div>
         </ActionPanel>
-      </PageShell>
+      </PageHeader>
     </DashboardLayout>
   );
 };

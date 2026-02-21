@@ -26,7 +26,8 @@ import {
   Minus,
   Sparkles,
   ShoppingCart,
-  Phone
+  Phone,
+  Loader2
 } from 'lucide-react';
 import { useProductDetail, useCreateOrder, useBuyerProfile } from '@/hooks/useMarketplaceDashboard';
 import { format, parseISO } from 'date-fns';
@@ -401,7 +402,7 @@ const ProductDetail = () => {
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsOrderOpen(false)}>Cancel</Button>
               <Button onClick={handlePlaceOrder} disabled={createOrder.isPending}>
-                {createOrder.isPending ? 'Placing...' : 'Place Order'}
+                {createOrder.isPending ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Placing...</> : 'Place Order'}
               </Button>
             </DialogFooter>
           </DialogContent>

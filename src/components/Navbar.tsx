@@ -10,6 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import DevRoleSwitcher from "@/components/dev/DevRoleSwitcher";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -75,6 +76,7 @@ const Navbar = () => {
 
           {/* Auth Buttons */}
           <div className="hidden md:flex items-center gap-3">
+            <DevRoleSwitcher />
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

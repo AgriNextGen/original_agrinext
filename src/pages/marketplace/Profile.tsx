@@ -17,6 +17,7 @@ import { User, Building, Save } from 'lucide-react';
 import { useBuyerProfile } from '@/hooks/useMarketplaceDashboard';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
+import GeoDistrictSelect from '@/components/geo/GeoDistrictSelect';
 import { toast } from 'sonner';
 
 const buyerTypes = [
@@ -135,12 +136,14 @@ const BuyerProfile = () => {
 
             <div className="space-y-2">
               <Label htmlFor="district">District</Label>
-              <Input
-                id="district"
-                value={formData.district}
-                onChange={(e) => setFormData(prev => ({ ...prev, district: e.target.value }))}
-                placeholder="Your district"
+              <GeoDistrictSelect
+                value=""
+                onValueChange={(id) => setFormData(prev => ({ ...prev, district: id }))}
+                placeholder={formData.district || 'Select district'}
               />
+              {formData.district && (
+                <p className="text-xs text-muted-foreground">Current: {formData.district}</p>
+              )}
             </div>
           </CardContent>
         </Card>

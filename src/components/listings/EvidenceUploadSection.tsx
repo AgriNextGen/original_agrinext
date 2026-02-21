@@ -199,10 +199,32 @@ const EvidenceUploadSection = ({ listingId, cropId }: EvidenceUploadSectionProps
   };
 
   // Get signed URL for preview (crop-media bucket)
-  const getCropMediaUrl = (path: string) => {
-    const { data } = supabase.storage.from('crop-media').getPublicUrl(path);
-    return data?.publicUrl || '';
-  };
+  // Thumbnail component that prefers signed-read for file_id (UUID), falls back to publicUrl
+  function CropMediaThumb({ path, alt }: { path: string; alt?: string }) {
+    const [url, setUrl] = useState<string>('');
+
+    useEffect(() => {
+      let mounted = true;
+      const isUuid = /^[0-9a-fA-F-]{36}$/.test(path);
+      if (isUuid) {
+        // Try signed read via Edge function
+        (async () => {
+          try {
+            const { data } = await supabase.functions.invoke('storage-sign-read-v1', { body: { file_id: path } });
+            if (mounted && data?.signed_read_url) setUrl(data.signed_read_url);
+          } catch (e) {
+            console.warn('storage-sign-read-v1 failed:', e);
+          }
+        })();
+      } else {
+        const { data } = supabase.storage.from('crop-media').getPublicUrl(path);
+        if (data?.publicUrl) setUrl(data.publicUrl);
+      }
+      return () => { mounted = false; };
+    }, [path]);
+
+    return <img src={url} alt={alt || 'Crop photo'} className="w-full h-20 object-cover" />;
+  }
 
   return (
     <div className="space-y-4 p-4 rounded-lg border border-border bg-muted/20">
@@ -268,11 +290,7 @@ const EvidenceUploadSection = ({ listingId, cropId }: EvidenceUploadSectionProps
                       }`}
                       onClick={() => !alreadyLinked && toggleDiarySelection(photo.id)}
                     >
-                      <img
-                        src={getCropMediaUrl(photo.file_path)}
-                        alt={photo.caption || 'Crop photo'}
-                        className="w-full h-20 object-cover"
-                      />
+                      <CropMediaThumb path={photo.file_path} alt={photo.caption || 'Crop photo'} />
                       {alreadyLinked && (
                         <div className="absolute inset-0 flex items-center justify-center bg-background/60">
                           <Badge variant="secondary" className="text-[10px]">Linked</Badge>

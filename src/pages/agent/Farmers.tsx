@@ -37,6 +37,8 @@ import {
   Loader2,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import PageHeader from '@/components/shared/PageHeader';
+import EmptyState from '@/components/shared/EmptyState';
 
 const AgentFarmers = () => {
   const { user } = useAuth();
@@ -136,19 +138,8 @@ const AgentFarmers = () => {
 
   return (
     <DashboardLayout title={language === 'kn' ? 'ರೈತ ಡೈರೆಕ್ಟರಿ' : 'Farmer Directory'}>
+      <PageHeader title={language === 'kn' ? 'ರೈತ ಡೈರೆಕ್ಟರಿ' : 'Farmer Directory'} subtitle={language === 'kn' ? 'ನಿಮ್ಮ ಜಿಲ್ಲೆಯ ರೈತರನ್ನು ಹುಡುಕಿ ಮತ್ತು ನಿಯೋಜಿಸಿ' : 'Find and assign farmers in your district'}>
       <div className="space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Users className="h-6 w-6 text-primary" />
-            {language === 'kn' ? 'ರೈತ ಡೈರೆಕ್ಟರಿ' : 'Farmer Directory'}
-          </h1>
-          <p className="text-muted-foreground">
-            {language === 'kn'
-              ? 'ನಿಮ್ಮ ಜಿಲ್ಲೆಯ ರೈತರನ್ನು ಹುಡುಕಿ ಮತ್ತು ನಿಯೋಜಿಸಿ'
-              : 'Find and assign farmers in your district'}
-          </p>
-        </div>
 
         {/* Search + Village Filter */}
         <div className="flex flex-col sm:flex-row gap-3">
@@ -228,13 +219,12 @@ const AgentFarmers = () => {
                     <TableBody>
                       {filteredFarmers.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={6} className="text-center py-12">
-                            <Users className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
-                            <p className="text-muted-foreground">
-                              {language === 'kn'
-                                ? 'ಯಾವುದೇ ರೈತರು ಕಂಡುಬಂದಿಲ್ಲ'
-                                : 'No farmers found'}
-                            </p>
+                          <TableCell colSpan={6} className="p-0">
+                            <EmptyState
+                              icon={Users}
+                              title={language === 'kn' ? 'ಯಾವುದೇ ರೈತರು ಕಂಡುಬಂದಿಲ್ಲ' : 'No farmers found'}
+                              description={language === 'kn' ? 'ಯಾವುದೇ ರೈತರು ಲಭ್ಯವಿಲ್ಲ' : 'No farmers found for your filters.'}
+                            />
                           </TableCell>
                         </TableRow>
                       ) : (
@@ -305,6 +295,7 @@ const AgentFarmers = () => {
           </TabsContent>
         </Tabs>
       </div>
+      </PageHeader>
     </DashboardLayout>
   );
 };

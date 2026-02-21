@@ -4,7 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import PageShell from '@/components/layout/PageShell';
+import PageHeader from '@/components/shared/PageHeader';
+import EmptyState from '@/components/shared/EmptyState';
+import { useLanguage } from '@/hooks/useLanguage';
 import { 
   Search, 
   Filter,
@@ -47,6 +49,7 @@ const statusConfig: Record<OrderStatus, { label: string; icon: typeof Clock; col
 };
 
 const FarmerOrders = () => {
+  const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedOrder, setSelectedOrder] = useState<ReturnType<typeof useFarmerOrders>['data'] extends (infer T)[] | undefined ? T : never | null>(null);
@@ -78,6 +81,43 @@ const FarmerOrders = () => {
     setIsDetailOpen(true);
   };
 
+  // timeline state
+  const [timeline, setTimeline] = useState<any[]>([]);
+  const fetchTimeline = async (orderId: string) => {
+    try {
+      const { data, error } = await (await import('@/integrations/supabase/client')).supabase.rpc('get_order_timeline_v1', { p_order_id: orderId });
+      if (error) throw error;
+      setTimeline(data || []);
+    } catch (err) {
+      console.error('Failed to load timeline', err);
+      setTimeline([]);
+    }
+  };
+ 
+  const viewProof = async (fileId: string | null) => {
+    if (!fileId) return;
+    try {
+      const { supabase } = await import('@/integrations/supabase/client');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/storage-sign-read-v1`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        },
+        body: JSON.stringify({ file_id: fileId }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json?.signed_url) throw new Error(json?.error || 'Failed to sign read url');
+      window.open(json.signed_url, '_blank');
+    } catch (err) {
+      console.error('viewProof error', err);
+      toast.error('Unable to open proof file');
+    }
+  };
+
   const handleStatusUpdate = (newStatus: string) => {
     if (!selectedOrder) return;
     updateStatus.mutate(
@@ -88,7 +128,7 @@ const FarmerOrders = () => {
 
   if (isLoading) {
     return (
-      <DashboardLayout title="Orders">
+      <DashboardLayout title={t('orders.title')}>
         <div className="space-y-6">
           <Skeleton className="h-10 w-full max-w-md" />
           <Skeleton className="h-12 w-full" />
@@ -103,14 +143,14 @@ const FarmerOrders = () => {
   }
 
   return (
-    <DashboardLayout title="Orders">
-      <PageShell title="Orders" subtitle="View and manage incoming buyer orders">
+    <DashboardLayout title={t('orders.title')}>
+      <PageHeader title={t('orders.title')} subtitle={t('orders.subtitle') || 'View and manage incoming buyer orders'}>
         {/* Header Actions */}
         <div className="flex flex-col sm:flex-row gap-4 justify-between">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search orders..."
+              placeholder={t('common.search')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9"
@@ -198,10 +238,17 @@ const FarmerOrders = () => {
                         {order.price_offered ? `₹${order.price_offered.toLocaleString()}` : '-'}
                       </td>
                       <td className="px-6 py-4">
-                        <Badge variant="outline" className={cn('gap-1', config.color)}>
-                          <StatusIcon className="h-3 w-3" />
-                          {config.label}
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className={cn('gap-1', config.color)}>
+                            <StatusIcon className="h-3 w-3" />
+                            {config.label}
+                          </Badge>
+                          {order.payout_hold && (
+                            <Badge className="bg-yellow-100 text-yellow-800">
+                              Payout hold
+                            </Badge>
+                          )}
+                        </div>
                       </td>
                       <td className="px-6 py-4 text-sm text-muted-foreground">
                         {format(new Date(order.created_at), 'dd MMM yyyy')}
@@ -224,15 +271,11 @@ const FarmerOrders = () => {
             </table>
           </div>
           {filteredOrders.length === 0 && (
-            <div className="p-12 text-center">
-              <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="font-display font-semibold text-lg text-foreground mb-2">No orders found</h3>
-              <p className="text-muted-foreground">
-                {orders?.length === 0 
-                  ? "You haven't received any orders yet." 
-                  : "No orders match your search criteria."}
-              </p>
-            </div>
+            <EmptyState
+              icon={Package}
+              title={orders?.length === 0 ? t('orders.noOrdersYet') : t('common.noResultsFound')}
+              description={orders?.length === 0 ? t('orders.noOrdersYet') : t('common.tryAgain')}
+            />
           )}
         </div>
 
@@ -285,7 +328,7 @@ const FarmerOrders = () => {
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center justify-between pt-4 border-t border-border">
+                  <div className="flex items-center justify-between pt-4 border-t border-border">
                   <div>
                     <p className="text-xs text-muted-foreground">Current Status</p>
                     <Badge 
@@ -297,12 +340,19 @@ const FarmerOrders = () => {
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Payment</p>
-                    <Badge 
-                      variant={selectedOrder.payment_status === 'paid' ? 'default' : 'secondary'} 
-                      className="mt-1"
-                    >
-                      {selectedOrder.payment_status || 'pending'}
-                    </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge 
+                          variant={selectedOrder.payment_status === 'paid' ? 'default' : 'secondary'} 
+                          className="mt-1"
+                        >
+                          {selectedOrder.payment_status || 'pending'}
+                        </Badge>
+                        {selectedOrder.payout_hold && (
+                          <Badge className="bg-yellow-100 text-yellow-800 mt-1">
+                            Payout hold
+                          </Badge>
+                        )}
+                      </div>
                   </div>
                 </div>
                 {selectedOrder.notes && (
@@ -313,6 +363,38 @@ const FarmerOrders = () => {
                 )}
               </div>
             )}
+            {/* Timeline */}
+            <div className="pt-4 border-t border-border">
+            <h4 className="text-sm font-medium mb-3">Timeline</h4>
+            {timeline.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No events yet</p>
+            ) : (
+              <ol className="relative border-l border-muted/50 ml-2">
+                {timeline.map((e: any) => (
+                  <li key={e.event_id} className="mb-6 ml-6">
+                    <span className="absolute -left-3 flex h-6 w-6 items-center justify-center rounded-full bg-white ring-2 ring-primary">
+                      <svg className="h-3 w-3 text-primary" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" /></svg>
+                    </span>
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <div>{new Date(e.created_at).toLocaleString()}</div>
+                      <div className="ml-2">{e.event_type}</div>
+                    </div>
+                    <div className="mt-1 text-sm">
+                      <div className="text-xs text-muted-foreground mb-1">{JSON.stringify(e.payload)}</div>
+                      {/* If payload contains proof_file_id show view button */}
+                      {((e.payload && (e.payload.proof_file_id || e.payload.proof || e.payload.file_id)) || (e.payload && e.payload.file_id)) && (
+                        <div className="mt-2">
+                          <Button size="sm" variant="outline" onClick={() => viewProof(e.payload.proof_file_id || e.payload.file_id || e.payload.proof)}>
+                            View proof
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            )}
+            </div>
             <DialogFooter className="flex-col sm:flex-row gap-2">
               {selectedOrder?.status === 'pending' && (
                 <>

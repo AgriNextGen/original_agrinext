@@ -13,14 +13,16 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
-import PageShell from '@/components/layout/PageShell';
+import PageHeader from '@/components/shared/PageHeader';
 import DataState from '@/components/ui/DataState';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Truck, MapPin, Calendar, Package, Clock, CheckCircle2, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import ConfirmDialog from '@/components/ui/confirm-dialog';
-import EmptyState from '@/components/farmer/EmptyState';
+import EmptyState from '@/components/shared/EmptyState';
+import { useToast } from '@/hooks/use-toast';
 import HelpTooltip from '@/components/farmer/HelpTooltip';
+import GeoDistrictSelect from '@/components/geo/GeoDistrictSelect';
 
 const TransportPage = () => {
   const { data: requests, isLoading } = useTransportRequests();
@@ -36,6 +38,7 @@ const TransportPage = () => {
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
   const [cancellingRequest, setCancellingRequest] = useState<{ id: string; cropName: string } | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [formData, setFormData] = useState({
     crop_id: '',
@@ -46,6 +49,8 @@ const TransportPage = () => {
     preferred_date: '',
     preferred_time: '',
     notes: '',
+    origin_district_id: '',
+    dest_district_id: '',
   });
 
   const statusConfig = {
@@ -84,6 +89,7 @@ const TransportPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user?.id) return;
+    setIsSubmitting(true);
 
     try {
       const { error } = await supabase.from('transport_requests').insert({
@@ -96,6 +102,8 @@ const TransportPage = () => {
         preferred_date: formData.preferred_date || null,
         preferred_time: formData.preferred_time || null,
         notes: formData.notes || null,
+        origin_district_id: formData.origin_district_id || null,
+        dest_district_id: formData.dest_district_id || null,
       });
 
       if (error) throw error;
@@ -111,11 +119,15 @@ const TransportPage = () => {
         preferred_date: '',
         preferred_time: '',
         notes: '',
+        origin_district_id: '',
+        dest_district_id: '',
       });
       queryClient.invalidateQueries({ queryKey: ['transport-requests', user.id] });
     } catch (error) {
       const message = error instanceof Error ? error.message : t('common.error');
       toast({ title: t('common.error'), description: message, variant: 'destructive' });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -156,7 +168,7 @@ const TransportPage = () => {
 
   return (
     <DashboardLayout title={t('farmer.transport.title')}>
-      <PageShell title={t('farmer.transport.title')}>
+      <PageHeader title={t('farmer.transport.title')}>
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card>
@@ -236,7 +248,7 @@ const TransportPage = () => {
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button size="lg">
+              <Button size="lg" variant="default">
                 <Plus className="h-4 w-4 mr-2" />
                 {t('farmer.transport.newRequest')}
               </Button>
@@ -317,6 +329,24 @@ const TransportPage = () => {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
+                    <Label>{t('farmer.transport.pickupLocation')} District</Label>
+                    <GeoDistrictSelect
+                      value={formData.origin_district_id}
+                      onValueChange={(v) => setFormData({ ...formData, origin_district_id: v })}
+                      placeholder="Origin district"
+                    />
+                  </div>
+                  <div>
+                    <Label>Destination District</Label>
+                    <GeoDistrictSelect
+                      value={formData.dest_district_id}
+                      onValueChange={(v) => setFormData({ ...formData, dest_district_id: v })}
+                      placeholder="Dest district"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
                     <Label>{t('farmer.transport.preferredDate')}</Label>
                     <Input
                       type="date"
@@ -352,7 +382,9 @@ const TransportPage = () => {
                     rows={2}
                   />
                 </div>
-                <Button type="submit" className="w-full" size="lg">{t('farmer.transport.submitRequest')}</Button>
+                <Button type="submit" variant="default" className="w-full" size="lg" disabled={isSubmitting}>
+                  {isSubmitting ? t('common.saving') : t('farmer.transport.submitRequest')}
+                </Button>
               </form>
             </DialogContent>
           </Dialog>
@@ -444,7 +476,7 @@ const TransportPage = () => {
             })}
           </div>
         )}
-      </PageShell>
+      </PageHeader>
 
       <ConfirmDialog
         open={cancelConfirmOpen}

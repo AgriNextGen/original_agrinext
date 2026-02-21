@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
-import PageShell from '@/components/layout/PageShell';
+import PageHeader from '@/components/shared/PageHeader';
 import DataState from '@/components/ui/DataState';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Search, Sprout, Calendar, MapPin, Scale, Edit, Trash2, Truck, BookOpen } from 'lucide-react';
@@ -21,7 +21,7 @@ import { format } from 'date-fns';
 import EditCropDialog from '@/components/farmer/EditCropDialog';
 import RequestTransportDialog from '@/components/farmer/RequestTransportDialog';
 import ConfirmDialog from '@/components/ui/confirm-dialog';
-import EmptyState from '@/components/farmer/EmptyState';
+import EmptyState from '@/components/shared/EmptyState';
 import HelpTooltip from '@/components/farmer/HelpTooltip';
 
 const CropsPage = () => {
@@ -34,6 +34,7 @@ const CropsPage = () => {
   const navigate = useNavigate();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [editingCrop, setEditingCrop] = useState<(Crop & { farmland: Farmland | null }) | null>(null);
@@ -80,6 +81,7 @@ const CropsPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user?.id) return;
+    setIsSubmitting(true);
 
     try {
       const { error } = await supabase.from('crops').insert({
@@ -112,6 +114,8 @@ const CropsPage = () => {
     } catch (error) {
       const message = error instanceof Error ? error.message : t('common.error');
       toast({ title: t('common.error'), description: message, variant: 'destructive' });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -141,7 +145,7 @@ const CropsPage = () => {
 
   return (
     <DashboardLayout title={t('farmer.crops.title')}>
-      <PageShell title={t('farmer.crops.title')}>
+      <PageHeader title={t('farmer.crops.title')}>
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           <Card 
@@ -337,7 +341,9 @@ const CropsPage = () => {
                     </Select>
                   </div>
                 </div>
-                <Button type="submit" className="w-full" size="lg">{t('farmer.crops.addCrop')}</Button>
+                <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
+                  {isSubmitting ? t('common.saving') : t('farmer.crops.addCrop')}
+                </Button>
               </form>
             </DialogContent>
           </Dialog>
@@ -413,19 +419,20 @@ const CropsPage = () => {
                         <BookOpen className="h-4 w-4 mr-1" />
                         {t('farmer.crops.diary')}
                       </Button>
-                      <Button variant="outline" size="sm" onClick={() => {
+                      <Button aria-label={`Edit ${crop.crop_name}`} variant="outline" size="sm" onClick={() => {
                         setEditingCrop(crop);
                         setEditDialogOpen(true);
                       }}>
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button variant="outline" size="sm" onClick={() => {
+                      <Button aria-label={`Request transport for ${crop.crop_name}`} variant="outline" size="sm" onClick={() => {
                         setTransportCrop(crop);
                         setTransportDialogOpen(true);
                       }}>
                         <Truck className="h-4 w-4" />
                       </Button>
                       <Button 
+                        aria-label={`Delete ${crop.crop_name}`}
                         variant="outline" 
                         size="sm" 
                         className="text-destructive hover:text-destructive hover:bg-destructive/10"
@@ -441,6 +448,8 @@ const CropsPage = () => {
           </div>
         )}
       </PageShell>
+
+      </PageHeader>
 
       <EditCropDialog
         crop={editingCrop}

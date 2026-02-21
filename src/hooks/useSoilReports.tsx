@@ -167,13 +167,14 @@ export const useDeleteSoilReport = () => {
 
   return useMutation({
     mutationFn: async ({ report }: { report: SoilTestReport }) => {
-      // Delete from storage first
-      const { error: storageError } = await supabase.storage
-        .from('soil-reports')
-        .remove([report.report_file_path]);
-
-      if (storageError) {
-        console.warn('Storage delete warning:', storageError);
+      // Delete from storage via Edge function (service-role)
+      try {
+        const { error: delErr } = await supabase.functions.invoke('storage-delete-v1', {
+          body: { bucket: 'soil-reports', path: report.report_file_path },
+        });
+        if (delErr) console.warn('storage-delete-v1 warning:', delErr);
+      } catch (e) {
+        console.warn('storage-delete-v1 failed:', e);
       }
 
       // Delete from database
@@ -204,6 +205,13 @@ export const useSignedUrl = (filePath: string | null) => {
     queryKey: ['signed-url', filePath],
     queryFn: async () => {
       if (!filePath) return null;
+      const isUuid = /^[0-9a-fA-F-]{36}$/.test(filePath);
+      if (isUuid) {
+        const { data, error } = await supabase.functions.invoke('storage-sign-read-v1', { body: { file_id: filePath } });
+        if (error) throw error;
+        if (data?.error) throw new Error(data.error);
+        return data.signed_read_url;
+      }
 
       const { data, error } = await supabase.storage
         .from('soil-reports')

@@ -39,10 +39,13 @@ import {
   Calendar,
   Package,
   Search,
-  Filter
+  Filter,
+  Loader2
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { toast } from 'sonner';
+import PageHeader from '@/components/shared/PageHeader';
+import EmptyState from '@/components/shared/EmptyState';
 
 const statusColors: Record<string, string> = {
   requested: 'bg-amber-100 text-amber-800',
@@ -62,6 +65,7 @@ const AgentTransport = () => {
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [newRequest, setNewRequest] = useState({
     farmer_id: '',
@@ -87,6 +91,7 @@ const AgentTransport = () => {
     }
     
     try {
+      setIsSubmitting(true);
       const { error } = await supabase.from('transport_requests').insert({
         farmer_id: newRequest.farmer_id,
         crop_id: newRequest.crop_id || null,
@@ -112,6 +117,8 @@ const AgentTransport = () => {
     } catch (error) {
       toast.error('Failed to create request');
       console.error(error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -136,20 +143,11 @@ const AgentTransport = () => {
 
   return (
     <DashboardLayout title="Transport">
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Truck className="h-6 w-6 text-primary" />
-              Transport Requests
-            </h1>
-            <p className="text-muted-foreground">Manage transport and pickup requests</p>
-          </div>
-          
+      <PageHeader title="Transport Requests" subtitle="Manage transport and pickup requests">
+
           <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
             <DialogTrigger asChild>
-              <Button>
+              <Button variant="default">
                 <Plus className="h-4 w-4 mr-2" />
                 New Request
               </Button>
@@ -228,14 +226,13 @@ const AgentTransport = () => {
                   />
                 </div>
                 
-                <Button onClick={handleCreateRequest} className="w-full">
-                  Create Request
+                <Button variant="default" onClick={handleCreateRequest} className="w-full" disabled={isSubmitting}>
+                  {isSubmitting ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Creating...</> : 'Create Request'}
                 </Button>
               </div>
             </DialogContent>
           </Dialog>
         </div>
-
         {/* Filters */}
         <Card>
           <CardContent className="py-4">
@@ -290,9 +287,14 @@ const AgentTransport = () => {
                 <TableBody>
                   {filteredRequests?.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-12">
-                        <Truck className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
-                        <p className="text-muted-foreground">No transport requests found</p>
+                      <TableCell colSpan={7} className="p-0">
+                        <EmptyState
+                          icon={Truck}
+                          title={'No transport requests found'}
+                          description={'Create a transport request to get started.'}
+                          actionLabel={'New Request'}
+                          onAction={() => setIsCreateOpen(true)}
+                        />
                       </TableCell>
                     </TableRow>
                   ) : (

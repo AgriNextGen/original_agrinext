@@ -2,7 +2,13 @@
 -- profile_id and user_id hold same value (auth.users.id)
 do $$
 begin
-  if exists (select 1 from information_schema.columns where table_schema='public' and table_name='notifications' and column_name='profile_id') then
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema='public' and table_name='notifications' and column_name='profile_id'
+  ) and not exists (
+    select 1 from information_schema.columns
+    where table_schema='public' and table_name='notifications' and column_name='user_id'
+  ) then
     alter table public.notifications rename column profile_id to user_id;
     drop index if exists public.idx_notifications_profile_id;
     create index if not exists idx_notifications_user_id on public.notifications(user_id);

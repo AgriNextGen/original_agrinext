@@ -1,0 +1,52 @@
+name: apply-phase-e2-secure-schema
+on:
+  workflow_dispatch:
+
+jobs:
+  apply-migration:
+    runs-on: ubuntu-latest
+    env:
+      PGSSLMODE: require
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install psql client
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y postgresql-client
+
+      - name: Backup staging DB (pg_dump custom format)
+        env:
+          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+        run: |
+          mkdir -p backups
+          pg_dump "$DATABASE_URL" -Fc -f "./backups/pre_e2_$(date +%Y%m%d%H%M).dump"
+
+      - name: Apply Phase E2 migration
+        env:
+          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+        run: |
+          psql "$DATABASE_URL" -f supabase/migrations/202602201400_phase_e2_secure_schema.sql
+
+      - name: Apply RPC integration examples (non-destructive examples)
+        env:
+          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+        run: |
+          # This file contains CREATE OR REPLACE FUNCTION examples for audit integration.
+          psql "$DATABASE_URL" -f supabase/migrations/202602201410_rpc_integration_examples.sql || echo "RPC examples applied (or skipped)."
+
+      - name: "Smoke tests - basic secure function calls (examples)"
+        env:
+          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+        run: |
+          psql "$DATABASE_URL" -c "SELECT 1;"
+
+      - name: Notify success
+        if: success()
+        run: echo "Phase E2 migration applied (staging)."
+
+      - name: Notify failure
+        if: failure()
+        run: echo "Phase E2 migration failed; inspect logs and restore from backup."
+

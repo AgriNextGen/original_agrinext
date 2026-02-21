@@ -135,6 +135,15 @@ export const useCropActivityLogs = (cropId: string | undefined, limit = 50) => {
 export const useSignedUrl = () => {
   return useMutation({
     mutationFn: async (filePath: string) => {
+      // If filePath is a file_id (UUID), use Edge function to authorize read
+      const isUuid = /^[0-9a-fA-F-]{36}$/.test(filePath);
+      if (isUuid) {
+        const { data, error } = await supabase.functions.invoke('storage-sign-read-v1', { body: { file_id: filePath } });
+        if (error) throw error;
+        if (data?.error) throw new Error(data.error);
+        return data.signed_read_url;
+      }
+
       const { data, error } = await supabase.storage
         .from('crop-media')
         .createSignedUrl(filePath, 600); // 10 min TTL
@@ -416,9 +425,16 @@ export const useDeleteCropMedia = () => {
 
   return useMutation({
     mutationFn: async ({ mediaId, filePath, cropId }: { mediaId: string; filePath: string; cropId: string }) => {
-      // Delete from storage
-      await supabase.storage.from('crop-media').remove([filePath]);
-      
+      // Delete from storage via Edge function (service-role cleanup)
+      try {
+        const { error: delErr } = await supabase.functions.invoke('storage-delete-v1', {
+          body: { bucket: 'crop-media', path: filePath },
+        });
+        if (delErr) console.warn('storage-delete-v1 warning:', delErr);
+      } catch (e) {
+        console.warn('storage-delete-v1 failed:', e);
+      }
+
       // Delete from database
       const { error } = await supabase.from('crop_media').delete().eq('id', mediaId);
       if (error) throw error;

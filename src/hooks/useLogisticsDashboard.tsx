@@ -290,18 +290,24 @@ export const useAITransportLogs = () => {
 };
 
 // Hook to get dashboard stats
+import { rpcJson } from '@/lib/readApi';
+
 export const useLogisticsDashboardStats = () => {
-  const { data: transporter } = useTransporterProfile();
-  const { data: availableLoads } = useAvailableLoads();
-  const { data: activeTrips } = useActiveTrips();
-  const { data: completedTrips } = useCompletedTrips();
-  
-  const stats = {
-    availableLoads: availableLoads?.length || 0,
-    acceptedTrips: activeTrips?.filter(t => t.status === 'assigned').length || 0,
-    tripsInProgress: activeTrips?.filter(t => ['en_route', 'picked_up'].includes(t.status)).length || 0,
-    completedTrips: completedTrips?.length || 0,
-  };
-  
-  return { stats, transporter };
+  const q = useQuery({
+    queryKey: ['logistics-dashboard'],
+    queryFn: async () => {
+      const data = await rpcJson('logistics_dashboard_v1');
+      return {
+        stats: {
+          availableLoads: Number(data?.available_loads_count || 0),
+          acceptedTrips: 0,
+          tripsInProgress: Number((data?.trips_by_status && data.trips_by_status['en_route']) || 0),
+          completedTrips: Number((data?.trips_by_status && data.trips_by_status['delivered']) || 0),
+        },
+        transporter: null,
+        raw: data
+      };
+    }
+  });
+  return q.data || { stats: { availableLoads:0, acceptedTrips:0, tripsInProgress:0, completedTrips:0 }, transporter: null };
 };

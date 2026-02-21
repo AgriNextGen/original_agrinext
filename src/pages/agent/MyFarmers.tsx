@@ -26,6 +26,8 @@ import {
 } from 'lucide-react';
 import { useAssignedFarmers, useStartVisit, useActiveVisit } from '@/hooks/useAgentAssignments';
 import { useLanguage } from '@/hooks/useLanguage';
+import PageHeader from '@/components/shared/PageHeader';
+import EmptyState from '@/components/shared/EmptyState';
 import { toast } from 'sonner';
 
 export default function AgentMyFarmers() {
@@ -60,19 +62,8 @@ export default function AgentMyFarmers() {
     <DashboardLayout
       title={language === 'kn' ? 'ನನ್ನ ರೈತರು' : 'My Farmers'}
     >
+      <PageHeader title={language === 'kn' ? 'ನನ್ನ ರೈತರು' : 'My Farmers'} subtitle={language === 'kn' ? 'ನಿಮಗೆ ನಿಯೋಜಿಸಲಾದ ರೈತರು' : 'Farmers assigned to you'}>
       <div className="space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Users className="h-6 w-6 text-primary" />
-            {language === 'kn' ? 'ನನ್ನ ರೈತರು' : 'My Farmers'}
-          </h1>
-          <p className="text-muted-foreground">
-            {language === 'kn'
-              ? 'ನಿಮಗೆ ನಿಯೋಜಿಸಲಾದ ರೈತರು'
-              : 'Farmers assigned to you'}
-          </p>
-        </div>
 
         {/* Active Visit Banner */}
         {activeVisit && (
@@ -172,13 +163,12 @@ export default function AgentMyFarmers() {
                 <TableBody>
                   {filteredFarmers?.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-12">
-                        <Users className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
-                        <p className="text-muted-foreground">
-                          {language === 'kn'
-                            ? 'ಯಾವುದೇ ರೈತರು ಕಂಡುಬಂದಿಲ್ಲ'
-                            : 'No farmers found'}
-                        </p>
+                      <TableCell colSpan={6} className="p-0">
+                        <EmptyState
+                          icon={Users}
+                          title={language === 'kn' ? 'ಯಾವುದೇ ರೈತರು ಕಂಡುಬಂದಿಲ್ಲ' : 'No farmers found'}
+                          description={language === 'kn' ? 'ನಿಮಗೆ ಯಾವುದೇ ರೈತರು ನಿಯೋಜಿಸಲಿಲ್ಲ.' : 'No farmers assigned to you yet.'}
+                        />
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -260,6 +250,7 @@ export default function AgentMyFarmers() {
           </CardContent>
         </Card>
       </div>
+      </PageHeader>
     </DashboardLayout>
   );
 }

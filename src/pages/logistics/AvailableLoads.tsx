@@ -21,8 +21,10 @@ import {
 } from '@/components/ui/dialog';
 import { Package, MapPin, Calendar, Search, Check, X, User, Loader2 } from 'lucide-react';
 import { useAvailableLoads, useVehicles } from '@/hooks/useLogisticsDashboard';
+import { useTransportRequestsInfinite } from '@/hooks/useTransportRequests';
 import { useAcceptLoadSecure } from '@/hooks/useTrips';
 import { format, parseISO } from 'date-fns';
+import { useLanguage } from '@/hooks/useLanguage';
 import {
   Select,
   SelectContent,
@@ -37,15 +39,18 @@ import DataState from '@/components/ui/DataState';
 
 const AvailableLoads = () => {
   const { data: loads, isLoading } = useAvailableLoads();
+  const { t } = useLanguage();
   const { data: vehicles } = useVehicles();
   const acceptLoad = useAcceptLoadSecure();
+  const { data: pages, isLoading: infiniteLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useTransportRequestsInfinite();
+  const allLoads = pages ? pages.pages.flatMap((p: any) => p.items || []) : (loads || []);
   
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLoad, setSelectedLoad] = useState<string | null>(null);
   const [selectedVehicle, setSelectedVehicle] = useState<string>('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const filteredLoads = loads?.filter(load => {
+  const filteredLoads = allLoads?.filter(load => {
     const query = searchQuery.toLowerCase();
     return (
       load.farmer?.full_name?.toLowerCase().includes(query) ||
@@ -198,6 +203,15 @@ const AvailableLoads = () => {
                   ))}
                 </TableBody>
               </Table>
+            </div>
+            <div className="mt-4 text-center">
+              {hasNextPage ? (
+                <Button variant="outline" onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>
+                  {isFetchingNextPage ? t('common.loading') : t('common.loadMore')}
+                </Button>
+              ) : (
+                <div className="text-sm text-muted-foreground">{t('common.noMoreItems')}</div>
+              )}
             </div>
           </DataState>
         </CardContent>

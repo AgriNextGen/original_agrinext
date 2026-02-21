@@ -21,6 +21,8 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { format } from 'date-fns';
+import PageHeader from '@/components/shared/PageHeader';
+import { useLanguage } from '@/hooks/useLanguage';
 import CropPhotoUploadDialog from '@/components/crop-diary/CropPhotoUploadDialog';
 import CropActivityLogDialog from '@/components/crop-diary/CropActivityLogDialog';
 import CropDiseaseReportDialog from '@/components/crop-diary/CropDiseaseReportDialog';
@@ -43,6 +45,7 @@ const healthStatusConfig = {
 
 const CropDiaryPage = () => {
   const { cropId } = useParams<{ cropId: string }>();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const { data: crop, isLoading } = useCropDetail(cropId);
   const updateGrowthMutation = useUpdateGrowthStage();
@@ -65,7 +68,7 @@ const CropDiaryPage = () => {
 
   if (!crop) {
     return (
-      <DashboardLayout title="Crop Diary">
+      <DashboardLayout title={t('cropDiary.title')}>
         <div className="text-center py-12">
           <Sprout className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
           <h2 className="text-xl font-semibold mb-2">Crop not found</h2>
@@ -85,7 +88,8 @@ const CropDiaryPage = () => {
   const HealthIcon = healthConfig.icon;
 
   return (
-    <DashboardLayout title="Crop Diary">
+    <DashboardLayout title={t('cropDiary.title')}>
+      <PageHeader title={t('cropDiary.title')}>
       <div className="space-y-6">
         {/* Back Button */}
         <Button variant="ghost" onClick={() => navigate('/farmer/crops')} className="gap-2">
@@ -224,6 +228,7 @@ const CropDiaryPage = () => {
           onOpenChange={setDiseaseDialogOpen}
         />
       </div>
+      </PageHeader>
     </DashboardLayout>
   );
 };

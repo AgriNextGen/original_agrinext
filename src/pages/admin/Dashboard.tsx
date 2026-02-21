@@ -24,7 +24,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 import { useLanguage } from '@/hooks/useLanguage';
-import PageShell from '@/components/layout/PageShell';
+import PageHeader from '@/components/shared/PageHeader';
+import EmptyState from '@/components/shared/EmptyState';
 import KpiCard from '@/components/dashboard/KpiCard';
 import ActionPanel from '@/components/dashboard/ActionPanel';
 
@@ -73,7 +74,7 @@ const AdminDashboard = () => {
 
   return (
     <DashboardLayout title={t('admin.commandCenter')}>
-      <PageShell
+      <PageHeader
         title={t('admin.commandCenter')}
         subtitle={t('admin.completeVisibility')}
         actions={
@@ -82,7 +83,7 @@ const AdminDashboard = () => {
               <Radio className="h-4 w-4 animate-pulse text-emerald-600" />
               <span className="text-sm font-medium text-emerald-700 dark:text-emerald-400">{t('common.live')}</span>
             </div>
-            <Button onClick={() => refetchStats()} variant="outline" size="sm">
+            <Button aria-label="Refresh stats" onClick={() => refetchStats()} variant="outline" size="sm">
               <RefreshCw className="mr-2 h-4 w-4" />
               {t('common.refresh')}
             </Button>
@@ -138,7 +139,7 @@ const AdminDashboard = () => {
                       <span className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(activity.time), { addSuffix: true })}</span>
                     </div>
                   ))}
-                  {!recentActivity?.length && <p className="py-8 text-center text-muted-foreground">{t('dashboard.noRecentActivity')}</p>}
+                  {!recentActivity?.length && <EmptyState icon={Activity} title={t('dashboard.noRecentActivity')} description={''} />}
                 </div>
               )}
             </CardContent>
@@ -172,7 +173,7 @@ const AdminDashboard = () => {
             </div>
           ) : null}
         </ActionPanel>
-      </PageShell>
+      </PageHeader>
     </DashboardLayout>
   );
 };

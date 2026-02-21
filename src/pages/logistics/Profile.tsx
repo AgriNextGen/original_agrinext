@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,10 +13,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { User, Save, Truck } from 'lucide-react';
+import { User, Save, Truck, MapPin } from 'lucide-react';
 import { useTransporterProfile } from '@/hooks/useLogisticsDashboard';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
+import GeoDistrictSelect from '@/components/geo/GeoDistrictSelect';
 import { toast } from 'sonner';
 
 const vehicleTypes = [
@@ -151,13 +153,27 @@ const Profile = () => {
 
             <div className="space-y-2">
               <Label htmlFor="operating_district">Operating District</Label>
-              <Input
-                id="operating_district"
-                value={formData.operating_district}
-                onChange={(e) => setFormData(prev => ({ ...prev, operating_district: e.target.value }))}
-                placeholder="Your operating district"
+              <GeoDistrictSelect
+                value=""
+                onValueChange={(id) => {
+                  setFormData(prev => ({ ...prev, operating_district: id }));
+                }}
+                placeholder={formData.operating_district || 'Select district'}
               />
+              {formData.operating_district && (
+                <p className="text-xs text-muted-foreground">Current: {formData.operating_district}</p>
+              )}
             </div>
+
+            <Link to="/logistics/service-area" className="block mt-2">
+              <div className="flex items-center gap-2 p-3 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer">
+                <MapPin className="h-5 w-5 text-primary" />
+                <div>
+                  <p className="font-medium text-sm">Service Areas</p>
+                  <p className="text-xs text-muted-foreground">Manage districts you operate in</p>
+                </div>
+              </div>
+            </Link>
           </CardContent>
         </Card>
 

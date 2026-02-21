@@ -79,6 +79,10 @@ export const en = {
     saved: 'Saved',
     user: 'User',
     unread: 'unread',
+    loadMore: 'Load more',
+    noMoreItems: 'No more items',
+    done: 'Done',
+    searchPlaceholderDetailed: 'Search by name, ID, village, or location…',
   },
 
   // Authentication
@@ -268,7 +272,7 @@ export const en = {
     errorAddingCrop: 'Error adding crop',
     errorDeletingCrop: 'Error deleting crop',
     cropAddedSuccess: 'Your crop has been added successfully.',
-    searchPlaceholder: 'Search by crop name or variety...',
+    searchPlaceholder: 'Search by name, ID, village, or location…',
     selectFarmland: 'Select farmland',
     noFarmlandsYet: 'No farmlands added yet.',
     addFarmlandFirst: 'Add farmland first',
@@ -314,6 +318,7 @@ export const en = {
     soilTypes: 'Soil Types',
     villages: 'Villages',
     noFarmlandsYet: 'No farmlands added yet',
+    searchPlaceholder: 'Search by name, ID, village, or location…',
     addFarmlandsToTrack: 'Add your farmlands to track crops, manage harvests, and get better insights.',
     addFirstFarmland: 'Add Your First Farmland',
     soilReports: 'Soil Reports',
@@ -350,7 +355,7 @@ export const en = {
     cancelled: 'Cancelled',
     noTransportYet: 'No transport requests yet',
     whenReady: 'When your crops are ready, request transport to get them to market.',
-    createFirstRequest: 'Create Your First Request',
+    createFirstRequest: 'Create Transport Request',
     submitRequest: 'Submit Request',
     selectCrop: 'Select crop',
     enterQuantity: 'Enter quantity',
@@ -372,6 +377,7 @@ export const en = {
     active: 'Active',
     inactive: 'Inactive',
     noListingsYet: 'No listings yet',
+    searchPlaceholder: 'Search by name, ID, village, or location…',
     startSelling: 'Start selling by creating your first product listing.',
     addFirstListing: 'Add Your First Listing',
     listingCreated: 'Listing created successfully',
@@ -382,6 +388,7 @@ export const en = {
   // Orders
   orders: {
     title: 'Orders',
+    subtitle: 'View and manage incoming buyer orders',
     orderId: 'Order ID',
     buyer: 'Buyer',
     seller: 'Seller',

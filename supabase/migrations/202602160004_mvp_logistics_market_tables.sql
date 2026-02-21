@@ -89,4 +89,7 @@ create index if not exists idx_transport_jobs_status on public.transport_jobs(st
 create index if not exists idx_lots_farmer_id on public.lots(farmer_id);
 create index if not exists idx_lots_status on public.lots(status);
 create index if not exists idx_orders_lot_id on public.orders(lot_id);
+-- Ensure profile_id exists before creating index
+alter table public.notifications
+  add column if not exists profile_id uuid references public.profiles(id) on delete set null;
 create index if not exists idx_notifications_profile_id on public.notifications(profile_id);
