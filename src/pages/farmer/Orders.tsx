@@ -440,7 +440,7 @@ const FarmerOrders = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </PageShell>
+      </PageHeader>
     </DashboardLayout>
   );
 };

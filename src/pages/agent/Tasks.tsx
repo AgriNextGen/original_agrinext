@@ -426,7 +426,7 @@ const AgentTasks = () => {
             </DataState>
           </CardContent>
         </Card>
-      </PageShell>
+      </PageHeader>
     </DashboardLayout>
   );
 };

@@ -447,8 +447,6 @@ const CropsPage = () => {
             })}
           </div>
         )}
-      </PageShell>
-
       </PageHeader>
 
       <EditCropDialog
