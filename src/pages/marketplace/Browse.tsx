@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/select';
 import { Search, Leaf, MapPin, Calendar, Filter, SortAsc } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '@/hooks/useLanguage';
 import { useMarketProductsInfinite } from '@/hooks/useMarketplaceDashboard';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
@@ -42,6 +43,7 @@ const BrowseMarketplace = () => {
     status: statusFilter !== 'all' ? statusFilter : undefined,
   });
   const products = data ? data.pages.flatMap((p: any) => p.items || []) : [];
+  const { t } = useLanguage();
 
   // Sort products
   const sortedProducts = [...(products || [])].sort((a, b) => {
@@ -183,9 +185,9 @@ const BrowseMarketplace = () => {
         {/* Load more */}
         <div className="mt-6 text-center">
           {hasNextPage ? (
-            <Button variant="outline" onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>{isFetchingNextPage ? 'Loading...' : 'Load more'}</Button>
+            <Button variant="outline" onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>{isFetchingNextPage ? t('common.loading') : t('common.loadMore')}</Button>
           ) : (
-            <div className="text-sm text-muted-foreground">No more products</div>
+            <div className="text-sm text-muted-foreground">{t('common.noMoreItems')}</div>
           )}
         </div>
       </DataState>

@@ -34,6 +34,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useStartVisit, useActiveVisit } from '@/hooks/useAgentAssignments';
 import { useLanguage } from '@/hooks/useLanguage';
 import { toast } from 'sonner';
+import PageHeader from '@/components/shared/PageHeader';
+import EmptyState from '@/components/shared/EmptyState';
 import { format, parseISO } from 'date-fns';
 
 export default function AgentFarmerDetail() {
@@ -169,14 +171,13 @@ export default function AgentFarmerDetail() {
     return (
       <DashboardLayout title={language === 'kn' ? 'ರೈತ ವಿವರಗಳು' : 'Farmer Details'}>
         <div className="text-center py-12">
-          <User className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
-          <p className="text-muted-foreground">
-            {language === 'kn' ? 'ರೈತ ಕಂಡುಬಂದಿಲ್ಲ' : 'Farmer not found'}
-          </p>
-          <Button variant="outline" className="mt-4" onClick={() => navigate('/agent/my-farmers')}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            {language === 'kn' ? 'ಹಿಂತಿರುಗಿ' : 'Go Back'}
-          </Button>
+          <EmptyState
+            icon={User}
+            title={language === 'kn' ? 'ರೈತ ಕಂಡುಬಂದಿಲ್ಲ' : 'Farmer not found'}
+            description={language === 'kn' ? 'ರೈತ ವಿವರಗಳನ್ನು ಲೋಡ್ ಮಾಡಲು ವಿಫಲವಾಗಿದೆ' : "This farmer doesn't exist or you don't have access to it."}
+            actionLabel={language === 'kn' ? 'ಹಿಂತಿರುಗಿ' : 'Go Back'}
+            onAction={() => navigate('/agent/my-farmers')}
+          />
         </div>
       </DashboardLayout>
     );
@@ -184,19 +185,21 @@ export default function AgentFarmerDetail() {
 
   return (
     <DashboardLayout title={farmer.full_name || (language === 'kn' ? 'ರೈತ' : 'Farmer')}>
+      <PageHeader title={farmer.full_name || (language === 'kn' ? 'ರೈತ' : 'Farmer')}>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <Button variant="ghost" onClick={() => navigate('/agent/my-farmers')}>
+          <Button variant="ghost" onClick={() => navigate('/agent/my-farmers')} aria-label="Back to farmers">
             <ArrowLeft className="h-4 w-4 mr-2" />
             {language === 'kn' ? 'ಹಿಂತಿರುಗಿ' : 'Back'}
           </Button>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={handleCall} disabled={!farmer.phone}>
+            <Button aria-label="Call farmer" variant="outline" size="sm" onClick={handleCall} disabled={!farmer.phone}>
               <Phone className="h-4 w-4 mr-1" />
               {language === 'kn' ? 'ಕರೆ' : 'Call'}
             </Button>
             <Button
+              aria-label="WhatsApp farmer"
               variant="outline"
               size="sm"
               onClick={handleWhatsApp}
@@ -207,6 +210,7 @@ export default function AgentFarmerDetail() {
               WhatsApp
             </Button>
             <Button
+              aria-label="Start visit"
               size="sm"
               onClick={handleStartVisit}
               disabled={startVisit.isPending || !!activeVisit}

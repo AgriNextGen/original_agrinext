@@ -10,6 +10,8 @@ import { useMyServiceAreas, useUpsertServiceArea, useDeleteServiceArea } from '@
 import GeoStateSelect from '@/components/geo/GeoStateSelect';
 import GeoDistrictSelect from '@/components/geo/GeoDistrictSelect';
 import { toast } from 'sonner';
+import PageHeader from '@/components/shared/PageHeader';
+import EmptyState from '@/components/shared/EmptyState';
 
 export default function AgentServiceArea() {
   const { language } = useLanguage();
@@ -53,18 +55,8 @@ export default function AgentServiceArea() {
 
   return (
     <DashboardLayout title={language === 'kn' ? 'ಸೇವಾ ಪ್ರದೇಶ' : 'Service Area'}>
+      <PageHeader title={language === 'kn' ? 'ನನ್ನ ಸೇವಾ ಪ್ರದೇಶಗಳು' : 'My Service Areas'} subtitle={language === 'kn' ? 'ನೀವು ಸೇವೆ ನೀಡುವ ಜಿಲ್ಲೆಗಳನ್ನು ನಿರ್ವಹಿಸಿ' : 'Manage the districts you serve. Farmers in these areas can be assigned to you.'}>
       <div className="max-w-2xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <MapPin className="h-6 w-6 text-primary" />
-            {language === 'kn' ? 'ನನ್ನ ಸೇವಾ ಪ್ರದೇಶಗಳು' : 'My Service Areas'}
-          </h1>
-          <p className="text-muted-foreground">
-            {language === 'kn'
-              ? 'ನೀವು ಸೇವೆ ನೀಡುವ ಜಿಲ್ಲೆಗಳನ್ನು ನಿರ್ವಹಿಸಿ'
-              : 'Manage the districts you serve. Farmers in these areas can be assigned to you.'}
-          </p>
-        </div>
 
         {/* Current areas */}
         <Card>
@@ -81,11 +73,13 @@ export default function AgentServiceArea() {
           <CardContent className="space-y-3">
             {isLoading && <Loader2 className="h-6 w-6 animate-spin mx-auto" />}
             {!isLoading && (!areas || areas.length === 0) && (
-              <p className="text-sm text-muted-foreground text-center py-4">
-                {language === 'kn'
-                  ? 'ಯಾವುದೇ ಸೇವಾ ಪ್ರದೇಶಗಳು ಸೇರಿಸಲಾಗಿಲ್ಲ'
-                  : 'No service areas configured yet. Add your districts to get farmer assignments.'}
-              </p>
+              <EmptyState
+                icon={MapPin}
+                title={language === 'kn' ? 'ಯಾವುದೇ ಸೇವಾ ಪ್ರದೇಶಗಳು ಸೇರಿಸಲಾಗಿಲ್ಲ' : 'No service areas configured'}
+                description={language === 'kn' ? 'ನಿಮ್ಮ ಸೇವಾ ಜಿಲ್ಲೆಗಳನ್ನು ಸೇರಿಸಿ' : 'Add your districts to get farmer assignments.'}
+                actionLabel={language === 'kn' ? 'ಸೇರಿಸಿ' : 'Add Area'}
+                onAction={() => setAddMode(true)}
+              />
             )}
             {(areas ?? []).map((area) => (
               <div
@@ -150,6 +144,7 @@ export default function AgentServiceArea() {
           </Card>
         )}
       </div>
+      </PageHeader>
     </DashboardLayout>
   );
 }

@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Separator } from '@/components/ui/separator';
 import { CheckCircle, XCircle, User, Clock, Sparkles } from 'lucide-react';
 import { useAdminTickets, useUpdateTicketStatus, useAssignTicket, type SupportTicket } from '@/hooks/useAdminTickets';
+import { useLanguage } from '@/hooks/useLanguage';
 import { useAiOutputs, useAcceptAiSuggestion, type AiOutput } from '@/hooks/useAiOutputs';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/components/ui/use-toast';
@@ -38,6 +39,7 @@ export default function AdminTickets() {
   }, [statusFilter]);
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useAdminTickets(filters);
+  const { t } = useLanguage();
   const updateStatus = useUpdateTicketStatus();
   const assignTicket = useAssignTicket();
   const acceptSuggestion = useAcceptAiSuggestion();
@@ -141,7 +143,7 @@ export default function AdminTickets() {
         {hasNextPage && (
           <div className="text-center">
             <Button variant="outline" onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>
-              {isFetchingNextPage ? 'Loading...' : 'Load more'}
+              {isFetchingNextPage ? t('common.loading') : t('common.loadMore')}
             </Button>
           </div>
         )}

@@ -30,6 +30,7 @@ const statusConfig: Record<string, { label: string; color: string; icon: LucideI
 const Orders = () => {
   const navigate = useNavigate();
   const { data: ordersList, isLoading: ordersLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useOrdersInfinite();
+  const { t } = useLanguage();
   const orders = ordersList ? ordersList.pages.flatMap((p: any) => p.items || []) : [];
   const isLoading = ordersLoading;
 
@@ -196,7 +197,7 @@ const Orders = () => {
         </CardContent>
       </Card>
       <div className="p-4 text-center">
-        {hasNextPage ? <Button variant="outline" onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>{isFetchingNextPage ? 'Loading...' : 'Load more'}</Button> : <div className="text-sm text-muted-foreground">No more orders</div>}
+        {hasNextPage ? <Button variant="outline" onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>{isFetchingNextPage ? t('common.loading') : t('common.loadMore')}</Button> : <div className="text-sm text-muted-foreground">{t('common.noMoreItems')}</div>}
       </div>
 
       {/* Past Orders */}

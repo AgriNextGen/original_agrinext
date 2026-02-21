@@ -14,6 +14,7 @@ import { useSmartSearch } from '@/hooks/useSmartSearch';
 import { useToast } from '@/components/ui/use-toast';
 import GeoStateSelect from '@/components/geo/GeoStateSelect';
 import GeoDistrictSelect from '@/components/geo/GeoDistrictSelect';
+import { useLanguage } from '@/hooks/useLanguage';
 
 const ITEM_TYPE_TABS = [
   { value: '', label: 'All' },
@@ -50,6 +51,7 @@ export default function OpsInbox() {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useOpsInbox(filters);
   const resolveItem = useResolveOpsItem();
   const { submitSearch, suggestedFilters, setSuggestedFilters, isSearching } = useSmartSearch();
+  const { t } = useLanguage();
 
   const items = data?.pages.flatMap((p) => p.items) ?? [];
 
@@ -212,7 +214,7 @@ export default function OpsInbox() {
         {hasNextPage && (
           <div className="text-center">
             <Button variant="outline" onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>
-              {isFetchingNextPage ? 'Loading...' : 'Load more'}
+              {isFetchingNextPage ? t('common.loading') : t('common.loadMore')}
             </Button>
           </div>
         )}

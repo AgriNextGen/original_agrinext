@@ -19,13 +19,14 @@ const roleRoutes: Record<string, string> = {
 };
 
 const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
-  const { user, loading, userRole, refreshRole } = useAuth();
+  const { user, loading, userRole, refreshRole, activeRole } = useAuth();
   const location = useLocation();
   const [roleSetupTimedOut, setRoleSetupTimedOut] = useState(false);
 
   // If user doesn't have a role yet: retry fetchUserRole and timeout after 5s
   useEffect(() => {
-    if (!allowedRoles || !user || userRole) return;
+    const effectiveRole = activeRole ?? userRole;
+    if (!allowedRoles || !user || effectiveRole) return;
 
     const retryInterval = setInterval(() => {
       refreshRole();
@@ -40,7 +41,7 @@ const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
       clearInterval(retryInterval);
       clearTimeout(timeoutId);
     };
-  }, [allowedRoles, user, userRole, refreshRole]);
+  }, [allowedRoles, user, userRole, activeRole, refreshRole]);
 
   // After timeout, redirect to login so user can retry
   if (roleSetupTimedOut) {
@@ -74,14 +75,15 @@ const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
   }
 
   // If user has a role and it's not in the allowed roles, redirect to their dashboard
-  if (allowedRoles && userRole && !allowedRoles.includes(userRole)) {
-    const targetRoute = roleRoutes[userRole] || "/";
+  const effectiveRole = activeRole ?? userRole;
+  if (allowedRoles && effectiveRole && !allowedRoles.includes(effectiveRole)) {
+    const targetRoute = roleRoutes[effectiveRole] || "/";
     return <Navigate to={targetRoute} replace />;
   }
 
   // If user doesn't have a role yet but is authenticated, show loading with timeout
   // After ROLE_SETUP_TIMEOUT_MS, redirect to login so user can retry
-  if (allowedRoles && !userRole) {
+  if (allowedRoles && !effectiveRole) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">

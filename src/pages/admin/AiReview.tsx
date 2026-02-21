@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { CheckCircle, XCircle, Sparkles, Clock } from 'lucide-react';
 import { useAiOutputs, useAcceptAiSuggestion } from '@/hooks/useAiOutputs';
+import { useLanguage } from '@/hooks/useLanguage';
 import { useToast } from '@/components/ui/use-toast';
 
 const TARGET_TYPES = ['ticket', 'timeline', 'search_intent', 'voice_note'];
@@ -32,6 +33,7 @@ export default function AiReview() {
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useAiOutputs(filters);
   const acceptSuggestion = useAcceptAiSuggestion();
+  const { t } = useLanguage();
 
   const items = data?.pages.flatMap((p) => p.items) ?? [];
 
@@ -134,7 +136,7 @@ export default function AiReview() {
         {hasNextPage && (
           <div className="text-center">
             <Button variant="outline" onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>
-              {isFetchingNextPage ? 'Loading...' : 'Load more'}
+              {isFetchingNextPage ? t('common.loading') : t('common.loadMore')}
             </Button>
           </div>
         )}

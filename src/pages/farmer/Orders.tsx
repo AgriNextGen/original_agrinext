@@ -4,7 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import PageShell from '@/components/layout/PageShell';
+import PageHeader from '@/components/shared/PageHeader';
+import EmptyState from '@/components/shared/EmptyState';
+import { useLanguage } from '@/hooks/useLanguage';
 import { 
   Search, 
   Filter,
@@ -47,6 +49,7 @@ const statusConfig: Record<OrderStatus, { label: string; icon: typeof Clock; col
 };
 
 const FarmerOrders = () => {
+  const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedOrder, setSelectedOrder] = useState<ReturnType<typeof useFarmerOrders>['data'] extends (infer T)[] | undefined ? T : never | null>(null);
@@ -125,7 +128,7 @@ const FarmerOrders = () => {
 
   if (isLoading) {
     return (
-      <DashboardLayout title="Orders">
+      <DashboardLayout title={t('orders.title')}>
         <div className="space-y-6">
           <Skeleton className="h-10 w-full max-w-md" />
           <Skeleton className="h-12 w-full" />
@@ -140,14 +143,14 @@ const FarmerOrders = () => {
   }
 
   return (
-    <DashboardLayout title="Orders">
-      <PageShell title="Orders" subtitle="View and manage incoming buyer orders">
+    <DashboardLayout title={t('orders.title')}>
+      <PageHeader title={t('orders.title')} subtitle={t('orders.subtitle') || 'View and manage incoming buyer orders'}>
         {/* Header Actions */}
         <div className="flex flex-col sm:flex-row gap-4 justify-between">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search orders..."
+              placeholder={t('common.search')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9"
@@ -268,15 +271,11 @@ const FarmerOrders = () => {
             </table>
           </div>
           {filteredOrders.length === 0 && (
-            <div className="p-12 text-center">
-              <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="font-display font-semibold text-lg text-foreground mb-2">No orders found</h3>
-              <p className="text-muted-foreground">
-                {orders?.length === 0 
-                  ? "You haven't received any orders yet." 
-                  : "No orders match your search criteria."}
-              </p>
-            </div>
+            <EmptyState
+              icon={Package}
+              title={orders?.length === 0 ? t('orders.noOrdersYet') : t('common.noResultsFound')}
+              description={orders?.length === 0 ? t('orders.noOrdersYet') : t('common.tryAgain')}
+            />
           )}
         </div>
 

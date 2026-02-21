@@ -79,6 +79,10 @@ export const kn = {
     saved: 'ಉಳಿಸಲಾಗಿದೆ',
     user: 'ಬಳಕೆದಾರ',
     unread: 'ಓದದ',
+    loadMore: 'ಇನ್ನಷ್ಟು',
+    noMoreItems: 'ಇನ್ನಷ್ಟು ಐಟಂಗಳು ಲಭ್ಯವಿಲ್ಲ',
+    done: 'ಮುಗಿದಿದೆ',
+    searchPlaceholderDetailed: 'ಹೆಸರು, ಐಡಿ, ಹಳ್ಳಿ ಅಥವಾ ಸ್ಥಳದಿಂದ ಹುಡುಕಿ…',
   },
 
   // Authentication
@@ -268,7 +272,7 @@ export const kn = {
     errorAddingCrop: 'ಬೆಳೆ ಸೇರಿಸುವಲ್ಲಿ ದೋಷ',
     errorDeletingCrop: 'ಬೆಳೆ ಅಳಿಸುವಲ್ಲಿ ದೋಷ',
     cropAddedSuccess: 'ನಿಮ್ಮ ಬೆಳೆ ಯಶಸ್ವಿಯಾಗಿ ಸೇರಿಸಲಾಗಿದೆ.',
-    searchPlaceholder: 'ಬೆಳೆ ಹೆಸರು ಅಥವಾ ತಳಿಯಿಂದ ಹುಡುಕಿ...',
+    searchPlaceholder: 'ಹೆಸರು, ಐಡಿ, ಹಳ್ಳಿ ಅಥವಾ ಸ್ಥಳದಿಂದ ಹುಡುಕಿ…',
     selectFarmland: 'ಕೃಷಿ ಭೂಮಿ ಆಯ್ಕೆಮಾಡಿ',
     noFarmlandsYet: 'ಇನ್ನೂ ಭೂಮಿ ಸೇರಿಸಿಲ್ಲ.',
     addFarmlandFirst: 'ಮೊದಲು ಭೂಮಿ ಸೇರಿಸಿ',
@@ -314,6 +318,7 @@ export const kn = {
     soilTypes: 'ಮಣ್ಣಿನ ಪ್ರಕಾರಗಳು',
     villages: 'ಹಳ್ಳಿಗಳು',
     noFarmlandsYet: 'ಇನ್ನೂ ಭೂಮಿ ಸೇರಿಸಿಲ್ಲ',
+    searchPlaceholder: 'ಹೆಸರು, ಐಡಿ, ಹಳ್ಳಿ ಅಥವಾ ಸ್ಥಳದಿಂದ ಹುಡುಕಿ…',
     addFarmlandsToTrack: 'ಬೆಳೆಗಳನ್ನು ಟ್ರ್ಯಾಕ್ ಮಾಡಲು, ಕೊಯ್ಲು ನಿರ್ವಹಿಸಲು ಮತ್ತು ಉತ್ತಮ ಒಳನೋಟಗಳನ್ನು ಪಡೆಯಲು ನಿಮ್ಮ ಭೂಮಿ ಸೇರಿಸಿ.',
     addFirstFarmland: 'ನಿಮ್ಮ ಮೊದಲ ಭೂಮಿ ಸೇರಿಸಿ',
     soilReports: 'ಮಣ್ಣಿನ ವರದಿಗಳು',
@@ -350,7 +355,7 @@ export const kn = {
     cancelled: 'ರದ್ದುಗೊಳಿಸಲಾಗಿದೆ',
     noTransportYet: 'ಇನ್ನೂ ಸಾರಿಗೆ ವಿನಂತಿಗಳಿಲ್ಲ',
     whenReady: 'ನಿಮ್ಮ ಬೆಳೆಗಳು ಸಿದ್ಧವಾದಾಗ, ಮಾರುಕಟ್ಟೆಗೆ ತಲುಪಿಸಲು ಸಾರಿಗೆ ವಿನಂತಿಸಿ.',
-    createFirstRequest: 'ನಿಮ್ಮ ಮೊದಲ ವಿನಂತಿ ರಚಿಸಿ',
+    createFirstRequest: 'ಸಾರಿಗೆ ವಿನಂತಿಯನ್ನು ರಚಿಸಿ',
     submitRequest: 'ವಿನಂತಿ ಸಲ್ಲಿಸಿ',
     selectCrop: 'ಬೆಳೆ ಆಯ್ಕೆಮಾಡಿ',
     enterQuantity: 'ಪ್ರಮಾಣ ನಮೂದಿಸಿ',
@@ -372,6 +377,7 @@ export const kn = {
     active: 'ಸಕ್ರಿಯ',
     inactive: 'ನಿಷ್ಕ್ರಿಯ',
     noListingsYet: 'ಇನ್ನೂ ಪಟ್ಟಿಗಳಿಲ್ಲ',
+    searchPlaceholder: 'ಹೆಸರು, ಐಡಿ, ಹಳ್ಳಿ ಅಥವಾ ಸ್ಥಳದಿಂದ ಹುಡುಕಿ…',
     startSelling: 'ನಿಮ್ಮ ಮೊದಲ ಉತ್ಪನ್ನ ಪಟ್ಟಿಯನ್ನು ರಚಿಸುವ ಮೂಲಕ ಮಾರಾಟ ಪ್ರಾರಂಭಿಸಿ.',
     addFirstListing: 'ನಿಮ್ಮ ಮೊದಲ ಪಟ್ಟಿ ಸೇರಿಸಿ',
     listingCreated: 'ಪಟ್ಟಿ ಯಶಸ್ವಿಯಾಗಿ ರಚಿಸಲಾಗಿದೆ',
@@ -382,6 +388,7 @@ export const kn = {
   // Orders
   orders: {
     title: 'ಆರ್ಡರ್‌ಗಳು',
+    subtitle: 'ಖರೀದಿದಾರರಿಂದ ಬಂದ ಆರ್ಡರ್‌ಗಳನ್ನು ವೀಕ್ಷಿಸಿ ಮತ್ತು ನಿರ್ವಹಿಸಿ',
     orderId: 'ಆರ್ಡರ್ ಐಡಿ',
     buyer: 'ಖರೀದಿದಾರ',
     seller: 'ಮಾರಾಟಗಾರ',

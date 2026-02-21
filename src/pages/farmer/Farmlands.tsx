@@ -11,13 +11,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
-import PageShell from '@/components/layout/PageShell';
+import PageHeader from '@/components/shared/PageHeader';
 import DataState from '@/components/ui/DataState';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Search, LandPlot, MapPin, Layers, Edit, Trash2, TreeDeciduous, TestTube2, Loader2, CheckCircle2 } from 'lucide-react';
 import EditFarmlandDialog from '@/components/farmer/EditFarmlandDialog';
 import ConfirmDialog from '@/components/ui/confirm-dialog';
-import EmptyState from '@/components/farmer/EmptyState';
+import EmptyState from '@/components/shared/EmptyState';
 import HelpTooltip from '@/components/farmer/HelpTooltip';
 import FarmlandSoilReportsPanel from '@/components/farmer/soil-reports/FarmlandSoilReportsPanel';
 import { useGeoCapture } from '@/hooks/useGeoCapture';
@@ -30,6 +30,7 @@ const FarmlandsPage = () => {
   const queryClient = useQueryClient();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [editingFarmland, setEditingFarmland] = useState<Farmland | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -58,6 +59,7 @@ const FarmlandsPage = () => {
     e.preventDefault();
     if (!user?.id) return;
 
+    setIsSubmitting(true);
     try {
       const { error } = await supabase.from('farmlands').insert({
         farmer_id: user.id,
@@ -82,6 +84,8 @@ const FarmlandsPage = () => {
     } catch (error) {
       const message = error instanceof Error ? error.message : t('common.error');
       toast({ title: t('common.error'), description: message, variant: 'destructive' });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -119,7 +123,7 @@ const FarmlandsPage = () => {
 
   return (
     <DashboardLayout title={t('farmer.farmlands.title')}>
-      <PageShell title={t('farmer.farmlands.title')}>
+      <PageHeader title={t('farmer.farmlands.title')}>
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card>
@@ -193,7 +197,7 @@ const FarmlandsPage = () => {
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button size="lg">
+              <Button size="lg" variant="default">
                 <Plus className="h-4 w-4 mr-2" />
                 {t('farmer.farmlands.addFarmland')}
               </Button>
@@ -317,7 +321,9 @@ const FarmlandsPage = () => {
                   )}
                 </div>
 
-                <Button type="submit" className="w-full" size="lg">{t('farmer.farmlands.addFarmland')}</Button>
+                <Button type="submit" variant="default" className="w-full" size="lg" disabled={isSubmitting}>
+                  {isSubmitting ? t('common.saving') : t('farmer.farmlands.addFarmland')}
+                </Button>
               </form>
             </DialogContent>
           </Dialog>
@@ -404,8 +410,9 @@ const FarmlandsPage = () => {
                       <TestTube2 className="h-4 w-4 mr-1" />
                       {t('farmer.farmlands.soilReports')}
                     </Button>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      aria-label={`Edit ${land.name}`}
+                      variant="outline"
                       size="sm"
                       onClick={() => {
                         setEditingFarmland(land);
@@ -414,9 +421,10 @@ const FarmlandsPage = () => {
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
+                    <Button
+                      aria-label={`Delete ${land.name}`}
+                      variant="outline"
+                      size="sm"
                       className="text-destructive hover:text-destructive hover:bg-destructive/10"
                       onClick={() => handleDeleteClick(land.id, land.name)}
                     >
@@ -428,7 +436,7 @@ const FarmlandsPage = () => {
             ))}
           </div>
         )}
-      </PageShell>
+      </PageHeader>
 
       <EditFarmlandDialog
         farmland={editingFarmland}

@@ -34,7 +34,7 @@ const RecentOrders = () => {
     <div className="bg-card rounded-xl border border-border shadow-soft">
       <div className="flex items-center justify-between p-6 border-b border-border">
         <h3 className="font-display font-semibold text-lg text-foreground">Recent Orders</h3>
-        <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80">
+        <Button aria-label="View all orders" variant="ghost" size="sm" className="text-primary hover:text-primary/80">
           View All
         </Button>
       </div>
@@ -65,7 +65,7 @@ const RecentOrders = () => {
                   </Badge>
                 </td>
                 <td className="px-6 py-4">
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <Button aria-label={`View order ${order.id}`} variant="ghost" size="icon" className="h-8 w-8">
                     <Eye className="h-4 w-4" />
                   </Button>
                 </td>

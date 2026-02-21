@@ -2,6 +2,7 @@ import DashboardLayout from '@/layouts/DashboardLayout';
 import PageShell from '@/components/layout/PageShell';
 import { useState, useMemo } from 'react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useLanguage } from '@/hooks/useLanguage';
 import { useOpsInbox } from '@/hooks/useOpsInbox';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -23,6 +24,7 @@ export default function FinanceOps() {
   const [activeTab, setActiveTab] = useState('');
   const filters = useMemo(() => (activeTab ? { item_type: activeTab } : {}), [activeTab]);
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useOpsInbox(filters);
+  const { t } = useLanguage();
   const items = data?.pages.flatMap((p) => p.items) ?? [];
 
   return (
@@ -55,7 +57,7 @@ export default function FinanceOps() {
                 </CardContent>
               </Card>
             ))}
-            {hasNextPage && <div className="text-center"><Button variant="outline" onClick={() => fetchNextPage()}>{isFetchingNextPage ? 'Loading...' : 'Load more'}</Button></div>}
+            {hasNextPage && <div className="text-center"><Button variant="outline" onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>{isFetchingNextPage ? t('common.loading') : t('common.loadMore')}</Button></div>}
           </div>
         </div>
       </PageShell>

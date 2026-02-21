@@ -16,6 +16,7 @@ import { useOfflineQueue } from '@/lib/offlineQueue';
 import { useMyServiceAreas } from '@/hooks/useServiceAreas';
 import TaskCompletionModal from '@/components/agent/TaskCompletionModal';
 import { useToast } from '@/components/ui/use-toast';
+import PageHeader from '@/components/shared/PageHeader';
 
 const PRIORITY_COLORS: Record<string, string> = {
   urgent: 'bg-red-100 text-red-800',
@@ -77,6 +78,7 @@ export default function AgentToday() {
 
   return (
     <DashboardLayout>
+      <PageHeader title={`Today's Plan`} >
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
@@ -91,7 +93,7 @@ export default function AgentToday() {
             </Badge>
           )}
           {serviceAreas !== undefined && serviceAreas.length === 0 && (
-            <Button size="sm" variant="outline" onClick={() => navigate('/agent/service-area')} className="flex items-center gap-1 border-amber-300 text-amber-700 hover:bg-amber-50">
+            <Button size="sm" variant="outline" onClick={() => navigate('/agent/service-area')} className="flex items-center gap-1 border-amber-300 text-amber-700 hover:bg-amber-50" aria-label="Set up your service area">
               <MapPin className="h-3 w-3" /> Set up your service area
             </Button>
           )}

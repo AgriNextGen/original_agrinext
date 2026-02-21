@@ -24,6 +24,7 @@ import { useAvailableLoads, useVehicles } from '@/hooks/useLogisticsDashboard';
 import { useTransportRequestsInfinite } from '@/hooks/useTransportRequests';
 import { useAcceptLoadSecure } from '@/hooks/useTrips';
 import { format, parseISO } from 'date-fns';
+import { useLanguage } from '@/hooks/useLanguage';
 import {
   Select,
   SelectContent,
@@ -38,6 +39,7 @@ import DataState from '@/components/ui/DataState';
 
 const AvailableLoads = () => {
   const { data: loads, isLoading } = useAvailableLoads();
+  const { t } = useLanguage();
   const { data: vehicles } = useVehicles();
   const acceptLoad = useAcceptLoadSecure();
   const { data: pages, isLoading: infiniteLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useTransportRequestsInfinite();
@@ -205,10 +207,10 @@ const AvailableLoads = () => {
             <div className="mt-4 text-center">
               {hasNextPage ? (
                 <Button variant="outline" onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>
-                  {isFetchingNextPage ? 'Loading...' : 'Load more'}
+                  {isFetchingNextPage ? t('common.loading') : t('common.loadMore')}
                 </Button>
               ) : (
-                <div className="text-sm text-muted-foreground">No more loads</div>
+                <div className="text-sm text-muted-foreground">{t('common.noMoreItems')}</div>
               )}
             </div>
           </DataState>

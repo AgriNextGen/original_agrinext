@@ -17,7 +17,7 @@ import MyAgentWidget from '@/components/farmer/MyAgentWidget';
 import MyHelpRequests from '@/components/farmer/MyHelpRequests';
 import { useRealtimeSubscriptions } from '@/hooks/useRealtimeSubscriptions';
 import { useLanguage } from '@/hooks/useLanguage';
-import PageShell from '@/components/layout/PageShell';
+import PageHeader from '@/components/shared/PageHeader';
 import { useQuery } from '@tanstack/react-query';
 import { rpcJson } from '@/lib/readApi';
 
@@ -33,7 +33,7 @@ const FarmerDashboard = () => {
 
   return (
     <DashboardLayout title={t('nav.dashboard')}>
-      <PageShell title={t('dashboard.welcome')} subtitle={t('dashboard.quickActions')} density="comfortable">
+      <PageHeader title={t('dashboard.welcome')} subtitle={t('dashboard.quickActions')} >
         <FarmerLocationPrompt />
         <OnboardingTour />
         <FarmerSummaryCard dashboardData={dashboardData} />
@@ -60,7 +60,7 @@ const FarmerDashboard = () => {
           <MyAgentWidget />
           <MyHelpRequests />
         </div>
-      </PageShell>
+      </PageHeader>
 
       <VoiceAssistant />
     </DashboardLayout>

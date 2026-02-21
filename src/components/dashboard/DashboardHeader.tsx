@@ -109,6 +109,7 @@ const DashboardHeader = ({ title, onMenuClick }: DashboardHeaderProps) => {
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 md:px-6">
       <div className="flex items-center gap-4">
         <Button
+          aria-label="Open menu"
           variant="ghost"
           size="icon"
           className="md:hidden"
@@ -127,6 +128,7 @@ const DashboardHeader = ({ title, onMenuClick }: DashboardHeaderProps) => {
       <div className="flex items-center gap-2 md:gap-4">
         {/* Mobile Search Toggle */}
         <Button
+          aria-label={searchOpen ? 'Close search' : 'Open search'}
           variant="ghost"
           size="icon"
           className="md:hidden"
@@ -146,8 +148,8 @@ const DashboardHeader = ({ title, onMenuClick }: DashboardHeaderProps) => {
         
         {/* Notifications Dropdown */}
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="relative">
+            <DropdownMenuTrigger asChild>
+            <Button aria-label="Notifications" variant="ghost" size="icon" className="relative">
               <Bell className="h-5 w-5" />
               {unreadCount > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-destructive text-[10px] font-medium text-destructive-foreground flex items-center justify-center">
@@ -212,7 +214,7 @@ const DashboardHeader = ({ title, onMenuClick }: DashboardHeaderProps) => {
         {/* Profile Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+            <Button aria-label="Open profile menu" variant="ghost" className="relative h-9 w-9 rounded-full">
               <Avatar className="h-9 w-9 border-2 border-primary/20">
                 <AvatarImage src={profile?.avatar_url || ''} />
                 <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium">

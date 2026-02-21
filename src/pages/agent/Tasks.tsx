@@ -49,12 +49,14 @@ import {
   Search,
   FileAudio
 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import AgentVoiceNoteDialog from '@/components/agent/AgentVoiceNoteDialog';
 import { format, parseISO } from 'date-fns';
 import { toast } from 'sonner';
 import network from '@/offline/network';
 import actionQueue from '@/offline/actionQueue';
 import PageHeader from '@/components/shared/PageHeader';
+import { useLanguage } from '@/hooks/useLanguage';
 import DataState from '@/components/ui/DataState';
 
 const taskTypeLabels: Record<string, string> = {
@@ -72,6 +74,7 @@ const statusColors: Record<string, string> = {
 
 const AgentTasks = () => {
   const { data: tasksPages, isLoading: tasksLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useAgentTasksInfinite();
+  const { t } = useLanguage();
   const tasks = tasksPages ? tasksPages.pages.flatMap((p: any) => p.items || []) : [];
   const isLoading = tasksLoading;
   const { data: farmers } = useAllFarmers();
@@ -278,8 +281,9 @@ const AgentTasks = () => {
                   onClick={handleCreateTask} 
                   disabled={createTask.isPending}
                   className="w-full"
+                  variant="default"
                 >
-                  {createTask.isPending ? 'Creating...' : 'Create Task'}
+                  {createTask.isPending ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Creating...</> : 'Create Task'}
                 </Button>
               </div>
             </DialogContent>
@@ -417,7 +421,7 @@ const AgentTasks = () => {
                 </TableBody>
               </Table>
               <div className="p-4 text-center">
-                {hasNextPage ? <Button variant="outline" onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>{isFetchingNextPage ? 'Loading...' : 'Load more'}</Button> : <div className="text-sm text-muted-foreground">No more tasks</div>}
+                {hasNextPage ? <Button variant="outline" onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>{isFetchingNextPage ? t('common.loading') : t('common.loadMore')}</Button> : <div className="text-sm text-muted-foreground">{t('common.noMoreItems')}</div>}
               </div>
             </DataState>
           </CardContent>

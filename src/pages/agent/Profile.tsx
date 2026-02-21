@@ -21,6 +21,7 @@ import { useSetProfileGeo } from '@/hooks/useServiceAreas';
 import GeoStateSelect from '@/components/geo/GeoStateSelect';
 import GeoDistrictSelect from '@/components/geo/GeoDistrictSelect';
 import { toast } from 'sonner';
+import PageHeader from '@/components/shared/PageHeader';
 
 export default function AgentProfile() {
   const { user } = useAuth();
@@ -116,18 +117,8 @@ export default function AgentProfile() {
 
   return (
     <DashboardLayout title={language === 'kn' ? 'ನನ್ನ ಪ್ರೊಫೈಲ್' : 'My Profile'}>
+      <PageHeader title={language === 'kn' ? 'ನನ್ನ ಪ್ರೊಫೈಲ್' : 'My Profile'} subtitle={language === 'kn' ? 'ನಿಮ್ಮ ಪ್ರೊಫೈಲ್ ಮಾಹಿತಿ ನವೀಕರಿಸಿ' : 'Update your profile information'}>
       <div className="max-w-2xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <User className="h-6 w-6 text-primary" />
-            {language === 'kn' ? 'ನನ್ನ ಪ್ರೊಫೈಲ್' : 'My Profile'}
-          </h1>
-          <p className="text-muted-foreground">
-            {language === 'kn'
-              ? 'ನಿಮ್ಮ ಪ್ರೊಫೈಲ್ ಮಾಹಿತಿ ನವೀಕರಿಸಿ'
-              : 'Update your profile information'}
-          </p>
-        </div>
 
         <Card>
           <CardHeader>
@@ -242,6 +233,7 @@ export default function AgentProfile() {
           </CardContent>
         </Card>
       </div>
+      </PageHeader>
     </DashboardLayout>
   );
 }

@@ -289,7 +289,7 @@ const FarmerListings = () => {
               if (!open) resetForm();
             }}>
               <DialogTrigger asChild>
-                <Button className="gap-2">
+                <Button variant="default" className="gap-2">
                   <Plus className="h-4 w-4" />
                   {t('farmer.listings.addListing')}
                 </Button>
@@ -424,7 +424,7 @@ const FarmerListings = () => {
                     <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                       {t('common.cancel')}
                     </Button>
-                    <Button type="submit" disabled={isSubmitting}>
+                    <Button type="submit" variant="default" disabled={isSubmitting}>
                       {isSubmitting ? t('common.saving') : (editingListing ? t('farmer.listings.updateListing') : t('farmer.listings.createListing'))}
                     </Button>
                   </DialogFooter>
