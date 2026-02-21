@@ -144,6 +144,7 @@ const AgentTransport = () => {
   return (
     <DashboardLayout title="Transport">
       <PageHeader title="Transport Requests" subtitle="Manage transport and pickup requests">
+      <div className="space-y-6">
 
           <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
             <DialogTrigger asChild>
@@ -232,7 +233,6 @@ const AgentTransport = () => {
               </div>
             </DialogContent>
           </Dialog>
-        </div>
         {/* Filters */}
         <Card>
           <CardContent className="py-4">
@@ -367,6 +367,7 @@ const AgentTransport = () => {
           </CardContent>
         </Card>
       </div>
+    </PageHeader>
     </DashboardLayout>
   );
 };

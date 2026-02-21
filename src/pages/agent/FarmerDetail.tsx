@@ -474,6 +474,7 @@ export default function AgentFarmerDetail() {
           </TabsContent>
         </Tabs>
       </div>
+    </PageHeader>
     </DashboardLayout>
   );
 }

@@ -192,6 +192,7 @@ export default function AgentToday() {
           />
         )}
       </div>
+    </PageHeader>
     </DashboardLayout>
   );
 }
