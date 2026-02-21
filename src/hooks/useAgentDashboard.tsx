@@ -434,23 +434,21 @@ export const useAILogs = () => {
 };
 
 // Dashboard stats
+import { rpcJson } from '@/lib/readApi';
+
 export const useAgentDashboardStats = () => {
-  const { data: tasks } = useAgentTasks();
-  const { data: todayTasks } = useTodaysTasks();
-  const { data: allCrops } = useAllCrops();
-  const { data: transportRequests } = useAllTransportRequests();
-  
-  const farmers = new Set(tasks?.map(t => t.farmer_id) || []);
-  const readyCrops = allCrops?.filter(c => c.status === 'ready' || c.status === 'one_week') || [];
-  const pendingTransport = transportRequests?.filter(t => t.status === 'requested') || [];
-  const completedToday = todayTasks?.filter(t => t.task_status === 'completed').length || 0;
-  
-  return {
-    farmersAssigned: farmers.size,
-    activeCrops: allCrops?.filter(c => c.status !== 'harvested').length || 0,
-    tasksToday: todayTasks?.length || 0,
-    tasksCompleted: completedToday,
-    cropsReadyToHarvest: readyCrops.length,
-    pendingTransportRequests: pendingTransport.length,
-  };
+  return useQuery({
+    queryKey: ['agent-dashboard-stats'],
+    queryFn: async () => {
+      const data = await rpcJson('agent_dashboard_v1');
+      return {
+        farmersAssigned: Number(data?.assigned_farmers_count || 0),
+        activeCrops: Number(data?.active_crops || 0),
+        tasksToday: Number(data?.pending_tasks_count || 0),
+        tasksCompleted: 0,
+        cropsReadyToHarvest: Number((data?.tasks_top10 || []).length || 0),
+        pendingTransportRequests: Number(data?.pending_tasks_count || 0),
+      };
+    },
+  });
 };

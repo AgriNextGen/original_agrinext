@@ -16,7 +16,13 @@ import {
   Users,
   Sparkles,
   Database,
-  TestTube
+  TestTube,
+  Inbox,
+  Ticket,
+  Bot,
+  Briefcase,
+  CalendarDays,
+  MapPin,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
@@ -40,6 +46,7 @@ const DashboardSidebar = ({ onClose, isOpen = true, isMobile = false }: Dashboar
 
   // Farmer navigation items
   const farmerNavItems = [
+    { icon: CalendarDays, label: 'My Day', href: '/farmer/my-day' },
     { icon: LayoutDashboard, label: t('nav.dashboard'), href: '/farmer/dashboard' },
     { icon: CropIcon, label: t('nav.crops'), href: '/farmer/crops' },
     { icon: LandPlot, label: t('nav.farmlands'), href: '/farmer/farmlands' },
@@ -58,11 +65,13 @@ const DashboardSidebar = ({ onClose, isOpen = true, isMobile = false }: Dashboar
 
   // Agent navigation items
   const agentNavItems = [
+    { icon: CalendarDays, label: 'Today', href: '/agent/today' },
     { icon: LayoutDashboard, label: t('nav.dashboard'), href: '/agent/dashboard' },
     { icon: ClipboardList, label: t('nav.myTasks'), href: '/agent/tasks' },
     { icon: Users, label: t('nav.myFarmers'), href: '/agent/my-farmers' },
     { icon: Users, label: t('nav.farmersAndCrops'), href: '/agent/farmers' },
     { icon: Truck, label: t('nav.transport'), href: '/agent/transport' },
+    { icon: MapPin, label: 'Service Area', href: '/agent/service-area' },
     { icon: Settings, label: t('nav.profile'), href: '/agent/profile' },
   ];
 
@@ -73,6 +82,7 @@ const DashboardSidebar = ({ onClose, isOpen = true, isMobile = false }: Dashboar
     { icon: Truck, label: t('nav.activeTrips'), href: '/logistics/trips' },
     { icon: CropIcon, label: t('nav.completed'), href: '/logistics/completed' },
     { icon: LandPlot, label: t('nav.myVehicles'), href: '/logistics/vehicles' },
+    { icon: MapPin, label: 'Service Area', href: '/logistics/service-area' },
     { icon: Settings, label: t('nav.profile'), href: '/logistics/profile' },
   ];
 
@@ -87,6 +97,8 @@ const DashboardSidebar = ({ onClose, isOpen = true, isMobile = false }: Dashboar
   // Admin navigation items
   const adminNavItems = [
     { icon: LayoutDashboard, label: 'Dashboard', href: '/admin/dashboard' },
+    { icon: Inbox, label: 'Ops Inbox', href: '/admin/ops' },
+    { icon: Ticket, label: 'Tickets', href: '/admin/tickets' },
     { icon: Users, label: 'Farmers', href: '/admin/farmers' },
     { icon: Sparkles, label: 'Agents', href: '/admin/agents' },
     { icon: Truck, label: 'Transporters', href: '/admin/transporters' },
@@ -95,6 +107,9 @@ const DashboardSidebar = ({ onClose, isOpen = true, isMobile = false }: Dashboar
     { icon: Package, label: 'Transport', href: '/admin/transport' },
     { icon: ClipboardList, label: 'Orders', href: '/admin/orders' },
     { icon: ClipboardList, label: 'Pending Updates', href: '/admin/pending-updates' },
+    { icon: Bot, label: 'AI Review', href: '/admin/ai-review' },
+    { icon: Briefcase, label: 'Jobs', href: '/admin/jobs' },
+    { icon: DollarSign, label: 'Finance', href: '/admin/finance' },
     { icon: Sparkles, label: 'AI Console', href: '/admin/ai-console' },
     { icon: Database, label: 'Seed Data', href: '/admin/seed-data' },
     { icon: TestTube, label: 'Mysuru Demo', href: '/admin/mysuru-demo' },

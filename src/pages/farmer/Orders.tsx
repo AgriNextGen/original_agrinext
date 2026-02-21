@@ -235,10 +235,17 @@ const FarmerOrders = () => {
                         {order.price_offered ? `₹${order.price_offered.toLocaleString()}` : '-'}
                       </td>
                       <td className="px-6 py-4">
-                        <Badge variant="outline" className={cn('gap-1', config.color)}>
-                          <StatusIcon className="h-3 w-3" />
-                          {config.label}
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className={cn('gap-1', config.color)}>
+                            <StatusIcon className="h-3 w-3" />
+                            {config.label}
+                          </Badge>
+                          {order.payout_hold && (
+                            <Badge className="bg-yellow-100 text-yellow-800">
+                              Payout hold
+                            </Badge>
+                          )}
+                        </div>
                       </td>
                       <td className="px-6 py-4 text-sm text-muted-foreground">
                         {format(new Date(order.created_at), 'dd MMM yyyy')}
@@ -322,7 +329,7 @@ const FarmerOrders = () => {
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center justify-between pt-4 border-t border-border">
+                  <div className="flex items-center justify-between pt-4 border-t border-border">
                   <div>
                     <p className="text-xs text-muted-foreground">Current Status</p>
                     <Badge 
@@ -334,12 +341,19 @@ const FarmerOrders = () => {
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Payment</p>
-                    <Badge 
-                      variant={selectedOrder.payment_status === 'paid' ? 'default' : 'secondary'} 
-                      className="mt-1"
-                    >
-                      {selectedOrder.payment_status || 'pending'}
-                    </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge 
+                          variant={selectedOrder.payment_status === 'paid' ? 'default' : 'secondary'} 
+                          className="mt-1"
+                        >
+                          {selectedOrder.payment_status || 'pending'}
+                        </Badge>
+                        {selectedOrder.payout_hold && (
+                          <Badge className="bg-yellow-100 text-yellow-800 mt-1">
+                            Payout hold
+                          </Badge>
+                        )}
+                      </div>
                   </div>
                 </div>
                 {selectedOrder.notes && (

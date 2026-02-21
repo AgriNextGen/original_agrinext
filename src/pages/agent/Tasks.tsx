@@ -52,6 +52,8 @@ import {
 import AgentVoiceNoteDialog from '@/components/agent/AgentVoiceNoteDialog';
 import { format, parseISO } from 'date-fns';
 import { toast } from 'sonner';
+import network from '@/offline/network';
+import actionQueue from '@/offline/actionQueue';
 import PageShell from '@/components/layout/PageShell';
 import DataState from '@/components/ui/DataState';
 
@@ -69,7 +71,9 @@ const statusColors: Record<string, string> = {
 };
 
 const AgentTasks = () => {
-  const { data: tasks, isLoading } = useAgentTasks();
+  const { data: tasksPages, isLoading: tasksLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useAgentTasksInfinite();
+  const tasks = tasksPages ? tasksPages.pages.flatMap((p: any) => p.items || []) : [];
+  const isLoading = tasksLoading;
   const { data: farmers } = useAllFarmers();
   const { data: crops } = useAllCrops();
   const updateStatus = useUpdateTaskStatus();
@@ -125,7 +129,53 @@ const AgentTasks = () => {
   };
 
   const handleStatusChange = (task: AgentTask, newStatus: 'pending' | 'in_progress' | 'completed') => {
-    updateStatus.mutate({ taskId: task.id, status: newStatus });
+    // If offline, enqueue action with idempotencyKey and show pending notification
+    if (!network.isOnline()) {
+      const idempotencyKey = crypto.randomUUID();
+      actionQueue.enqueueAction({
+        id: crypto.randomUUID(),
+        type: 'rpc',
+        name: 'agent.update_task_status_v1',
+        payload: { task_id: task.id, status: newStatus },
+        idempotencyKey,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        status: 'queued',
+        retryCount: 0,
+        maxRetries: 8,
+        nextRunAt: null,
+        scope: 'agent',
+        entityType: 'agent_task',
+        entityId: task.id
+      });
+      toast.success('Saved locally — will sync when online');
+      return;
+    }
+    updateStatus.mutate({ taskId: task.id, status: newStatus }, {
+      onError: (err: any) => {
+        // If network error, enqueue for retry
+        if (String(err?.message || '').toLowerCase().includes('network') || String(err?.message || '').toLowerCase().includes('failed to fetch')) {
+          const idempotencyKey = crypto.randomUUID();
+          actionQueue.enqueueAction({
+            id: crypto.randomUUID(),
+            type: 'rpc',
+            name: 'agent.update_task_status_v1',
+            payload: { task_id: task.id, status: newStatus },
+            idempotencyKey,
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+            status: 'queued',
+            retryCount: 0,
+            maxRetries: 8,
+            nextRunAt: null,
+            scope: 'agent',
+            entityType: 'agent_task',
+            entityId: task.id
+          });
+          toast.success('Saved locally — will sync when online');
+        }
+      }
+    });
   };
 
   return (
@@ -365,6 +415,9 @@ const AgentTasks = () => {
                   )}
                 </TableBody>
               </Table>
+              <div className="p-4 text-center">
+                {hasNextPage ? <Button onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>{isFetchingNextPage ? 'Loading...' : 'Load more'}</Button> : <div className="text-sm text-muted-foreground">No more tasks</div>}
+              </div>
             </DataState>
           </CardContent>
         </Card>

@@ -12,6 +12,10 @@ alter table public.storage_bookings enable row level security;
 alter table public.notifications enable row level security;
 alter table public.admin_logs enable row level security;
 
+-- Ensure role_id exists on profiles before using it in functions/policies
+alter table public.profiles
+  add column if not exists role_id uuid references public.roles(id) on delete set null;
+
 create or replace function public.is_admin_user()
 returns boolean
 language sql
@@ -59,6 +63,10 @@ using (
   profile_id = auth.uid()
   or public.is_admin_user()
 );
+
+-- Ensure profile_id exists on transporters before creating policies that reference it
+alter table public.transporters
+  add column if not exists profile_id uuid references public.profiles(id) on delete set null;
 
 drop policy if exists "transporters_owner_or_admin_select" on public.transporters;
 create policy "transporters_owner_or_admin_select"

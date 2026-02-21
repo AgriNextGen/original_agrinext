@@ -18,17 +18,25 @@ import MyHelpRequests from '@/components/farmer/MyHelpRequests';
 import { useRealtimeSubscriptions } from '@/hooks/useRealtimeSubscriptions';
 import { useLanguage } from '@/hooks/useLanguage';
 import PageShell from '@/components/layout/PageShell';
+import { useQuery } from '@tanstack/react-query';
+import { rpcJson } from '@/lib/readApi';
 
 const FarmerDashboard = () => {
   useRealtimeSubscriptions();
   const { t } = useLanguage();
+  const { data: dashboardData } = useQuery({
+    queryKey: ['farmer-dashboard'],
+    queryFn: async () => {
+      return await rpcJson('farmer_dashboard_v1');
+    }
+  });
 
   return (
     <DashboardLayout title={t('nav.dashboard')}>
       <PageShell title={t('dashboard.welcome')} subtitle={t('dashboard.quickActions')} density="comfortable">
         <FarmerLocationPrompt />
         <OnboardingTour />
-        <FarmerSummaryCard />
+        <FarmerSummaryCard dashboardData={dashboardData} />
         <QuickActions />
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">

@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/dialog';
 import { Package, MapPin, Calendar, Search, Check, X, User, Loader2 } from 'lucide-react';
 import { useAvailableLoads, useVehicles } from '@/hooks/useLogisticsDashboard';
+import { useTransportRequestsInfinite } from '@/hooks/useTransportRequests';
 import { useAcceptLoadSecure } from '@/hooks/useTrips';
 import { format, parseISO } from 'date-fns';
 import {
@@ -39,13 +40,15 @@ const AvailableLoads = () => {
   const { data: loads, isLoading } = useAvailableLoads();
   const { data: vehicles } = useVehicles();
   const acceptLoad = useAcceptLoadSecure();
+  const { data: pages, isLoading: infiniteLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useTransportRequestsInfinite();
+  const allLoads = pages ? pages.pages.flatMap((p: any) => p.items || []) : (loads || []);
   
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLoad, setSelectedLoad] = useState<string | null>(null);
   const [selectedVehicle, setSelectedVehicle] = useState<string>('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const filteredLoads = loads?.filter(load => {
+  const filteredLoads = allLoads?.filter(load => {
     const query = searchQuery.toLowerCase();
     return (
       load.farmer?.full_name?.toLowerCase().includes(query) ||
@@ -198,6 +201,15 @@ const AvailableLoads = () => {
                   ))}
                 </TableBody>
               </Table>
+            </div>
+            <div className="mt-4 text-center">
+              {hasNextPage ? (
+                <Button onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>
+                  {isFetchingNextPage ? 'Loading...' : 'Load more'}
+                </Button>
+              ) : (
+                <div className="text-sm text-muted-foreground">No more loads</div>
+              )}
             </div>
           </DataState>
         </CardContent>

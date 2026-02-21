@@ -1,5 +1,5 @@
-// src/lib/offlineQueue.ts
-// Simple offline queue using localStorage. Keeps minimal logic — integrate RPC calls on your client mutations.
+import { useState, useEffect } from 'react';
+
 type OfflineAction = {
   id: string;
   action_type: string;
@@ -18,7 +18,7 @@ export function enqueueAction(action_type: string, payload: any) {
   return item.id;
 }
 
-export function getPending() : OfflineAction[] {
+export function getPending(): OfflineAction[] {
   return JSON.parse(localStorage.getItem(KEY) || '[]');
 }
 
@@ -36,30 +36,20 @@ export async function retryAll(handler: (action: OfflineAction) => Promise<boole
       const ok = await handler(a);
       if (ok) removeAction(a.id);
     } catch (e) {
-      // leave for later
       console.warn('retry failed', e);
     }
   }
 }
 
-// helper hook (if using React)
 export function useOfflineQueue() {
-  const [count, setCount] = (globalThis as any).__offlineQueueCountState || [0, (_: any)=>{}];
-  useEffectOnce(() => {
+  const [count, setCount] = useState(() => getPending().length);
+
+  useEffect(() => {
     const updater = () => setCount(getPending().length);
     window.addEventListener('offlineQueue.updated', updater);
     updater();
     return () => window.removeEventListener('offlineQueue.updated', updater);
-  });
-  return { count, retryAll };
-}
+  }, []);
 
-// Minimal useEffectOnce helper (avoid adding extra deps)
-function useEffectOnce(fn: () => any) {
-  const mountedRef = (globalThis as any).__offlineQueueMounted ?? false;
-  if (!mountedRef) {
-    (globalThis as any).__offlineQueueMounted = true;
-    fn();
-  }
+  return { count, pending: getPending, retryAll };
 }
-

@@ -18,6 +18,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { formatDistanceToNow } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
+import SyncIndicator from '@/components/SyncIndicator';
 
 interface DashboardHeaderProps {
   title: string;
@@ -118,6 +119,9 @@ const DashboardHeader = ({ title, onMenuClick }: DashboardHeaderProps) => {
         <h1 className="font-display text-lg md:text-xl font-semibold text-foreground truncate max-w-[200px] md:max-w-none">
           {title}
         </h1>
+        <div className="ml-3">
+          <SyncIndicator />
+        </div>
       </div>
 
       <div className="flex items-center gap-2 md:gap-4">

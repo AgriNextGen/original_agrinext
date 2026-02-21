@@ -5,11 +5,15 @@ import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 
-const FarmerSummaryCard = () => {
+const FarmerSummaryCard = ({ dashboardData }: { dashboardData?: any } ) => {
   const { data: profile, isLoading: profileLoading } = useFarmerProfile();
   const { data: farmlands } = useFarmlands();
   const { activeCrops, readyToHarvest, pendingTransport, isLoading: statsLoading } = useDashboardStats();
+  const remote = dashboardData || null;
   const navigate = useNavigate();
+  const remoteActiveCrops = remote && remote.crops_by_status
+    ? Object.values(remote.crops_by_status).reduce((s: any, v: any) => s + (v || 0), 0)
+    : null;
 
   // Calculate profile completion
   const getProfileCompletion = () => {
@@ -56,7 +60,7 @@ const FarmerSummaryCard = () => {
     },
     { 
       label: 'Active Crops', 
-      value: activeCrops.toString(), 
+      value: String(remoteActiveCrops != null ? remoteActiveCrops : activeCrops), 
       icon: Sprout, 
       color: 'text-emerald-600 bg-emerald-100' 
     },
@@ -68,7 +72,7 @@ const FarmerSummaryCard = () => {
     },
     { 
       label: 'Pending Transport', 
-      value: pendingTransport.toString(), 
+      value: (remote?.open_transport_requests_count != null ? remote.open_transport_requests_count : pendingTransport).toString(), 
       icon: Truck, 
       color: 'text-blue-600 bg-blue-100' 
     },

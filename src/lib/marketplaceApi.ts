@@ -33,3 +33,7 @@ export async function getOrderDetail(orderId: string) {
   return await fetch(`/.netlify/functions/get-order-detail?order_id=${encodeURIComponent(orderId)}`).then(r => r.json());
 }
 
+export async function createPaymentOrder(orderId: string, provider?: string) {
+  return await callFn('create-payment-order', { order_id: orderId, provider: provider || 'razorpay' });
+}
+

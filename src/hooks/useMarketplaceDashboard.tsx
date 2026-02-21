@@ -116,48 +116,32 @@ export const useMarketProducts = (filters?: {
   return useQuery({
     queryKey: ['market-products', filters],
     queryFn: async () => {
-      let query = supabase
-        .from('crops')
-        .select('*')
-        .in('status', ['ready', 'one_week'] as const)
-        .order('updated_at', { ascending: false });
-      
-      if (filters?.cropName) {
-        query = query.ilike('crop_name', `%${filters.cropName}%`);
-      }
-      if (filters?.status) {
-        query = query.eq('status', filters.status as "growing" | "one_week" | "ready" | "harvested");
-      }
-      
-      const { data: crops, error } = await query;
-      if (error) throw error;
-      
-      // Enrich with farmer info
-      const enriched = await Promise.all(
-        (crops || []).map(async (crop) => {
-          const [farmerRes, landRes] = await Promise.all([
-            supabase.from('profiles').select('full_name, village, district').eq('id', crop.farmer_id).maybeSingle(),
-            crop.land_id ? supabase.from('farmlands').select('name, village').eq('id', crop.land_id).maybeSingle() : Promise.resolve({ data: null }),
-          ]);
-          
-          return {
-            ...crop,
-            farmer: farmerRes.data,
-            land: landRes.data,
-          };
-        })
-      );
-      
-      // Filter by district if specified
-      if (filters?.district) {
-        return enriched.filter(p => 
-          p.farmer?.district?.toLowerCase().includes(filters.district!.toLowerCase()) ||
-          p.land?.village?.toLowerCase().includes(filters.district!.toLowerCase())
-        ) as unknown as MarketProduct[];
-      }
-      
-      return enriched as unknown as MarketProduct[];
+      // Call compact RPC with simple filter translation
+      const filter: any = {};
+      if (filters?.cropName) filter.crop_name = filters.cropName;
+      if (filters?.status) filter.status = filters.status;
+      const { rpcJson } = await import('@/lib/readApi');
+      const data = await rpcJson('list_market_products_compact_v1', { p_filter: filter, p_limit: 30, p_cursor: null });
+      return data?.items || [];
     },
+  });
+};
+
+// Infinite product list (cursor pagination)
+export const useMarketProductsInfinite = (filters?: { cropName?: string; status?: string }) => {
+  const { cropName, status } = filters || {};
+  return useInfiniteQuery({
+    queryKey: ['market-products-infinite', filters],
+    queryFn: async ({ pageParam = null }) => {
+      const filter: any = {};
+      if (cropName) filter.crop_name = cropName;
+      if (status) filter.status = status;
+      const { rpcJson } = await import('@/lib/readApi');
+      const data = await rpcJson('list_market_products_compact_v1', { p_filter: filter, p_limit: 24, p_cursor: pageParam });
+      // rpc returns { items, next_cursor }
+      return { items: data?.items || [], next_cursor: data?.next_cursor || null };
+    },
+    getNextPageParam: (lastPage) => lastPage.next_cursor || undefined,
   });
 };
 
@@ -199,32 +183,9 @@ export const useBuyerOrders = () => {
     queryKey: ['buyer-orders', buyer?.id],
     queryFn: async () => {
       if (!buyer?.id) return [];
-      
-      const { data: orders, error } = await supabase
-        .from('market_orders')
-        .select('*')
-        .eq('buyer_id', buyer.id)
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      
-      // Enrich with crop and farmer info
-      const enriched = await Promise.all(
-        (orders || []).map(async (order) => {
-          const [cropRes, farmerRes] = await Promise.all([
-            order.crop_id ? supabase.from('crops').select('crop_name, variety').eq('id', order.crop_id).maybeSingle() : Promise.resolve({ data: null }),
-            supabase.from('profiles').select('full_name, village').eq('id', order.farmer_id).maybeSingle(),
-          ]);
-          
-          return {
-            ...order,
-            crop: cropRes.data,
-            farmer: farmerRes.data,
-          };
-        })
-      );
-      
-      return enriched as MarketOrder[];
+      // use compact orders RPC (cursorless first page)
+      const { data } = await (await import('@/lib/readApi')).rpcJson('list_orders_compact_v1', { p_limit: 50, p_cursor: null });
+      return data?.items || [];
     },
     enabled: !!buyer?.id,
   });
@@ -264,14 +225,19 @@ export const useCreateOrder = () => {
 };
 
 // Dashboard stats
+import { rpcJson } from '@/lib/readApi';
+
 export const useMarketplaceDashboardStats = () => {
-  const { data: products } = useMarketProducts();
-  const { data: orders } = useBuyerOrders();
-  
-  return {
-    totalProducts: products?.length || 0,
-    freshHarvest: products?.filter(p => p.status === 'ready').length || 0,
-    oneWeekAway: products?.filter(p => p.status === 'one_week').length || 0,
-    activeOrders: orders?.filter(o => !['delivered', 'cancelled'].includes(o.status)).length || 0,
-  };
+  return useQuery({
+    queryKey: ['marketplace-dashboard'],
+    queryFn: async () => {
+      const data = await rpcJson('buyer_dashboard_v1');
+      // map returned structure to expected fields used by components
+      const totalProducts = 0; // remain from client product list where available
+      const freshHarvest = 0;
+      const oneWeekAway = 0;
+      const activeOrders = (data?.recent_orders_top10 || []).length;
+      return { totalProducts, freshHarvest, oneWeekAway, activeOrders, raw: data };
+    },
+  });
 };

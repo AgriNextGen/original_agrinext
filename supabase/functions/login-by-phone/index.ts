@@ -1,12 +1,6 @@
-/**
- * Login by phone + password + role
- * Deploy: supabase functions deploy login-by-phone --no-verify-jwt
- *
- * Input: { phone: string, password: string, role: string }
- * Output: { access_token, refresh_token, expires_in } or 401
- */
-
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "jsr:@supabase/supabase-js@2";
+import { getRequestIdFromHeaders, makeResponseWithRequestId, logStructured } from "../_shared/request_context.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
@@ -31,93 +25,30 @@ const corsHeaders = {
 };
 
 Deno.serve(async (req: Request) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
-
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   try {
+    const reqId = getRequestIdFromHeaders(req.headers);
     const { phone, password } = (await req.json()) as { phone?: string; password?: string };
-    if (!phone || !password) {
-      return new Response(
-        JSON.stringify({ error: "Invalid credentials" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Enforce minimum password policy client-side also; server double-check
-    if (password.length < 8) {
-      return new Response(
-        JSON.stringify({ error: "Invalid credentials" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    if (!phone || !password) return new Response(JSON.stringify({ error: "Invalid credentials" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
     const normalizedPhone = normalizePhone(phone);
-    if (!normalizedPhone || normalizedPhone.length < 12) {
-      return new Response(
-        JSON.stringify({ error: "Invalid credentials" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    if (!normalizedPhone) return new Response(JSON.stringify({ error: "Invalid credentials" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
     const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    // IP prefix for simple tracking
-    const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "unknown";
-    const ipPrefix = ip.split(",")[0].trim().split(".").slice(0,3).join("."); // /24
-
-    // Rate limiting checks using login_attempts table
-    const fiveMinsAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
-    const { data: recentFails } = await supabaseAdmin.rpc("sql", {
-      -- placeholder, will replace with direct query
-      -- but supabase-js doesn't support raw SQL via rpc easily; use from select
-      p: null
-    }).catch(() => ({ data: null }));
-
-    // Simpler: count via select
-    const { count: failCountPhone } = await supabaseAdmin
-      .from("login_attempts")
-      .select("id", { count: "exact", head: true })
-      .eq("phone", normalizedPhone)
-      .gte("attempt_time", fiveMinsAgo);
-
-    const { count: failCountIp } = await supabaseAdmin
-      .from("login_attempts")
-      .select("id", { count: "exact", head: true })
-      .eq("ip_prefix", ipPrefix)
-      .gte("attempt_time", fiveMinsAgo);
-
-    const totalFails = (failCountPhone || 0) + (failCountIp || 0);
-    if (totalFails >= 10) {
-      // Block for 15 minutes (return 429)
-      await supabaseAdmin.from("audit.security_events").insert({
-        event_type: "login_blocked",
-        details: { phone: normalizedPhone, ip_prefix: ipPrefix, reason: "too_many_failed_attempts" }
-      }).catch(()=>null);
-      return new Response(JSON.stringify({ error: "Too many failed attempts" }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-    if (totalFails >= 5) {
-      // Introduce delay
-      await new Promise((r) => setTimeout(r, 2000));
+    // Basic profile status check: block or restricted handling
+    const { data: profile } = await supabaseAdmin.from("profiles").select("id, account_status, blocked_until").eq("phone", normalizedPhone).maybeSingle();
+    if (profile) {
+      if (profile.account_status === 'locked') {
+        return new Response(JSON.stringify({ error: "account_locked", message: "Account locked. Contact support." }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      if (profile.blocked_until && new Date(profile.blocked_until) > new Date()) {
+        return new Response(JSON.stringify({ error: "temporarily_blocked", message: `Too many attempts. Try again at ${profile.blocked_until}` }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
     }
 
-    // Find profile by phone
-    const { data: profile, error: profileError } = await supabaseAdmin
-      .from("profiles")
-      .select("id, auth_email")
-      .eq("phone", normalizedPhone)
-      .maybeSingle();
-
-    if (profileError || !profile) {
-      // log failed attempt
-      await supabaseAdmin.from("login_attempts").insert({ phone: normalizedPhone, ip_prefix: ipPrefix, success: false }).catch(()=>null);
-      return new Response(
-        JSON.stringify({ error: "Invalid credentials" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-    const authEmail = profile.auth_email || getAuthEmailFromPhone(normalizedPhone);
-
+    // Attempt auth via Supabase Auth
+    const authEmail = profile?.id ? (profile as any).auth_email || getAuthEmailFromPhone(normalizedPhone) : getAuthEmailFromPhone(normalizedPhone);
     const tokenRes = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
       method: "POST",
       headers: {
@@ -126,41 +57,39 @@ Deno.serve(async (req: Request) => {
       },
       body: JSON.stringify({ email: authEmail, password }),
     });
-
     const tokenData = await tokenRes.json();
 
     if (!tokenRes.ok) {
-      // log failed attempt
-      await supabaseAdmin.from("login_attempts").insert({ phone: normalizedPhone, ip_prefix: ipPrefix, success: false }).catch(()=>null);
-      return new Response(
-        JSON.stringify({ error: "Invalid credentials" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      // record failed login via RPC for counting and potential blocking
+      try {
+        await supabaseAdmin.rpc("security.record_failed_login_v1", {
+          p_request_id: reqId,
+          p_phone: normalizedPhone,
+          p_ip: req.headers.get("x-forwarded-for") || null,
+          p_device_id: req.headers.get("user-agent") || null
+        });
+      } catch (e) { /* best-effort */ }
+      logStructured({ request_id: reqId, endpoint: "login-by-phone", status: "failed", phone: normalizedPhone });
+      return makeResponseWithRequestId(JSON.stringify({ error: "Invalid credentials" }), reqId, { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Successful login: log success and return profiles
-    await supabaseAdmin.from("login_attempts").insert({ phone: normalizedPhone, ip_prefix: ipPrefix, success: true }).catch(()=>null);
+    // on success: reset counters & set last_login_at
+    try {
+      await supabaseAdmin.from("profiles").update({ last_login_at: new Date().toISOString(), failed_login_count_window: 0, failed_login_window_started_at: null }).eq("phone", normalizedPhone);
+    } catch (e) { /* best-effort */ }
 
-    // Fetch user_profiles for this user
-    const { data: profiles } = await supabaseAdmin
-      .from("user_profiles")
-      .select("id, profile_type, display_name, phone, is_active")
-      .eq("user_id", profile.id)
-      .order("created_at", { ascending: true });
+    logStructured({ request_id: reqId, endpoint: "login-by-phone", status: "success", phone: normalizedPhone, user_id: (profile && (profile as any).id) || null });
+    return makeResponseWithRequestId(JSON.stringify({
+      access_token: tokenData.access_token,
+      refresh_token: tokenData.refresh_token,
+      expires_in: tokenData.expires_in
+    }), reqId, { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
-    return new Response(
-      JSON.stringify({
-        access_token: tokenData.access_token,
-        refresh_token: tokenData.refresh_token,
-        expires_in: tokenData.expires_in,
-        profiles: profiles || []
-      }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-  } catch {
-    return new Response(
-      JSON.stringify({ error: "Invalid credentials" }),
-      { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+  } catch (err) {
+    const reqId = getRequestIdFromHeaders(req.headers);
+    console.error("login-by-phone error:", err);
+    logStructured({ request_id: reqId, endpoint: "login-by-phone", status: "error", error: err instanceof Error ? err.message : String(err) });
+    return makeResponseWithRequestId(JSON.stringify({ error: err instanceof Error ? err.message : 'Internal' }), reqId, { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 });
+

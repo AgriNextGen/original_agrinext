@@ -14,6 +14,10 @@ import PageShell from '@/components/layout/PageShell';
 import DataState from '@/components/ui/DataState';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useSetProfileGeo } from '@/hooks/useServiceAreas';
+import GeoStateSelect from '@/components/geo/GeoStateSelect';
+import GeoDistrictSelect from '@/components/geo/GeoDistrictSelect';
+import GeoMarketSelect from '@/components/geo/GeoMarketSelect';
 import { 
   User, 
   Save,
@@ -31,6 +35,7 @@ const SettingsPage = () => {
   const queryClient = useQueryClient();
   const { language, setLanguage, isLoading: languageLoading, t } = useLanguage();
   const [isSaving, setIsSaving] = useState(false);
+  const setProfileGeo = useSetProfileGeo();
   
   const [formData, setFormData] = useState({
     full_name: '',
@@ -38,6 +43,9 @@ const SettingsPage = () => {
     village: '',
     district: '',
   });
+  const [geoStateId, setGeoStateId] = useState('');
+  const [geoDistrictId, setGeoDistrictId] = useState('');
+  const [geoMarketId, setGeoMarketId] = useState('');
 
   useEffect(() => {
     if (profile) {
@@ -47,6 +55,9 @@ const SettingsPage = () => {
         village: profile.village || '',
         district: profile.district || '',
       });
+      setGeoStateId(profile.geo_state_id || '');
+      setGeoDistrictId(profile.geo_district_id || '');
+      setGeoMarketId(profile.home_market_id || '');
     }
   }, [profile]);
 
@@ -67,6 +78,14 @@ const SettingsPage = () => {
         .eq('id', user.id);
 
       if (error) throw error;
+
+      if (geoStateId || geoDistrictId || geoMarketId) {
+        await setProfileGeo.mutateAsync({
+          state_id: geoStateId || undefined,
+          district_id: geoDistrictId || undefined,
+          market_id: geoMarketId || undefined,
+        });
+      }
       
       toast({ title: t('toast.profile_updated') });
       queryClient.invalidateQueries({ queryKey: ['farmer-profile', user.id] });
@@ -159,12 +178,40 @@ const SettingsPage = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="district">{t('settings.district')}</Label>
+                    <Label htmlFor="district">{t('settings.district')} (text)</Label>
                     <Input
                       id="district"
                       value={formData.district}
                       onChange={(e) => setFormData({ ...formData, district: e.target.value })}
                       placeholder={t('settings.district_placeholder')}
+                    />
+                  </div>
+                </div>
+
+                <Separator />
+                <p className="text-sm font-medium text-muted-foreground">{language === 'kn' ? 'ಭೌಗೋಳಿಕ ಮಾಹಿತಿ' : 'Geographic Location'}</p>
+                <div className="grid sm:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label>{language === 'kn' ? 'ರಾಜ್ಯ' : 'State'}</Label>
+                    <GeoStateSelect
+                      value={geoStateId}
+                      onValueChange={(v) => { setGeoStateId(v); setGeoDistrictId(''); setGeoMarketId(''); }}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>{language === 'kn' ? 'ಜಿಲ್ಲೆ' : 'District'}</Label>
+                    <GeoDistrictSelect
+                      stateId={geoStateId || null}
+                      value={geoDistrictId}
+                      onValueChange={(v) => { setGeoDistrictId(v); setGeoMarketId(''); }}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>{language === 'kn' ? 'ಮಾರುಕಟ್ಟೆ' : 'Home Market'}</Label>
+                    <GeoMarketSelect
+                      districtId={geoDistrictId || null}
+                      value={geoMarketId}
+                      onValueChange={setGeoMarketId}
                     />
                   </div>
                 </div>

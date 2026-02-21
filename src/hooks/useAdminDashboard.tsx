@@ -77,40 +77,19 @@ export const useAdminDashboardStats = () => {
   return useQuery({
     queryKey: ['admin-dashboard-stats'],
     queryFn: async () => {
-      const [
-        farmersRes,
-        cropsRes,
-        transportRes,
-        ordersRes,
-        buyersRes,
-        transportersRes,
-      ] = await Promise.all([
-        supabase.from('profiles').select('id', { count: 'exact' }),
-        supabase.from('crops').select('id, status', { count: 'exact' }),
-        supabase.from('transport_requests').select('id, status', { count: 'exact' }),
-        supabase.from('market_orders').select('id, status, created_at', { count: 'exact' }),
-        supabase.from('buyers').select('id', { count: 'exact' }),
-        supabase.from('transporters').select('id', { count: 'exact' }),
-      ]);
-
-      const crops = cropsRes.data || [];
-      const transport = transportRes.data || [];
-      const orders = ordersRes.data || [];
-      
-      const today = new Date().toISOString().split('T')[0];
-      const newOrdersToday = orders.filter(o => o.created_at?.startsWith(today)).length;
-
+      const { data } = await supabase.rpc('admin_dashboard_v1', { p_days: 1 });
       return {
-        totalFarmers: farmersRes.count || 0,
-        totalBuyers: buyersRes.count || 0,
-        activeTransporters: transportersRes.count || 0,
-        totalCrops: crops.length,
-        harvestReady: crops.filter(c => c.status === 'ready').length,
-        oneWeekAway: crops.filter(c => c.status === 'one_week').length,
-        pendingTransport: transport.filter(t => t.status === 'requested').length,
-        activeTransport: transport.filter(t => ['assigned', 'en_route', 'picked_up'].includes(t.status)).length,
-        newOrdersToday,
-        pendingOrders: orders.filter(o => o.status === 'requested').length,
+        totalFarmers: data?.new_signups || 0,
+        totalBuyers: data?.new_signups || 0,
+        activeTransporters: data?.active_users || 0,
+        totalCrops: 0,
+        harvestReady: 0,
+        oneWeekAway: 0,
+        pendingTransport: 0,
+        activeTransport: 0,
+        newOrdersToday: data?.payment_failures || 0,
+        pendingOrders: 0,
+        raw: data
       };
     },
   });

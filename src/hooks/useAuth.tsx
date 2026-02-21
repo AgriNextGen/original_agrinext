@@ -68,7 +68,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (user?.id) {
       await fetchUserProfiles(user.id);
     }
-  }, [user?.id, fetchUserRole]);
+  }, [user?.id, fetchUserProfiles]);
 
   useEffect(() => {
     let mounted = true;
@@ -84,7 +84,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          await fetchUserRole(session.user.id);
+          await fetchUserProfiles(session.user.id);
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
@@ -123,7 +123,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [fetchUserRole]);
+  }, [fetchUserProfiles]);
 
   const signOut = useCallback(async () => {
     try {

@@ -107,6 +107,9 @@ execute function public.set_updated_at();
 
 create index if not exists idx_farm_plots_farmer_id on public.farm_plots(farmer_id);
 create index if not exists idx_crops_farmer_id on public.crops(farmer_id);
+-- Ensure plot_id exists before creating index
+alter table public.crops
+  add column if not exists plot_id uuid references public.farm_plots(id) on delete set null;
 create index if not exists idx_crops_plot_id on public.crops(plot_id);
 create index if not exists idx_crop_photos_crop_id on public.crop_photos(crop_id);
 create index if not exists idx_agent_visits_agent_id on public.agent_visits(agent_id);

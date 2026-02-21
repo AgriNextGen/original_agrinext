@@ -6,11 +6,26 @@ create extension if not exists "pgcrypto";
 create extension if not exists "uuid-ossp";
 
 -- Enums
-create type public.app_role as enum ('farmer', 'buyer', 'agent', 'logistics', 'admin');
-create type public.crop_status as enum ('growing', 'one_week', 'ready', 'harvested');
-create type public.transport_status as enum ('requested', 'assigned', 'en_route', 'picked_up', 'delivered', 'cancelled');
-create type public.agent_task_status as enum ('pending', 'in_progress', 'completed', 'approved', 'rejected');
-create type public.agent_task_type as enum ('visit', 'verify_crop', 'harvest_check', 'transport_assist', 'onboard_farmer', 'update_profile', 'soil_report_upload', 'field_visit', 'farmer_request');
+-- Enums (create only if not exists)
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'app_role') THEN
+    CREATE TYPE public.app_role AS ENUM ('farmer', 'buyer', 'agent', 'logistics', 'admin');
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'crop_status') THEN
+    CREATE TYPE public.crop_status AS ENUM ('growing', 'one_week', 'ready', 'harvested');
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'transport_status') THEN
+    CREATE TYPE public.transport_status AS ENUM ('requested', 'assigned', 'en_route', 'picked_up', 'delivered', 'cancelled');
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'agent_task_status') THEN
+    CREATE TYPE public.agent_task_status AS ENUM ('pending', 'in_progress', 'completed', 'approved', 'rejected');
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'agent_task_type') THEN
+    CREATE TYPE public.agent_task_type AS ENUM ('visit', 'verify_crop', 'harvest_check', 'transport_assist', 'onboard_farmer', 'update_profile', 'soil_report_upload', 'field_visit', 'farmer_request');
+  END IF;
+END
+$$;
 
 -- Helper
 create or replace function public.set_updated_at()
@@ -44,6 +59,7 @@ create table if not exists public.profiles (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+drop trigger if exists trg_profiles_updated_at on public.profiles;
 create trigger trg_profiles_updated_at before update on public.profiles
   for each row execute function public.set_updated_at();
 
@@ -71,9 +87,10 @@ create table if not exists public.farmlands (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+drop trigger if exists trg_farmlands_updated_at on public.farmlands;
 create trigger trg_farmlands_updated_at before update on public.farmlands
   for each row execute function public.set_updated_at();
-create index idx_farmlands_farmer_id on public.farmlands(farmer_id);
+create index if not exists idx_farmlands_farmer_id on public.farmlands(farmer_id);
 
 -- Crops
 create table if not exists public.crops (
@@ -95,10 +112,11 @@ create table if not exists public.crops (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+drop trigger if exists trg_crops_updated_at on public.crops;
 create trigger trg_crops_updated_at before update on public.crops
   for each row execute function public.set_updated_at();
-create index idx_crops_farmer_id on public.crops(farmer_id);
-create index idx_crops_land_id on public.crops(land_id);
+create index if not exists idx_crops_farmer_id on public.crops(farmer_id);
+create index if not exists idx_crops_land_id on public.crops(land_id);
 
 -- Transporters
 create table if not exists public.transporters (
@@ -115,6 +133,7 @@ create table if not exists public.transporters (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+drop trigger if exists trg_transporters_updated_at on public.transporters;
 create trigger trg_transporters_updated_at before update on public.transporters
   for each row execute function public.set_updated_at();
 
@@ -143,6 +162,7 @@ create table if not exists public.buyers (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+drop trigger if exists trg_buyers_updated_at on public.buyers;
 create trigger trg_buyers_updated_at before update on public.buyers
   for each row execute function public.set_updated_at();
 
@@ -177,10 +197,11 @@ create table if not exists public.transport_requests (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+drop trigger if exists trg_transport_requests_updated_at on public.transport_requests;
 create trigger trg_transport_requests_updated_at before update on public.transport_requests
   for each row execute function public.set_updated_at();
-create index idx_transport_requests_farmer_id on public.transport_requests(farmer_id);
-create index idx_transport_requests_status on public.transport_requests(status);
+create index if not exists idx_transport_requests_farmer_id on public.transport_requests(farmer_id);
+create index if not exists idx_transport_requests_status on public.transport_requests(status);
 
 -- Trips (add FK after creation)
 create table if not exists public.trips (
@@ -207,9 +228,17 @@ create table if not exists public.trips (
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
-alter table public.transport_requests add constraint transport_requests_assigned_trip_id_fkey
-  foreign key (assigned_trip_id) references public.trips(id) on delete set null;
-create index idx_trips_transport_request_id on public.trips(transport_request_id);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'transport_requests_assigned_trip_id_fkey'
+  ) THEN
+    ALTER TABLE public.transport_requests ADD CONSTRAINT transport_requests_assigned_trip_id_fkey
+      FOREIGN KEY (assigned_trip_id) REFERENCES public.trips(id) ON DELETE SET NULL;
+  END IF;
+END
+$$;
+create index if not exists idx_trips_transport_request_id on public.trips(transport_request_id);
 
 -- Transport status events
 create table if not exists public.transport_status_events (
@@ -248,9 +277,10 @@ create table if not exists public.listings (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+drop trigger if exists trg_listings_updated_at on public.listings;
 create trigger trg_listings_updated_at before update on public.listings
   for each row execute function public.set_updated_at();
-create index idx_listings_seller_id on public.listings(seller_id);
+create index if not exists idx_listings_seller_id on public.listings(seller_id);
 
 -- Market orders
 create table if not exists public.market_orders (
@@ -266,8 +296,8 @@ create table if not exists public.market_orders (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
-create index idx_market_orders_buyer_id on public.market_orders(buyer_id);
-create index idx_market_orders_farmer_id on public.market_orders(farmer_id);
+create index if not exists idx_market_orders_buyer_id on public.market_orders(buyer_id);
+create index if not exists idx_market_orders_farmer_id on public.market_orders(farmer_id);
 
 -- Notifications
 create table if not exists public.notifications (
@@ -278,7 +308,7 @@ create table if not exists public.notifications (
   is_read boolean not null default false,
   created_at timestamptz not null default now()
 );
-create index idx_notifications_profile_id on public.notifications(profile_id);
+create index if not exists idx_notifications_profile_id on public.notifications(profile_id);
 
 -- Karnataka districts
 create table if not exists public.karnataka_districts (
@@ -318,8 +348,8 @@ create table if not exists public.agent_tasks (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
-create index idx_agent_tasks_agent_id on public.agent_tasks(agent_id);
-create index idx_agent_tasks_farmer_id on public.agent_tasks(farmer_id);
+create index if not exists idx_agent_tasks_agent_id on public.agent_tasks(agent_id);
+create index if not exists idx_agent_tasks_farmer_id on public.agent_tasks(farmer_id);
 
 create table if not exists public.agent_data (
   id uuid primary key default gen_random_uuid(),
@@ -456,7 +486,7 @@ create table if not exists public.market_prices (
   date date not null,
   created_at timestamptz default now()
 );
-create index idx_market_prices_crop_date on public.market_prices(crop_name, date);
+create index if not exists idx_market_prices_crop_date on public.market_prices(crop_name, date);
 
 -- Market prices agg (aggregated view)
 create table if not exists public.market_prices_agg (

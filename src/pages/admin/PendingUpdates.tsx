@@ -31,37 +31,13 @@ export default function PendingUpdates() {
   const queryClient = useQueryClient();
   const [selectedTask, setSelectedTask] = useState<any>(null);
 
-  // Fetch pending tasks with payload (sensitive update requests)
+  // Fetch pending tasks via admin RPC to avoid N+1
   const { data: pendingTasks, isLoading } = useQuery({
     queryKey: ['admin-pending-updates'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('agent_tasks')
-        .select('*')
-        .eq('task_status', 'pending')
-        .not('payload', 'is', null)
-        .order('created_at', { ascending: false });
-
+      const { data, error } = await supabase.rpc('get_pending_updates_v1');
       if (error) throw error;
-
-      // Enrich with farmer + agent names
-      const enriched = await Promise.all(
-        (data || []).map(async (task) => {
-          const [farmerRes, agentRes] = await Promise.all([
-            supabase.from('profiles').select('full_name, district, village').eq('id', task.farmer_id).single(),
-            supabase.from('profiles').select('full_name').eq('id', task.agent_id).single(),
-          ]);
-          return {
-            ...task,
-            farmer_name: farmerRes.data?.full_name || 'Unknown',
-            farmer_district: farmerRes.data?.district,
-            farmer_village: farmerRes.data?.village,
-            agent_name: agentRes.data?.full_name || 'Unknown',
-          };
-        })
-      );
-
-      return enriched;
+      return (data?.tasks) || [];
     },
   });
 

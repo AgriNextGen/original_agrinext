@@ -54,11 +54,50 @@ $$;
 -- SECTION 2: profiles
 -- Keep existing per-op self policies. Add admin overlay.
 -- ============================================================
+-- Ensure existing policies are dropped first (idempotent apply)
+DROP POLICY IF EXISTS profiles_admin_select ON public.profiles;
+DROP POLICY IF EXISTS profiles_admin_update ON public.profiles;
+DROP POLICY IF EXISTS user_roles_admin_select ON public.user_roles;
+DROP POLICY IF EXISTS user_roles_admin_insert ON public.user_roles;
+DROP POLICY IF EXISTS user_roles_admin_update ON public.user_roles;
+DROP POLICY IF EXISTS user_roles_admin_delete ON public.user_roles;
+DROP POLICY IF EXISTS farmlands_select ON public.farmlands;
+DROP POLICY IF EXISTS farmlands_insert ON public.farmlands;
+DROP POLICY IF EXISTS farmlands_update ON public.farmlands;
+DROP POLICY IF EXISTS crops_select ON public.crops;
+DROP POLICY IF EXISTS crops_insert ON public.crops;
+DROP POLICY IF EXISTS crops_update ON public.crops;
+DROP POLICY IF EXISTS listings_select ON public.listings;
+DROP POLICY IF EXISTS listings_insert ON public.listings;
+DROP POLICY IF EXISTS listings_update ON public.listings;
+DROP POLICY IF EXISTS transport_requests_select ON public.transport_requests;
+DROP POLICY IF EXISTS transport_requests_insert ON public.transport_requests;
+DROP POLICY IF EXISTS transport_requests_update ON public.transport_requests;
+DROP POLICY IF EXISTS trips_select ON public.trips;
+DROP POLICY IF EXISTS trips_admin_update ON public.trips;
+DROP POLICY IF EXISTS vehicles_admin_select ON public.vehicles;
+DROP POLICY IF EXISTS vehicles_admin_update ON public.vehicles;
+DROP POLICY IF EXISTS vehicles_admin_insert ON public.vehicles;
+DROP POLICY IF EXISTS vehicles_admin_delete ON public.vehicles;
+DROP POLICY IF EXISTS market_orders_select ON public.market_orders;
+DROP POLICY IF EXISTS market_orders_insert ON public.market_orders;
+DROP POLICY IF EXISTS market_orders_update ON public.market_orders;
+DROP POLICY IF EXISTS afa_agent_select ON public.agent_farmer_assignments;
+DROP POLICY IF EXISTS afa_agent_update ON public.agent_farmer_assignments;
+DROP POLICY IF EXISTS afa_admin_all ON public.agent_farmer_assignments;
+DROP POLICY IF EXISTS agent_tasks_agent_select ON public.agent_tasks;
+DROP POLICY IF EXISTS agent_tasks_agent_update ON public.agent_tasks;
+DROP POLICY IF EXISTS agent_tasks_admin_all ON public.agent_tasks;
+DROP POLICY IF EXISTS notifications_select_own ON public.notifications;
+DROP POLICY IF EXISTS notifications_update_own ON public.notifications;
+DROP POLICY IF EXISTS notifications_insert ON public.notifications;
 
+DROP POLICY IF EXISTS profiles_admin_select ON public.profiles;
 CREATE POLICY profiles_admin_select
   ON public.profiles FOR SELECT
   USING (public.is_admin());
 
+DROP POLICY IF EXISTS profiles_admin_update ON public.profiles;
 CREATE POLICY profiles_admin_update
   ON public.profiles FOR UPDATE
   USING (public.is_admin());
@@ -73,18 +112,22 @@ CREATE POLICY profiles_admin_update
 DROP POLICY IF EXISTS user_roles_insert_own ON public.user_roles;
 DROP POLICY IF EXISTS user_roles_update_own ON public.user_roles;
 
+DROP POLICY IF EXISTS user_roles_admin_select ON public.user_roles;
 CREATE POLICY user_roles_admin_select
   ON public.user_roles FOR SELECT
   USING (public.is_admin());
 
+DROP POLICY IF EXISTS user_roles_admin_insert ON public.user_roles;
 CREATE POLICY user_roles_admin_insert
   ON public.user_roles FOR INSERT
   WITH CHECK (public.is_admin());
 
+DROP POLICY IF EXISTS user_roles_admin_update ON public.user_roles;
 CREATE POLICY user_roles_admin_update
   ON public.user_roles FOR UPDATE
   USING (public.is_admin());
 
+DROP POLICY IF EXISTS user_roles_admin_delete ON public.user_roles;
 CREATE POLICY user_roles_admin_delete
   ON public.user_roles FOR DELETE
   USING (public.is_admin());

@@ -48,6 +48,7 @@ import CropSourceSelector from '@/components/listings/CropSourceSelector';
 import TraceSettingsPanel from '@/components/listings/TraceSettingsPanel';
 import EvidenceUploadSection from '@/components/listings/EvidenceUploadSection';
 import { useHarvestReadyCrops, TraceSettings, DEFAULT_TRACE_SETTINGS } from '@/hooks/useTraceability';
+import GeoDistrictSelect from '@/components/geo/GeoDistrictSelect';
 
 interface Listing {
   id: string;
@@ -91,6 +92,7 @@ const FarmerListings = () => {
     quantity: '',
     unit: 'kg',
     location: '',
+    geo_district_id: '',
   });
 
   // Evidence section state - shown after listing is saved
@@ -154,6 +156,7 @@ const FarmerListings = () => {
         location: formData.location || null,
         seller_id: user?.id,
         trace_settings: traceSettings,
+        geo_district_id: formData.geo_district_id || null,
       };
 
       if (sourceMode === 'crop' && selectedCropId) {
@@ -223,7 +226,7 @@ const FarmerListings = () => {
   };
 
   const resetForm = () => {
-    setFormData({ title: '', description: '', category: '', price: '', quantity: '', unit: 'kg', location: '' });
+    setFormData({ title: '', description: '', category: '', price: '', quantity: '', unit: 'kg', location: '', geo_district_id: '' });
     setEditingListing(null);
     setSourceMode('crop');
     setSelectedCropId('');
@@ -348,6 +351,14 @@ const FarmerListings = () => {
                         value={formData.location}
                         onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                         placeholder={t('farmer.listings.locationPlaceholder')}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>District</Label>
+                      <GeoDistrictSelect
+                        value={formData.geo_district_id}
+                        onValueChange={(v) => setFormData({ ...formData, geo_district_id: v })}
+                        placeholder="Select listing district"
                       />
                     </div>
                   </div>

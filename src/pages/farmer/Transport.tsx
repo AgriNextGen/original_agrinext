@@ -21,6 +21,7 @@ import { format } from 'date-fns';
 import ConfirmDialog from '@/components/ui/confirm-dialog';
 import EmptyState from '@/components/farmer/EmptyState';
 import HelpTooltip from '@/components/farmer/HelpTooltip';
+import GeoDistrictSelect from '@/components/geo/GeoDistrictSelect';
 
 const TransportPage = () => {
   const { data: requests, isLoading } = useTransportRequests();
@@ -46,6 +47,8 @@ const TransportPage = () => {
     preferred_date: '',
     preferred_time: '',
     notes: '',
+    origin_district_id: '',
+    dest_district_id: '',
   });
 
   const statusConfig = {
@@ -96,6 +99,8 @@ const TransportPage = () => {
         preferred_date: formData.preferred_date || null,
         preferred_time: formData.preferred_time || null,
         notes: formData.notes || null,
+        origin_district_id: formData.origin_district_id || null,
+        dest_district_id: formData.dest_district_id || null,
       });
 
       if (error) throw error;
@@ -111,6 +116,8 @@ const TransportPage = () => {
         preferred_date: '',
         preferred_time: '',
         notes: '',
+        origin_district_id: '',
+        dest_district_id: '',
       });
       queryClient.invalidateQueries({ queryKey: ['transport-requests', user.id] });
     } catch (error) {
@@ -314,6 +321,24 @@ const TransportPage = () => {
                     onChange={(e) => setFormData({ ...formData, pickup_village: e.target.value })}
                     placeholder={t('farmer.farmlands.villagePlaceholder')}
                   />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>{t('farmer.transport.pickupLocation')} District</Label>
+                    <GeoDistrictSelect
+                      value={formData.origin_district_id}
+                      onValueChange={(v) => setFormData({ ...formData, origin_district_id: v })}
+                      placeholder="Origin district"
+                    />
+                  </div>
+                  <div>
+                    <Label>Destination District</Label>
+                    <GeoDistrictSelect
+                      value={formData.dest_district_id}
+                      onValueChange={(v) => setFormData({ ...formData, dest_district_id: v })}
+                      placeholder="Dest district"
+                    />
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>

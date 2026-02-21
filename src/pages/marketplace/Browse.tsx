@@ -15,7 +15,8 @@ import {
 } from '@/components/ui/select';
 import { Search, Leaf, MapPin, Calendar, Filter, SortAsc } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useMarketProducts } from '@/hooks/useMarketplaceDashboard';
+import { useMarketProductsInfinite } from '@/hooks/useMarketplaceDashboard';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
 
 const statusColors: Record<string, string> = {
@@ -36,10 +37,11 @@ const BrowseMarketplace = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('newest');
   
-  const { data: products, isLoading } = useMarketProducts({
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } = useMarketProductsInfinite({
     cropName: searchQuery || undefined,
     status: statusFilter !== 'all' ? statusFilter : undefined,
   });
+  const products = data ? data.pages.flatMap((p: any) => p.items || []) : [];
 
   // Sort products
   const sortedProducts = [...(products || [])].sort((a, b) => {
@@ -123,7 +125,7 @@ const BrowseMarketplace = () => {
         emptyMessage="Try adjusting your search or filters."
       >
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {sortedProducts.map(product => (
+        {sortedProducts.map(product => (
             <Card 
               key={product.id}
               className="cursor-pointer hover:shadow-lg transition-all hover:-translate-y-1"
@@ -177,6 +179,14 @@ const BrowseMarketplace = () => {
               </CardContent>
             </Card>
           ))}
+        </div>
+        {/* Load more */}
+        <div className="mt-6 text-center">
+          {hasNextPage ? (
+            <Button onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>{isFetchingNextPage ? 'Loading...' : 'Load more'}</Button>
+          ) : (
+            <div className="text-sm text-muted-foreground">No more products</div>
+          )}
         </div>
       </DataState>
       </PageShell>

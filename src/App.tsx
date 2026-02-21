@@ -29,6 +29,7 @@ import AgentMyFarmers from "./pages/agent/MyFarmers";
 import AgentFarmerDetail from "./pages/agent/FarmerDetail";
 import AgentTransport from "./pages/agent/Transport";
 import AgentProfile from "./pages/agent/Profile";
+import AgentServiceArea from "./pages/agent/ServiceArea";
 import LogisticsDashboard from "./pages/logistics/Dashboard";
 import LogisticsAvailableLoads from "./pages/logistics/AvailableLoads";
 import LogisticsActiveTrips from "./pages/logistics/ActiveTrips";
@@ -36,6 +37,7 @@ import LogisticsCompletedTrips from "./pages/logistics/CompletedTrips";
 import LogisticsVehicles from "./pages/logistics/Vehicles";
 import LogisticsTripDetail from "./pages/logistics/TripDetail";
 import LogisticsProfile from "./pages/logistics/Profile";
+import LogisticsServiceArea from "./pages/logistics/ServiceArea";
 import MarketplaceDashboard from "./pages/marketplace/Dashboard";
 import BrowseProducts from "./pages/marketplace/Browse";
 import ProductDetail from "./pages/marketplace/ProductDetail";
@@ -54,12 +56,47 @@ import SeedData from "./pages/admin/SeedData";
 import MysuruDemoSeed from "./pages/admin/MysruDemoSeed";
 import DataHealth from "./pages/admin/DataHealth";
 import PendingUpdates from "./pages/admin/PendingUpdates";
+import AdminOpsInbox from "./pages/admin/OpsInbox";
+import AdminEntity360 from "./pages/admin/Entity360";
+import AdminTickets from "./pages/admin/Tickets";
+import AdminAiReview from "./pages/admin/AiReview";
+import AdminJobs from "./pages/admin/Jobs";
+import AdminFinance from "./pages/admin/Finance";
+import FinanceOps from "./pages/admin/FinanceOps";
+import Refunds from "./pages/admin/Refunds";
+import Payouts from "./pages/admin/Payouts";
+import AdminDisputes from "./pages/admin/Disputes";
+import SystemHealthPage from "./pages/admin/SystemHealth";
+import AgentToday from "./pages/agent/Today";
+import FarmerMyDay from "./pages/farmer/MyDay";
+import PendingSync from "./pages/common/PendingSync";
+import UploadsManager from "./pages/common/UploadsManager";
 import CallbackHandler from "./pages/Auth/CallbackHandler";
 import AccountSwitcher from "./pages/AccountSwitcher";
 import DevConsole from "./components/DevConsole/DevConsole";
 import RoleSelect from "./pages/Onboard/RoleSelect";
  import ListingTrace from "./pages/trace/ListingTrace";
 const queryClient = new QueryClient();
+// Restore persisted simple query cache on startup (best-effort)
+import persister from '@/offline/queryPersister';
+(async function restoreQueries(){
+  try {
+    const restored = await persister.restore();
+    if (restored?.length) {
+      restored.forEach(({ key, state }: any) => {
+        try { queryClient.setQueryData(key, state); } catch(_) {}
+      });
+    }
+  } catch(_) {}
+})();
+
+// Persist on change (debounced)
+import { getQueryCache } from '@tanstack/react-query';
+let persistTimer: any = null;
+queryClient.getQueryCache().subscribe(() => {
+  clearTimeout(persistTimer);
+  persistTimer = setTimeout(() => persister.persist(queryClient), 2000);
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -92,6 +129,14 @@ const App = () => (
             <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
             
             {/* Protected Farmer Routes */}
+            <Route
+              path="/farmer/my-day"
+              element={
+                <ProtectedRoute allowedRoles={["farmer"]}>
+                  <FarmerMyDay />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/farmer/dashboard"
               element={
@@ -175,6 +220,14 @@ const App = () => (
             
             {/* Protected Agent Routes */}
             <Route
+              path="/agent/today"
+              element={
+                <ProtectedRoute allowedRoles={["agent"]}>
+                  <AgentToday />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/agent/dashboard"
               element={
                 <ProtectedRoute allowedRoles={["agent"]}>
@@ -227,6 +280,14 @@ const App = () => (
               element={
                 <ProtectedRoute allowedRoles={["agent"]}>
                   <AgentProfile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/agent/service-area"
+              element={
+                <ProtectedRoute allowedRoles={["agent"]}>
+                  <AgentServiceArea />
                 </ProtectedRoute>
               }
             />
@@ -286,6 +347,14 @@ const App = () => (
               element={
                 <ProtectedRoute allowedRoles={["logistics"]}>
                   <LogisticsProfile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/logistics/service-area"
+              element={
+                <ProtectedRoute allowedRoles={["logistics"]}>
+                  <LogisticsServiceArea />
                 </ProtectedRoute>
               }
             />
@@ -435,6 +504,110 @@ const App = () => (
               element={
                 <ProtectedRoute allowedRoles={["admin"]}>
                   <PendingUpdates />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/ops"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <AdminOpsInbox />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/entity/:type/:id"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <AdminEntity360 />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/disputes"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <AdminDisputes />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/system-health"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <SystemHealthPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/pending-sync"
+              element={
+                <ProtectedRoute allowedRoles={["agent","farmer","buyer","logistics"]}>
+                  <PendingSync />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/uploads-manager"
+              element={
+                <ProtectedRoute allowedRoles={["agent","farmer","buyer","logistics"]}>
+                  <UploadsManager />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/tickets"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <AdminTickets />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/ai-review"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <AdminAiReview />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/jobs"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <AdminJobs />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/finance"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <AdminFinance />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/finance/ops"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <FinanceOps />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/finance/refunds"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Refunds />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/finance/payouts"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Payouts />
                 </ProtectedRoute>
               }
             />

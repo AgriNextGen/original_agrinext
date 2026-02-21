@@ -1,4 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
+import uploadQueue from '@/offline/uploadQueue';
+import network from '@/offline/network';
 
 export type StorageEntityType = 'crop' | 'trip' | 'listing' | 'soil_report';
 
@@ -23,6 +25,23 @@ export async function signAndUpload(
   file: File | Blob,
   params: SignUploadParams
 ): Promise<string> {
+  // If offline, enqueue upload
+  if (!network.isOnline()) {
+    const idempotencyKey = crypto.randomUUID();
+    const id = await uploadQueue.enqueueUpload({
+      id: crypto.randomUUID(),
+      fileName: (file as any).name || 'blob',
+      mimeType: params.contentType,
+      size: params.sizeBytes,
+      blob: file,
+      purpose: params.entity.type,
+      entityType: params.entity.type,
+      entityId: params.entity.id,
+      idempotencyKey
+    });
+    return id; // return local id to store as placeholder
+  }
+
   const { data, error } = await supabase.functions.invoke('storage-sign-upload-v1', {
     body: {
       bucket: params.bucket,
@@ -36,7 +55,7 @@ export async function signAndUpload(
   if (data?.error) throw new Error(data.error);
 
   const result = data as SignUploadResult & { file_id?: string };
-
+  
   const uploadRes = await supabase.storage
     .from(params.bucket)
     .uploadToSignedUrl(result.path, result.token, file, {

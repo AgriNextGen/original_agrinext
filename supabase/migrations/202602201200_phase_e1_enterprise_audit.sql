@@ -119,6 +119,18 @@ REVOKE UPDATE, DELETE ON audit.data_access_events FROM authenticated, anon;
 -- RLS policies: SELECT only for admins; INSERT allowed only via RPC/ADMIN
 -- Assumes a helper function public.is_admin() exists (Phase A) — migration will use public.is_admin().
 
+-- Drop existing policies if present to make migration idempotent
+DROP POLICY IF EXISTS audit_logs_select_admin ON audit.audit_logs;
+DROP POLICY IF EXISTS audit_logs_insert_rpc ON audit.audit_logs;
+DROP POLICY IF EXISTS workflow_events_select_admin ON audit.workflow_events;
+DROP POLICY IF EXISTS workflow_events_insert_rpc ON audit.workflow_events;
+DROP POLICY IF EXISTS security_events_select_admin ON audit.security_events;
+DROP POLICY IF EXISTS security_events_insert_rpc ON audit.security_events;
+DROP POLICY IF EXISTS admin_actions_select_admin ON audit.admin_actions;
+DROP POLICY IF EXISTS admin_actions_insert_rpc ON audit.admin_actions;
+DROP POLICY IF EXISTS data_access_select_admin ON audit.data_access_events;
+DROP POLICY IF EXISTS data_access_insert_rpc ON audit.data_access_events;
+
 CREATE POLICY audit_logs_select_admin ON audit.audit_logs FOR SELECT USING (public.is_admin());
 CREATE POLICY audit_logs_insert_rpc ON audit.audit_logs FOR INSERT WITH CHECK ( (current_setting('app.rpc', true) = 'true') OR public.is_admin() );
 
@@ -233,8 +245,8 @@ GRANT EXECUTE ON FUNCTION audit.log_workflow_event_v1(uuid,text,uuid,text,uuid,t
 -- audit.log_security_event_v1
 CREATE OR REPLACE FUNCTION audit.log_security_event_v1(
   p_request_id uuid DEFAULT NULL,
-  p_event_type text,
-  p_severity text,
+  p_event_type text DEFAULT NULL,
+  p_severity text DEFAULT NULL,
   p_actor_user_id uuid DEFAULT NULL,
   p_rl_key text DEFAULT NULL,
   p_ip_address text DEFAULT NULL,
@@ -312,10 +324,10 @@ GRANT EXECUTE ON FUNCTION audit.log_admin_action_v1(uuid,text,uuid,text,uuid,tex
 -- audit.log_data_access_event_v1
 CREATE OR REPLACE FUNCTION audit.log_data_access_event_v1(
   p_request_id uuid DEFAULT NULL,
-  p_actor_user_id uuid,
+  p_actor_user_id uuid DEFAULT NULL,
   p_actor_role text DEFAULT NULL,
-  p_accessed_schema text,
-  p_accessed_table text,
+  p_accessed_schema text DEFAULT NULL,
+  p_accessed_table text DEFAULT NULL,
   p_record_id uuid DEFAULT NULL,
   p_purpose text DEFAULT NULL,
   p_ip_address text DEFAULT NULL,
@@ -391,17 +403,20 @@ $$;
 -- Attach AFTER UPDATE triggers conditionally if tables exist (drop if exists then create)
 DO $$
 BEGIN
-  IF EXISTS (SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND tablename = 'trips') THEN
+  IF EXISTS (SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND tablename = 'trips')
+     AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'trips' AND column_name = 'status') THEN
     EXECUTE 'DROP TRIGGER IF EXISTS trips_status_change_after_update ON public.trips';
     EXECUTE 'CREATE TRIGGER trips_status_change_after_update AFTER UPDATE OF status ON public.trips FOR EACH ROW EXECUTE FUNCTION audit.on_status_change_minimal_v1()';
   END IF;
 
-  IF EXISTS (SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND tablename = 'market_orders') THEN
+  IF EXISTS (SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND tablename = 'market_orders')
+     AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'market_orders' AND column_name = 'status') THEN
     EXECUTE 'DROP TRIGGER IF EXISTS market_orders_status_change_after_update ON public.market_orders';
     EXECUTE 'CREATE TRIGGER market_orders_status_change_after_update AFTER UPDATE OF status ON public.market_orders FOR EACH ROW EXECUTE FUNCTION audit.on_status_change_minimal_v1()';
   END IF;
 
-  IF EXISTS (SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND tablename = 'listings') THEN
+  IF EXISTS (SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND tablename = 'listings')
+     AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'listings' AND column_name = 'status') THEN
     EXECUTE 'DROP TRIGGER IF EXISTS listings_status_change_after_update ON public.listings';
     EXECUTE 'CREATE TRIGGER listings_status_change_after_update AFTER UPDATE OF status ON public.listings FOR EACH ROW EXECUTE FUNCTION audit.on_status_change_minimal_v1()';
   END IF;
@@ -409,25 +424,73 @@ END;
 $$;
 
 -- 5) Indexes to support common queries
-CREATE INDEX IF NOT EXISTS audit_logs_entity_idx ON audit.audit_logs(entity_type, entity_id, created_at DESC);
-CREATE INDEX IF NOT EXISTS audit_logs_actor_idx ON audit.audit_logs(actor_user_id, created_at DESC);
-CREATE INDEX IF NOT EXISTS audit_logs_created_idx ON audit.audit_logs(created_at DESC);
-CREATE INDEX IF NOT EXISTS audit_logs_request_idx ON audit.audit_logs(request_id);
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='audit' AND table_name='audit_logs' AND column_name='entity_type')
+     AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='audit' AND table_name='audit_logs' AND column_name='entity_id')
+     AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='audit' AND table_name='audit_logs' AND column_name='created_at') THEN
+    CREATE INDEX IF NOT EXISTS audit_logs_entity_idx ON audit.audit_logs(entity_type, entity_id, created_at DESC);
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='audit' AND table_name='audit_logs' AND column_name='actor_user_id')
+     AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='audit' AND table_name='audit_logs' AND column_name='created_at') THEN
+    CREATE INDEX IF NOT EXISTS audit_logs_actor_idx ON audit.audit_logs(actor_user_id, created_at DESC);
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='audit' AND table_name='audit_logs' AND column_name='created_at') THEN
+    CREATE INDEX IF NOT EXISTS audit_logs_created_idx ON audit.audit_logs(created_at DESC);
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='audit' AND table_name='audit_logs' AND column_name='request_id') THEN
+    CREATE INDEX IF NOT EXISTS audit_logs_request_idx ON audit.audit_logs(request_id);
+  END IF;
 
-CREATE INDEX IF NOT EXISTS workflow_entity_idx ON audit.workflow_events(entity_type, entity_id, created_at DESC);
-CREATE INDEX IF NOT EXISTS workflow_eventtype_idx ON audit.workflow_events(event_type, created_at DESC);
-CREATE INDEX IF NOT EXISTS workflow_actor_idx ON audit.workflow_events(actor_user_id, created_at DESC);
-CREATE INDEX IF NOT EXISTS workflow_request_idx ON audit.workflow_events(request_id);
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='audit' AND table_name='workflow_events' AND column_name='entity_type')
+     AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='audit' AND table_name='workflow_events' AND column_name='entity_id')
+     AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='audit' AND table_name='workflow_events' AND column_name='created_at') THEN
+    CREATE INDEX IF NOT EXISTS workflow_entity_idx ON audit.workflow_events(entity_type, entity_id, created_at DESC);
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='audit' AND table_name='workflow_events' AND column_name='event_type')
+     AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='audit' AND table_name='workflow_events' AND column_name='created_at') THEN
+    CREATE INDEX IF NOT EXISTS workflow_eventtype_idx ON audit.workflow_events(event_type, created_at DESC);
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='audit' AND table_name='workflow_events' AND column_name='actor_user_id')
+     AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='audit' AND table_name='workflow_events' AND column_name='created_at') THEN
+    CREATE INDEX IF NOT EXISTS workflow_actor_idx ON audit.workflow_events(actor_user_id, created_at DESC);
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='audit' AND table_name='workflow_events' AND column_name='request_id') THEN
+    CREATE INDEX IF NOT EXISTS workflow_request_idx ON audit.workflow_events(request_id);
+  END IF;
 
-CREATE INDEX IF NOT EXISTS security_severity_idx ON audit.security_events(severity, created_at DESC);
-CREATE INDEX IF NOT EXISTS security_eventtype_idx ON audit.security_events(event_type, created_at DESC);
-CREATE INDEX IF NOT EXISTS security_actor_idx ON audit.security_events(actor_user_id, created_at DESC);
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='audit' AND table_name='security_events' AND column_name='severity')
+     AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='audit' AND table_name='security_events' AND column_name='created_at') THEN
+    CREATE INDEX IF NOT EXISTS security_severity_idx ON audit.security_events(severity, created_at DESC);
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='audit' AND table_name='security_events' AND column_name='event_type')
+     AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='audit' AND table_name='security_events' AND column_name='created_at') THEN
+    CREATE INDEX IF NOT EXISTS security_eventtype_idx ON audit.security_events(event_type, created_at DESC);
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='audit' AND table_name='security_events' AND column_name='actor_user_id')
+     AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='audit' AND table_name='security_events' AND column_name='created_at') THEN
+    CREATE INDEX IF NOT EXISTS security_actor_idx ON audit.security_events(actor_user_id, created_at DESC);
+  END IF;
 
-CREATE INDEX IF NOT EXISTS admin_target_user_idx ON audit.admin_actions(target_user_id, created_at DESC);
-CREATE INDEX IF NOT EXISTS admin_request_idx ON audit.admin_actions(request_id);
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='audit' AND table_name='admin_actions' AND column_name='target_user_id')
+     AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='audit' AND table_name='admin_actions' AND column_name='created_at') THEN
+    CREATE INDEX IF NOT EXISTS admin_target_user_idx ON audit.admin_actions(target_user_id, created_at DESC);
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='audit' AND table_name='admin_actions' AND column_name='request_id') THEN
+    CREATE INDEX IF NOT EXISTS admin_request_idx ON audit.admin_actions(request_id);
+  END IF;
 
-CREATE INDEX IF NOT EXISTS dataaccess_actor_idx ON audit.data_access_events(actor_user_id, created_at DESC);
-CREATE INDEX IF NOT EXISTS dataaccess_table_idx ON audit.data_access_events(accessed_schema, accessed_table, created_at DESC);
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='audit' AND table_name='data_access_events' AND column_name='actor_user_id')
+     AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='audit' AND table_name='data_access_events' AND column_name='created_at') THEN
+    CREATE INDEX IF NOT EXISTS dataaccess_actor_idx ON audit.data_access_events(actor_user_id, created_at DESC);
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='audit' AND table_name='data_access_events' AND column_name='accessed_schema')
+     AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='audit' AND table_name='data_access_events' AND column_name='accessed_table')
+     AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='audit' AND table_name='data_access_events' AND column_name='created_at') THEN
+    CREATE INDEX IF NOT EXISTS dataaccess_table_idx ON audit.data_access_events(accessed_schema, accessed_table, created_at DESC);
+  END IF;
+END
+$$;
 
 -- 6) Final grants (allow function execution by authenticated callers)
 GRANT USAGE ON SCHEMA audit TO authenticated;

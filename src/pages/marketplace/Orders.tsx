@@ -14,6 +14,8 @@ import {
 } from '@/components/ui/table';
 import { ShoppingCart, Package, Truck, CheckCircle2, XCircle, Clock, type LucideIcon } from 'lucide-react';
 import { useBuyerOrders } from '@/hooks/useMarketplaceDashboard';
+import { useOrdersInfinite } from '@/hooks/useOrders';
+import { createPaymentOrder } from '@/lib/marketplaceApi';
 import { format, parseISO } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 
@@ -27,7 +29,9 @@ const statusConfig: Record<string, { label: string; color: string; icon: LucideI
 
 const Orders = () => {
   const navigate = useNavigate();
-  const { data: orders, isLoading } = useBuyerOrders();
+  const { data: ordersList, isLoading: ordersLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useOrdersInfinite();
+  const orders = ordersList ? ordersList.pages.flatMap((p: any) => p.items || []) : [];
+  const isLoading = ordersLoading;
 
   if (isLoading) {
     return <DashboardLayout title="My Orders"><DataState loading><></></DataState></DashboardLayout>;
@@ -82,6 +86,11 @@ const Orders = () => {
                             <StatusIcon className="h-3 w-3 mr-1" />
                             {status.label}
                           </Badge>
+                          {order.payout_hold && (
+                            <Badge className="bg-yellow-100 text-yellow-800 ml-2">
+                              Payout hold
+                            </Badge>
+                          )}
                         </div>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm text-muted-foreground">
                           <div>
@@ -128,6 +137,56 @@ const Orders = () => {
                           ))}
                         </div>
                       </div>
+
+                      {/* Payment actions */}
+                      <div className="mt-3 flex items-center gap-2">
+                        {(['unpaid','failed'].includes(order.payment_status) || !order.payment_status) && ['confirmed','requested','placed'].includes(order.status) && (
+                          <button
+                            className="px-3 py-1 rounded bg-primary text-white text-sm"
+                            onClick={async () => {
+                              try {
+                                // Create payment order on server (Edge)
+                                const res: any = await createPaymentOrder(order.id);
+                                if (!res || res.error) {
+                                  alert('Payment initiation failed: ' + (res?.error || 'unknown'));
+                                  return;
+                                }
+                                const { key_id, payment_order_id, amount, currency } = res;
+                                // Launch Razorpay Checkout if available
+                                const options: any = {
+                                  key: key_id,
+                                  order_id: payment_order_id,
+                                  amount,
+                                  currency,
+                                  name: 'AgriNext',
+                                  description: 'Order payment',
+                                  notes: { order_id: order.id },
+                                  handler: function (response: any) {
+                                    // After checkout, UI will poll for payment_status change — do not mark paid from client
+                                    alert('Payment complete. Processing, please wait a few seconds and refresh the order.');
+                                  },
+                                  prefill: {}
+                                };
+                                if ((window as any).Razorpay) {
+                                  const rzp = new (window as any).Razorpay(options);
+                                  rzp.open();
+                                } else {
+                                  // Fallback: open provider checkout page if available (not implemented)
+                                  alert('Razorpay checkout not loaded. Please ensure checkout script is included on page.');
+                                }
+                              } catch (err) {
+                                console.error('pay now error', err);
+                                alert('Payment initiation failed');
+                              }
+                            }}
+                          >
+                            Pay Now
+                          </button>
+                        )}
+                        <div className="text-sm text-muted-foreground">
+                          Payment: {order.payment_status || 'pending'}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 );
@@ -136,6 +195,9 @@ const Orders = () => {
           )}
         </CardContent>
       </Card>
+      <div className="p-4 text-center">
+        {hasNextPage ? <Button onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>{isFetchingNextPage ? 'Loading...' : 'Load more'}</Button> : <div className="text-sm text-muted-foreground">No more orders</div>}
+      </div>
 
       {/* Past Orders */}
       {pastOrders.length > 0 && (

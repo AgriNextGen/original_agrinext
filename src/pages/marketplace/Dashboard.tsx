@@ -14,6 +14,8 @@ import {
   User,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { rpcJson } from '@/lib/readApi';
 import {
   useBuyerProfile,
   useCreateBuyerProfile,
@@ -36,8 +38,19 @@ const MarketplaceDashboard = () => {
   const { data: profile, isLoading: profileLoading } = useBuyerProfile();
   const createProfile = useCreateBuyerProfile();
   const { data: products } = useMarketProducts();
-  const stats = useMarketplaceDashboardStats();
   const { data: orders } = useBuyerOrders();
+  const { data: rpcStats, isLoading: rpcLoading } = useQuery({
+    queryKey: ['buyer-dashboard'],
+    queryFn: async () => {
+      return await rpcJson('buyer_dashboard_v1');
+    }
+  });
+  const stats = {
+    totalProducts: products?.length || 0,
+    freshHarvest: rpcStats?.recent_orders_top10 ? rpcStats.recent_orders_top10.length : 0,
+    oneWeekAway: 0,
+    activeOrders: rpcStats?.recent_orders_top10 ? rpcStats.recent_orders_top10.length : 0,
+  };
 
   const [aiLoading, setAiLoading] = useState(false);
   const [stockAdvice, setStockAdvice] = useState<string | null>(null);
