@@ -55,7 +55,7 @@ export default function FinanceOps() {
                 </CardContent>
               </Card>
             ))}
-            {hasNextPage && <div className="text-center"><Button onClick={() => fetchNextPage()}>{isFetchingNextPage ? 'Loading...' : 'Load more'}</Button></div>}
+            {hasNextPage && <div className="text-center"><Button variant="outline" onClick={() => fetchNextPage()}>{isFetchingNextPage ? 'Loading...' : 'Load more'}</Button></div>}
           </div>
         </div>
       </PageShell>

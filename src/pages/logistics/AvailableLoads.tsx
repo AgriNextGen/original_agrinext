@@ -204,7 +204,7 @@ const AvailableLoads = () => {
             </div>
             <div className="mt-4 text-center">
               {hasNextPage ? (
-                <Button onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>
+                <Button variant="outline" onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>
                   {isFetchingNextPage ? 'Loading...' : 'Load more'}
                 </Button>
               ) : (

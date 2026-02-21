@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/hooks/useLanguage';
+import PageHeader from '@/components/shared/PageHeader';
+import EmptyState from '@/components/shared/EmptyState';
 import { 
   Plus, 
   Search, 
@@ -80,6 +82,7 @@ const FarmerListings = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingListing, setEditingListing] = useState<Listing | null>(null);
   const [sourceMode, setSourceMode] = useState<'crop' | 'custom'>('crop');
   const [selectedCropId, setSelectedCropId] = useState('');
@@ -145,6 +148,7 @@ const FarmerListings = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    setIsSubmitting(true);
     try {
       const listingData: any = {
         title: formData.title,
@@ -193,6 +197,8 @@ const FarmerListings = () => {
     } catch (error) {
       console.error('Error saving listing:', error);
       toast({ title: t('common.error'), description: t('farmer.listings.saveError'), variant: 'destructive' });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -260,7 +266,8 @@ const FarmerListings = () => {
 
   return (
     <DashboardLayout title={t('farmer.listings.title')}>
-      <div className="space-y-6">
+      <PageHeader title={t('farmer.listings.title')}>
+        <div className="space-y-6">
         {/* Header Actions */}
         <div className="flex flex-col sm:flex-row gap-4 justify-between">
           <div className="relative flex-1 max-w-md">
@@ -287,7 +294,7 @@ const FarmerListings = () => {
                   {t('farmer.listings.addListing')}
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[560px] max-h-[90vh] overflow-y-auto">
+          <DialogContent className="sm:max-w-[560px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>{editingListing ? t('farmer.listings.editListing') : t('farmer.listings.addNewListing')}</DialogTitle>
                   <DialogDescription>
@@ -417,8 +424,8 @@ const FarmerListings = () => {
                     <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                       {t('common.cancel')}
                     </Button>
-                    <Button type="submit">
-                      {editingListing ? t('farmer.listings.updateListing') : t('farmer.listings.createListing')}
+                    <Button type="submit" disabled={isSubmitting}>
+                      {isSubmitting ? t('common.saving') : (editingListing ? t('farmer.listings.updateListing') : t('farmer.listings.createListing'))}
                     </Button>
                   </DialogFooter>
                 </form>
@@ -439,7 +446,7 @@ const FarmerListings = () => {
               </DialogHeader>
               <EvidenceUploadSection listingId={showEvidenceForListing} cropId={listings.find(l => l.id === showEvidenceForListing)?.crop_id} />
               <DialogFooter>
-                <Button onClick={() => setShowEvidenceForListing(null)}>Done</Button>
+                <Button variant="outline" onClick={() => setShowEvidenceForListing(null)}>Done</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -457,15 +464,13 @@ const FarmerListings = () => {
             ))}
           </div>
         ) : filteredListings.length === 0 ? (
-          <div className="bg-card rounded-xl border border-border p-12 text-center">
-            <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="font-display font-semibold text-lg text-foreground mb-2">{t('farmer.listings.noListingsYet')}</h3>
-            <p className="text-muted-foreground mb-4">{t('farmer.listings.startSelling')}</p>
-            <Button onClick={() => setIsDialogOpen(true)} className="gap-2">
-              <Plus className="h-4 w-4" />
-              {t('farmer.listings.addFirstListing')}
-            </Button>
-          </div>
+          <EmptyState
+            icon={Package}
+            title={t('farmer.listings.noListingsYet')}
+            description={t('farmer.listings.startSelling')}
+            actionLabel={t('farmer.listings.addFirstListing')}
+            onAction={() => setIsDialogOpen(true)}
+          />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredListings.map((listing) => (
@@ -485,8 +490,8 @@ const FarmerListings = () => {
                       </Badge>
                     </div>
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <DropdownMenuTrigger asChild>
+                        <Button aria-label="Listing menu" variant="ghost" size="icon" className="h-8 w-8">
                           <MoreVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
@@ -550,6 +555,7 @@ const FarmerListings = () => {
           </div>
         )}
       </div>
+      </PageHeader>
     </DashboardLayout>
   );
 };

@@ -183,7 +183,7 @@ const BrowseMarketplace = () => {
         {/* Load more */}
         <div className="mt-6 text-center">
           {hasNextPage ? (
-            <Button onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>{isFetchingNextPage ? 'Loading...' : 'Load more'}</Button>
+            <Button variant="outline" onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>{isFetchingNextPage ? 'Loading...' : 'Load more'}</Button>
           ) : (
             <div className="text-sm text-muted-foreground">No more products</div>
           )}

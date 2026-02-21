@@ -36,7 +36,7 @@ export default function UploadsManager() {
                 {u.lastError && <div className="text-xs text-red-600">Error: {u.lastError}</div>}
               </div>
               <div className="flex gap-2">
-                <Button onClick={() => retry(u.id)}>Retry</Button>
+                <Button variant="outline" onClick={() => retry(u.id)}>Retry</Button>
                 <Button variant="destructive" onClick={() => remove(u.id)}>Remove</Button>
               </div>
             </div>

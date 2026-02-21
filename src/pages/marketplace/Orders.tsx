@@ -46,7 +46,7 @@ const Orders = () => {
         title="My Orders"
         subtitle={`${orders?.length || 0} total orders`}
         actions={(
-          <Button onClick={() => navigate('/marketplace/browse')}>
+          <Button variant="default" onClick={() => navigate('/marketplace/browse')}>
             <ShoppingCart className="h-4 w-4 mr-2" />
             Shop More
           </Button>
@@ -196,7 +196,7 @@ const Orders = () => {
         </CardContent>
       </Card>
       <div className="p-4 text-center">
-        {hasNextPage ? <Button onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>{isFetchingNextPage ? 'Loading...' : 'Load more'}</Button> : <div className="text-sm text-muted-foreground">No more orders</div>}
+        {hasNextPage ? <Button variant="outline" onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>{isFetchingNextPage ? 'Loading...' : 'Load more'}</Button> : <div className="text-sm text-muted-foreground">No more orders</div>}
       </div>
 
       {/* Past Orders */}

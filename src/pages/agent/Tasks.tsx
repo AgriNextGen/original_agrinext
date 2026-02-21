@@ -54,7 +54,7 @@ import { format, parseISO } from 'date-fns';
 import { toast } from 'sonner';
 import network from '@/offline/network';
 import actionQueue from '@/offline/actionQueue';
-import PageShell from '@/components/layout/PageShell';
+import PageHeader from '@/components/shared/PageHeader';
 import DataState from '@/components/ui/DataState';
 
 const taskTypeLabels: Record<string, string> = {
@@ -180,13 +180,13 @@ const AgentTasks = () => {
 
   return (
     <DashboardLayout title="Tasks">
-      <PageShell
+      <PageHeader
         title="My Tasks"
         subtitle="Manage your field visit tasks"
         actions={(
           <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-            <DialogTrigger asChild>
-              <Button>
+              <DialogTrigger asChild>
+              <Button variant="default">
                 <Plus className="h-4 w-4 mr-2" />
                 New Task
               </Button>
@@ -390,6 +390,7 @@ const AgentTasks = () => {
                             {task.task_status === 'in_progress' && (
                               <Button
                                 size="sm"
+                                variant="default"
                                 onClick={() => handleStatusChange(task, 'completed')}
                               >
                                 Complete
@@ -403,7 +404,7 @@ const AgentTasks = () => {
                               taskId={task.id}
                               cropId={task.crop_id}
                               triggerButton={
-                                <Button variant="ghost" size="icon" className="h-8 w-8" title="Add voice note">
+                                <Button aria-label="Add voice note" variant="ghost" size="icon" className="h-8 w-8">
                                   <FileAudio className="h-4 w-4" />
                                 </Button>
                               }
@@ -416,7 +417,7 @@ const AgentTasks = () => {
                 </TableBody>
               </Table>
               <div className="p-4 text-center">
-                {hasNextPage ? <Button onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>{isFetchingNextPage ? 'Loading...' : 'Load more'}</Button> : <div className="text-sm text-muted-foreground">No more tasks</div>}
+                {hasNextPage ? <Button variant="outline" onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>{isFetchingNextPage ? 'Loading...' : 'Load more'}</Button> : <div className="text-sm text-muted-foreground">No more tasks</div>}
               </div>
             </DataState>
           </CardContent>

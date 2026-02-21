@@ -37,7 +37,7 @@ export default function PendingSync() {
                 {a.lastError && <div className="text-xs text-red-600">Error: {a.lastError}</div>}
               </div>
               <div className="flex gap-2">
-                <Button onClick={() => retry(a.id)}>Retry</Button>
+                <Button variant="outline" onClick={() => retry(a.id)}>Retry</Button>
                 <Button variant="destructive" onClick={() => remove(a.id)}>Remove</Button>
               </div>
             </div>
