@@ -144,22 +144,25 @@ export const useFarmerAgent = () => {
       if (error) throw error;
       if (!assignment) return null;
 
-      // Get agent profile
-      const { data: agent, error: agentError } = await supabase
-        .from('profiles')
-        .select('full_name, phone, village, district')
-        .eq('id', assignment.agent_id)
-        .single();
+      // Prefer user_profiles to avoid brittle cross-profile reads when profiles RLS differs by environment.
+      const { data: agentProfileLite, error: agentLiteError } = await supabase
+        .from('user_profiles')
+        .select('display_name, phone')
+        .eq('user_id', assignment.agent_id)
+        .eq('is_active', true)
+        .maybeSingle();
 
-      if (agentError) throw agentError;
+      if (agentLiteError) {
+        console.warn('useFarmerAgent user_profiles lookup failed:', agentLiteError.message);
+      }
 
       return {
         id: assignment.agent_id,
         agent_id: assignment.agent_id,
-        agent_name: agent.full_name,
-        agent_phone: agent.phone,
-        agent_village: agent.village,
-        agent_district: agent.district
+        agent_name: agentProfileLite?.display_name || 'Field Agent',
+        agent_phone: agentProfileLite?.phone || null,
+        agent_village: null,
+        agent_district: null
       };
     },
     enabled: !!user?.id

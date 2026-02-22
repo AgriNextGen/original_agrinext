@@ -48,6 +48,7 @@ CREATE POLICY admin_users_update ON public.admin_users FOR UPDATE
 -- ============================================================
 
 DROP POLICY IF EXISTS farmer_segments_select ON public.farmer_segments;
+DROP POLICY IF EXISTS farmer_segments_select_admin ON public.farmer_segments;
 
 CREATE POLICY farmer_segments_select_admin
   ON public.farmer_segments FOR SELECT
@@ -60,6 +61,7 @@ CREATE POLICY farmer_segments_select_admin
 -- ============================================================
 
 DROP POLICY IF EXISTS trusted_sources_select ON public.trusted_sources;
+DROP POLICY IF EXISTS trusted_sources_select_admin ON public.trusted_sources;
 
 CREATE POLICY trusted_sources_select_admin
   ON public.trusted_sources FOR SELECT
@@ -72,6 +74,7 @@ CREATE POLICY trusted_sources_select_admin
 -- ============================================================
 
 DROP POLICY IF EXISTS web_fetch_logs_select ON public.web_fetch_logs;
+DROP POLICY IF EXISTS web_fetch_logs_select_admin ON public.web_fetch_logs;
 
 CREATE POLICY web_fetch_logs_select_admin
   ON public.web_fetch_logs FOR SELECT

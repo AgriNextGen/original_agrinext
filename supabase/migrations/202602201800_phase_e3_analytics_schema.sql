@@ -97,7 +97,7 @@ ALTER TABLE analytics.rollup_runs ENABLE ROW LEVEL SECURITY;
 -- Note: this requires a helper function is_admin() present in DB (from Phase A). If missing, replace with appropriate check.
 
 -- Transport
-CREATE POLICY analytics_transport_select_admin ON analytics.transport_daily FOR SELECT USING (current_setting('app.mv', '') = '' OR is_admin());
+CREATE POLICY analytics_transport_select_admin ON analytics.transport_daily FOR SELECT USING (current_setting('app.mv', true) = 'true' OR is_admin());
 DROP POLICY IF EXISTS analytics_transport_rpc_write ON analytics.transport_daily;
 CREATE POLICY analytics_transport_rpc_write ON analytics.transport_daily FOR ALL USING (is_admin()) WITH CHECK (current_setting('app.rpc', 'false') = 'true' OR is_admin());
 
@@ -314,13 +314,13 @@ BEGIN
 
   IF to_regclass('audit.workflow_events') IS NOT NULL OR to_regclass('audit.security_events') IS NOT NULL THEN
     -- active users = distinct actor_user_id in workflow_events or security_events
-    EXECUTE $$
+    EXECUTE $sql$
       SELECT count(DISTINCT actor_user_id) FROM (
         SELECT actor_user_id FROM audit.workflow_events WHERE created_at >= $1 AND created_at < $2
         UNION ALL
         SELECT actor_user_id FROM audit.security_events WHERE created_at >= $1 AND created_at < $2
       ) t
-    $$ USING _start, _end INTO _active_users;
+    $sql$ USING _start, _end INTO _active_users;
 
     -- role breakdown: best-effort via profiles -> role or user_roles table
     IF to_regclass('user_roles') IS NOT NULL THEN
@@ -450,4 +450,3 @@ Assumptions:
 - If canonical tables (trips, transport_requests, listings, market_orders, profiles, agent_tasks, agent_visits, agent_voice_notes) do not exist, the function will skip those counts and use workflow_events where possible.
 - Event_type pattern matching uses ILIKE searches; if your event_type naming differs, extend the patterns accordingly.
 $$;
-

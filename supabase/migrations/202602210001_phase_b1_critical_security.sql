@@ -15,6 +15,8 @@
 
 DROP POLICY IF EXISTS trace_attachments_insert ON public.trace_attachments;
 DROP POLICY IF EXISTS trace_attachments_select ON public.trace_attachments;
+DROP POLICY IF EXISTS trace_attachments_select_auth ON public.trace_attachments;
+DROP POLICY IF EXISTS trace_attachments_insert_auth ON public.trace_attachments;
 
 CREATE POLICY trace_attachments_select_auth
   ON public.trace_attachments FOR SELECT
@@ -32,6 +34,8 @@ CREATE POLICY trace_attachments_insert_auth
 
 DROP POLICY IF EXISTS transport_status_events_select ON public.transport_status_events;
 DROP POLICY IF EXISTS transport_status_events_insert ON public.transport_status_events;
+DROP POLICY IF EXISTS tse_select ON public.transport_status_events;
+DROP POLICY IF EXISTS tse_insert ON public.transport_status_events;
 
 CREATE POLICY tse_select ON public.transport_status_events FOR SELECT
   USING (
@@ -59,6 +63,7 @@ CREATE POLICY tse_insert ON public.transport_status_events FOR INSERT
 -- ============================================================
 
 DROP POLICY IF EXISTS agent_activity_logs_select ON public.agent_activity_logs;
+DROP POLICY IF EXISTS aal_select ON public.agent_activity_logs;
 
 CREATE POLICY aal_select ON public.agent_activity_logs FOR SELECT
   USING (actor_id = auth.uid() OR public.is_admin());
@@ -70,6 +75,9 @@ CREATE POLICY aal_select ON public.agent_activity_logs FOR SELECT
 -- ============================================================
 
 DROP POLICY IF EXISTS agent_data_agent ON public.agent_data;
+DROP POLICY IF EXISTS agent_data_select ON public.agent_data;
+DROP POLICY IF EXISTS agent_data_insert ON public.agent_data;
+DROP POLICY IF EXISTS agent_data_update ON public.agent_data;
 
 CREATE POLICY agent_data_select ON public.agent_data FOR SELECT
   USING (
@@ -91,6 +99,9 @@ CREATE POLICY agent_data_update ON public.agent_data FOR UPDATE
 -- ============================================================
 
 DROP POLICY IF EXISTS agent_visits_agent ON public.agent_visits;
+DROP POLICY IF EXISTS agent_visits_select ON public.agent_visits;
+DROP POLICY IF EXISTS agent_visits_insert ON public.agent_visits;
+DROP POLICY IF EXISTS agent_visits_update ON public.agent_visits;
 
 CREATE POLICY agent_visits_select ON public.agent_visits FOR SELECT
   USING (
@@ -112,6 +123,8 @@ CREATE POLICY agent_visits_update ON public.agent_visits FOR UPDATE
 -- ============================================================
 
 DROP POLICY IF EXISTS agent_voice_notes_agent ON public.agent_voice_notes;
+DROP POLICY IF EXISTS agent_voice_notes_select ON public.agent_voice_notes;
+DROP POLICY IF EXISTS agent_voice_notes_insert ON public.agent_voice_notes;
 
 CREATE POLICY agent_voice_notes_select ON public.agent_voice_notes FOR SELECT
   USING (

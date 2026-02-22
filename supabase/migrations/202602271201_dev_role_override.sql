@@ -28,10 +28,13 @@ FOR EACH ROW EXECUTE FUNCTION public.set_updated_at_dev_role_overrides();
 ALTER TABLE public.dev_role_overrides ENABLE ROW LEVEL SECURITY;
 
 -- Deny all access for authenticated/anonymous roles by creating policies that return false.
-CREATE POLICY IF NOT EXISTS p_no_select ON public.dev_role_overrides FOR SELECT USING (false);
-CREATE POLICY IF NOT EXISTS p_no_insert ON public.dev_role_overrides FOR INSERT WITH CHECK (false);
-CREATE POLICY IF NOT EXISTS p_no_update ON public.dev_role_overrides FOR UPDATE USING (false) WITH CHECK (false);
-CREATE POLICY IF NOT EXISTS p_no_delete ON public.dev_role_overrides FOR DELETE USING (false);
+DROP POLICY IF EXISTS p_no_select ON public.dev_role_overrides;
+DROP POLICY IF EXISTS p_no_insert ON public.dev_role_overrides;
+DROP POLICY IF EXISTS p_no_update ON public.dev_role_overrides;
+DROP POLICY IF EXISTS p_no_delete ON public.dev_role_overrides;
+CREATE POLICY p_no_select ON public.dev_role_overrides FOR SELECT USING (false);
+CREATE POLICY p_no_insert ON public.dev_role_overrides FOR INSERT WITH CHECK (false);
+CREATE POLICY p_no_update ON public.dev_role_overrides FOR UPDATE USING (false) WITH CHECK (false);
+CREATE POLICY p_no_delete ON public.dev_role_overrides FOR DELETE USING (false);
 
 COMMIT;
-

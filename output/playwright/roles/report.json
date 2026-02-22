@@ -1,0 +1,793 @@
+[
+  {
+    "role": "farmer",
+    "expectedRoute": "/farmer/dashboard",
+    "logs": [
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "url": "http://127.0.0.1:4173/login"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
+        "url": "http://127.0.0.1:4173/login"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "[i18n] Missing EN key: \"settings.profile_settings\"",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "[i18n] Missing EN key: \"auth.sign_out\"",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "[i18n] Missing EN key: \"farmer.crops.myCrops\"",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "error",
+        "text": "Failed to load resource: the server responded with a status of 404 ()",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "[i18n] Missing EN key: \"farmer.crops.addCrop\"",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "[i18n] Missing EN key: \"farmer.crops.editCrop\"",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "[i18n] Missing EN key: \"farmer.crops.cropName\"",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "[i18n] Missing EN key: \"farmer.crops.cropNamePlaceholder\"",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "[i18n] Missing EN key: \"farmer.crops.variety\"",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "[i18n] Missing EN key: \"farmer.crops.varietyPlaceholder\"",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "[i18n] Missing EN key: \"farmer.crops.status\"",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "[i18n] Missing EN key: \"farmer.farmlands.title\"",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "[i18n] Missing EN key: \"farmer.crops.selectFarmland\"",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "[i18n] Missing EN key: \"farmer.crops.sowingDate\"",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "[i18n] Missing EN key: \"farmer.crops.harvestDate\"",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "[i18n] Missing EN key: \"farmer.crops.expectedQuantity\"",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "[i18n] Missing EN key: \"common.unit\"",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "[i18n] Missing EN key: \"enum.units.quintals\"",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "[i18n] Missing EN key: \"enum.units.kg\"",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "[i18n] Missing EN key: \"enum.units.tonnes\"",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "[i18n] Missing EN key: \"common.saveChanges\"",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "[i18n] Missing EN key: \"farmer.transport.requestTransport\"",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "[i18n] Missing EN key: \"farmer.transport.crop\"",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "[i18n] Missing EN key: \"farmer.transport.selectCrop\"",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "[i18n] Missing EN key: \"farmer.transport.quantity\"",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "[i18n] Missing EN key: \"farmer.transport.pickupLocation\"",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "[i18n] Missing EN key: \"farmer.transport.pickupPlaceholder\"",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "[i18n] Missing EN key: \"farmer.farmlands.village\"",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "[i18n] Missing EN key: \"farmer.farmlands.villagePlaceholder\"",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "[i18n] Missing EN key: \"farmer.transport.preferredDate\"",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "[i18n] Missing EN key: \"farmer.transport.preferredTime\"",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "[i18n] Missing EN key: \"farmer.transport.timePlaceholder\"",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "[i18n] Missing EN key: \"farmer.transport.notes\"",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "[i18n] Missing EN key: \"farmer.transport.notesPlaceholder\"",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "[i18n] Missing EN key: \"farmer.transport.submitRequest\"",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "error",
+        "text": "Access to fetch at 'https://rmtkkzfzdmpjlqexrbme.supabase.co/functions/v1/get-weather' from origin 'http://127.0.0.1:4173' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: It does not have HTTP ok status.",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "requestfailed",
+        "method": "POST",
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/functions/v1/get-weather",
+        "failure": "net::ERR_FAILED",
+        "pageUrl": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "error",
+        "text": "Failed to load resource: net::ERR_FAILED",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "error",
+        "text": "Weather fetch error: FunctionsFetchError: Failed to send a request to the Edge Function\n    at http://127.0.0.1:4173/node_modules/.vite/deps/@supabase_supabase-js.js?v=4f4e7ed7:178:21",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "error",
+        "text": "Failed to load resource: the server responded with a status of 404 ()",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "error",
+        "text": "Error fetching neighbors: {code: PGRST205, details: null, hint: Perhaps you meant the table 'public.listings', message: Could not find the table 'public.district_neighbors' in the schema cache}",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "error",
+        "text": "Failed to load resource: the server responded with a status of 404 ()",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://127.0.0.1:4173/farmer/dashboard"
+      }
+    ],
+    "responses": [
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/functions/v1/login-by-phone"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/profiles?select=preferred_language&id=eq.3b9f09e2-3f79-4968-b55d-4942d3626a79"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/user_profiles?select=id%2Cprofile_type%2Cdisplay_name%2Cphone%2Cis_active&user_id=eq.3b9f09e2-3f79-4968-b55d-4942d3626a79"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/user_roles?select=role&user_id=eq.3b9f09e2-3f79-4968-b55d-4942d3626a79&limit=5"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/profiles?select=id%2Cfull_name%2Cphone&id=eq.3b9f09e2-3f79-4968-b55d-4942d3626a79"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/user_profiles?select=id%2Cprofile_type%2Cdisplay_name%2Cphone%2Cis_active&user_id=eq.3b9f09e2-3f79-4968-b55d-4942d3626a79"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/user_profiles?select=id%2Cprofile_type%2Cdisplay_name%2Cphone%2Cis_active&user_id=eq.3b9f09e2-3f79-4968-b55d-4942d3626a79"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/profiles?select=*&id=eq.3b9f09e2-3f79-4968-b55d-4942d3626a79"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/profiles?select=id%2Cfull_name%2Cphone&id=eq.3b9f09e2-3f79-4968-b55d-4942d3626a79"
+      },
+      {
+        "status": 400,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/rpc/farmer_dashboard_v1"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/user_roles?select=role&user_id=eq.3b9f09e2-3f79-4968-b55d-4942d3626a79&limit=5"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/profiles?select=id%2Cfull_name%2Cphone&id=eq.3b9f09e2-3f79-4968-b55d-4942d3626a79"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/user_roles?select=role&user_id=eq.3b9f09e2-3f79-4968-b55d-4942d3626a79&limit=5"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/profiles?select=id%2Cdistrict%2Cvillage%2Cfull_name&id=eq.3b9f09e2-3f79-4968-b55d-4942d3626a79"
+      }
+    ],
+    "url": "http://127.0.0.1:4173/farmer/dashboard",
+    "title": "AgriNext Gen - Connecting India's Agricultural Ecosystem",
+    "h1": "Dashboard",
+    "bodySnippet": "Welcome back\nYou have successfully signed in.\nAgriNext Gen\nMy Day\nDashboard\nMy Crops\nFarmlands\nTransport\nListings\nOrders\nEarnings\nNotifications\n2\nSettings\nSign Out\nDashboard\nOnline\n2\nDF\nWelcome\n\nQuick Actions\n\nWelcome to Agri Mitra! 🎉\n\nYou're all set up and ready to go\n\nGreat job! You've added your farmland and crops. Now you can track harvests, request transport, and monitor market prices.\n\nRequest Transport\nView Dashboard\nDon't show this again\nWelcome, Dummy Farmer One! 🌾\nMysuru Rural, Mysuru\n\n7.8 acres\n\nTotal Land\n\n4\n\nActive Crops\n\n0\n\nReady to Harvest\n\n2\n\nPending Transport\n\nQuick Actions\nAdd Crop\nAdd Farmland\nRequest Transport\nCreate Listing\nCall Agent\nWeather Today\n\nUnavailable\n\nRetry\nMandi Prices\n\n0 crops • No price data available\n\nNo price data available\n\nAgent Notes\n2 notes\nField Agent\nen\nFeb 22\n\n[dummy_20260222_0955] audio summary\n\nField Agent\nen\nFeb 22\n\n[dummy_20260222_0320] a",
+    "screenshot": "output/playwright/roles/farmer.png",
+    "onExpectedRoute": true
+  },
+  {
+    "role": "buyer",
+    "expectedRoute": "/marketplace/dashboard",
+    "logs": [
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "url": "http://127.0.0.1:4173/login"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
+        "url": "http://127.0.0.1:4173/login"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "[i18n] Missing EN key: \"settings.profile_settings\"",
+        "url": "http://127.0.0.1:4173/marketplace/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "[i18n] Missing EN key: \"auth.sign_out\"",
+        "url": "http://127.0.0.1:4173/marketplace/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://127.0.0.1:4173/marketplace/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://127.0.0.1:4173/marketplace/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://127.0.0.1:4173/marketplace/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://127.0.0.1:4173/marketplace/dashboard"
+      }
+    ],
+    "responses": [
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/functions/v1/login-by-phone"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/profiles?select=preferred_language&id=eq.e540bdde-931f-442e-9cad-9f4ce55a45ae"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/user_profiles?select=id%2Cprofile_type%2Cdisplay_name%2Cphone%2Cis_active&user_id=eq.e540bdde-931f-442e-9cad-9f4ce55a45ae"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/profiles?select=id%2Cfull_name%2Cphone&id=eq.e540bdde-931f-442e-9cad-9f4ce55a45ae"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/user_roles?select=role&user_id=eq.e540bdde-931f-442e-9cad-9f4ce55a45ae&limit=5"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/user_profiles?select=id%2Cprofile_type%2Cdisplay_name%2Cphone%2Cis_active&user_id=eq.e540bdde-931f-442e-9cad-9f4ce55a45ae"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/profiles?select=id%2Cfull_name%2Cphone&id=eq.e540bdde-931f-442e-9cad-9f4ce55a45ae"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/profiles?select=*&id=eq.e540bdde-931f-442e-9cad-9f4ce55a45ae"
+      },
+      {
+        "status": 400,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/rpc/buyer_dashboard_v1"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/user_profiles?select=id%2Cprofile_type%2Cdisplay_name%2Cphone%2Cis_active&user_id=eq.e540bdde-931f-442e-9cad-9f4ce55a45ae"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/rpc/list_market_products_compact_v1"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/user_roles?select=role&user_id=eq.e540bdde-931f-442e-9cad-9f4ce55a45ae&limit=5"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/profiles?select=id%2Cfull_name%2Cphone&id=eq.e540bdde-931f-442e-9cad-9f4ce55a45ae"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/user_roles?select=role&user_id=eq.e540bdde-931f-442e-9cad-9f4ce55a45ae&limit=5"
+      },
+      {
+        "status": 400,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/rpc/list_orders_compact_v1"
+      },
+      {
+        "status": 400,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/rpc/buyer_dashboard_v1"
+      },
+      {
+        "status": 400,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/rpc/list_orders_compact_v1"
+      }
+    ],
+    "url": "http://127.0.0.1:4173/marketplace/dashboard",
+    "title": "AgriNext Gen - Connecting India's Agricultural Ecosystem",
+    "h1": "Dashboard",
+    "bodySnippet": "Welcome back\nYou have successfully signed in.\nAgriNext Gen Market\nMarketplace Buyer\nDashboard\nBrowse Products\nMy Orders\nProfile\nSign Out\nDashboard\nOnline\n2\nDB\nBrowse Marketplace\n\nWelcome, Dummy Buyer One - null\n\nBrowse Products\n\nAVAILABLE\n\n4\n\nFRESH HARVEST\n\n0\n\nCOMING SOON\n\n0\n\nACTIVE ORDERS\n\n0\n\nFresh Harvest Available\nView All\nNo products found\n\nTry different search terms or filters\n\nYour Active Orders\nView All\nYou haven't received any orders yet.\n\nBrowse Products\n\nBrowse Products\nAI Stock Advisor\n\nGet recommendations on what to stock this week from your market profile and fresh inventory.\n\nWhat Should I Stock?\n\nGet AI-powered recommendations based on market trends and your buyer profile.",
+    "screenshot": "output/playwright/roles/buyer.png",
+    "onExpectedRoute": true
+  },
+  {
+    "role": "agent",
+    "expectedRoute": "/agent/dashboard",
+    "logs": [
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "url": "http://127.0.0.1:4173/login"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
+        "url": "http://127.0.0.1:4173/login"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "[i18n] Missing EN key: \"settings.profile_settings\"",
+        "url": "http://127.0.0.1:4173/agent/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "[i18n] Missing EN key: \"auth.sign_out\"",
+        "url": "http://127.0.0.1:4173/agent/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "error",
+        "text": "Failed to load resource: the server responded with a status of 404 ()",
+        "url": "http://127.0.0.1:4173/agent/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://127.0.0.1:4173/agent/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://127.0.0.1:4173/agent/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://127.0.0.1:4173/agent/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "error",
+        "text": "Failed to load resource: the server responded with a status of 404 ()",
+        "url": "http://127.0.0.1:4173/agent/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://127.0.0.1:4173/agent/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://127.0.0.1:4173/agent/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://127.0.0.1:4173/agent/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "error",
+        "text": "Failed to load resource: the server responded with a status of 404 ()",
+        "url": "http://127.0.0.1:4173/agent/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://127.0.0.1:4173/agent/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://127.0.0.1:4173/agent/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://127.0.0.1:4173/agent/dashboard"
+      }
+    ],
+    "responses": [
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/functions/v1/login-by-phone"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/profiles?select=preferred_language&id=eq.96ad19e4-4316-4224-b08e-e40efef6a468"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/user_profiles?select=id%2Cprofile_type%2Cdisplay_name%2Cphone%2Cis_active&user_id=eq.96ad19e4-4316-4224-b08e-e40efef6a468"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/user_roles?select=role&user_id=eq.96ad19e4-4316-4224-b08e-e40efef6a468&limit=5"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/profiles?select=id%2Cfull_name%2Cphone&id=eq.96ad19e4-4316-4224-b08e-e40efef6a468"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/user_profiles?select=id%2Cprofile_type%2Cdisplay_name%2Cphone%2Cis_active&user_id=eq.96ad19e4-4316-4224-b08e-e40efef6a468"
+      },
+      {
+        "status": 400,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/rpc/agent_dashboard_v1"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/profiles?select=*&id=eq.96ad19e4-4316-4224-b08e-e40efef6a468"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/user_profiles?select=id%2Cprofile_type%2Cdisplay_name%2Cphone%2Cis_active&user_id=eq.96ad19e4-4316-4224-b08e-e40efef6a468"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/profiles?select=id%2Cfull_name%2Cphone&id=eq.96ad19e4-4316-4224-b08e-e40efef6a468"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/user_roles?select=role&user_id=eq.96ad19e4-4316-4224-b08e-e40efef6a468&limit=5"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/profiles?select=id%2Cfull_name%2Cphone&id=eq.96ad19e4-4316-4224-b08e-e40efef6a468"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/user_roles?select=role&user_id=eq.96ad19e4-4316-4224-b08e-e40efef6a468&limit=5"
+      },
+      {
+        "status": 400,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/rpc/agent_dashboard_v1"
+      },
+      {
+        "status": 400,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/rpc/agent_dashboard_v1"
+      }
+    ],
+    "url": "http://127.0.0.1:4173/agent/dashboard",
+    "title": "AgriNext Gen - Connecting India's Agricultural Ecosystem",
+    "h1": "Agent Dashboard",
+    "bodySnippet": "Welcome back\nYou have successfully signed in.\nAgriNext Gen Agent\nField Operations\nToday\nDashboard\nMy Tasks\nMy Farmers\nFarmers & Crops\nTransport\nService Area\nProfile\nSign Out\nAgent Dashboard\nOnline\n2\nDA\nAgent Dashboard\n\nAssigned Farmers\n\nFarmers Assigned\n\nActive Crops\n\nTasks Today\n\nundefined/undefined\n\nReady to Harvest\n\nPending Transport\n\nToday's Tasks\nView All\n\nNo tasks scheduled for today\n\nCrops Near Harvest\nAI Insights\nPowered by AI\nPrioritize Today's Visits\nGenerate Cluster Summary\nRecent AI Insights\nPending Transport",
+    "screenshot": "output/playwright/roles/agent.png",
+    "onExpectedRoute": true
+  },
+  {
+    "role": "logistics",
+    "expectedRoute": "/logistics/dashboard",
+    "logs": [
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "url": "http://127.0.0.1:4173/login"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
+        "url": "http://127.0.0.1:4173/login"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "[i18n] Missing EN key: \"settings.profile_settings\"",
+        "url": "http://127.0.0.1:4173/logistics/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "[i18n] Missing EN key: \"auth.sign_out\"",
+        "url": "http://127.0.0.1:4173/logistics/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://127.0.0.1:4173/logistics/dashboard"
+      }
+    ],
+    "responses": [
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/functions/v1/login-by-phone"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/profiles?select=preferred_language&id=eq.936fc845-eb3c-4d3b-ab28-58f507239ab7"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/user_profiles?select=id%2Cprofile_type%2Cdisplay_name%2Cphone%2Cis_active&user_id=eq.936fc845-eb3c-4d3b-ab28-58f507239ab7"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/user_roles?select=role&user_id=eq.936fc845-eb3c-4d3b-ab28-58f507239ab7&limit=5"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/profiles?select=id%2Cfull_name%2Cphone&id=eq.936fc845-eb3c-4d3b-ab28-58f507239ab7"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/user_profiles?select=id%2Cprofile_type%2Cdisplay_name%2Cphone%2Cis_active&user_id=eq.936fc845-eb3c-4d3b-ab28-58f507239ab7"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/profiles?select=*&id=eq.936fc845-eb3c-4d3b-ab28-58f507239ab7"
+      },
+      {
+        "status": 400,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/rpc/logistics_dashboard_v1"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/user_roles?select=role&user_id=eq.936fc845-eb3c-4d3b-ab28-58f507239ab7&limit=5"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/profiles?select=id%2Cfull_name%2Cphone&id=eq.936fc845-eb3c-4d3b-ab28-58f507239ab7"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/user_profiles?select=id%2Cprofile_type%2Cdisplay_name%2Cphone%2Cis_active&user_id=eq.936fc845-eb3c-4d3b-ab28-58f507239ab7"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/user_roles?select=role&user_id=eq.936fc845-eb3c-4d3b-ab28-58f507239ab7&limit=5"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/profiles?select=id%2Cfull_name%2Cphone&id=eq.936fc845-eb3c-4d3b-ab28-58f507239ab7"
+      }
+    ],
+    "url": "http://127.0.0.1:4173/logistics/dashboard",
+    "title": "AgriNext Gen - Connecting India's Agricultural Ecosystem",
+    "h1": "Dashboard",
+    "bodySnippet": "Welcome back\nYou have successfully signed in.\nAgriNext Gen Transport\nLogistics Partner\nDashboard\nAvailable Loads\nActive Trips\nCompleted\nMy Vehicles\nService Area\nProfile\nSign Out\nDashboard\nOnline\n2\nDL\nTransporter Dashboard\n\nWelcome back, Dummy Logistics One - Channapatna\n\nProfile\n\nAVAILABLE LOADS\n\n0\n\nACCEPTED TRIPS\n\n0\n\nIN PROGRESS\n\n0\n\nCOMPLETED TRIPS\n\n0\n\nToday's Active Trips\nView All\nNo active trips\nNew Load Requests\nView All\nAI-Powered Suggestions\n\nOptimize routing and return loads to reduce idle distance and improve earnings.\n\nFind Return Loads\nSuggest Best Route\nRoute Optimization\n\nClick \"Suggest Best Route\" to get AI-recommended pickup sequencing.\n\nReverse Logistics\n\nClick \"Find Return Loads\" to identify profitable return trips.",
+    "screenshot": "output/playwright/roles/logistics.png",
+    "onExpectedRoute": true
+  }
+]

@@ -3,6 +3,13 @@ import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
 
 type RoleType = "farmer" | "agent" | "logistics" | "buyer" | "admin" | string;
+type UserProfileLite = {
+  id: string;
+  profile_type: string;
+  display_name: string;
+  phone: string;
+  is_active: boolean;
+};
 
 interface AuthContextType {
   user: User | null;
@@ -63,40 +70,80 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   });
 
+  const applyProfilesState = useCallback((rows: UserProfileLite[]) => {
+    setProfiles(rows);
+    let nextActiveId = activeProfileId;
+    if (!nextActiveId && rows.length === 1) {
+      nextActiveId = rows[0].id;
+    } else if (nextActiveId && !rows.find((p) => p.id === nextActiveId)) {
+      nextActiveId = rows[0]?.id ?? null;
+    }
+    setActiveProfileId(nextActiveId || null);
+    const activeProfile = rows.find((p) => p.id === nextActiveId) || rows[0] || null;
+    setRealRole(activeProfile?.profile_type ?? null);
+    setUserRole(activeProfile?.profile_type ?? null);
+  }, [activeProfileId]);
+
   const fetchUserProfiles = useCallback(async (userId: string) => {
     try {
       const { data, error } = await supabase
         .from("user_profiles")
         .select("id, profile_type, display_name, phone, is_active")
         .eq("user_id", userId);
-      if (error) {
-        console.error("Error fetching user profiles:", error);
-        setProfiles([]);
-        setRealRole(null);
-        setUserRole(null);
+
+      if (!error && data && data.length > 0) {
+        applyProfilesState(
+          data.map((p) => ({
+            id: p.id,
+            profile_type: p.profile_type,
+            display_name: p.display_name || "User",
+            phone: p.phone || "",
+            is_active: p.is_active ?? true,
+          }))
+        );
         return;
       }
-      setProfiles(data || []);
-      // determine active profile
-      let activeId = activeProfileId;
-      if (!activeId && data && data.length === 1) {
-        activeId = data[0].id;
-      } else if (activeId && !data.find((p: any) => p.id === activeId)) {
-        activeId = data[0]?.id ?? null;
+
+      if (error) {
+        console.warn("user_profiles lookup failed, falling back to legacy role tables:", error.message);
       }
-      setActiveProfileId(activeId || null);
-      const activeProfile = (data || []).find((p: any) => p.id === activeId) || (data && data[0]);
-      // set canonical real role
-      setRealRole(activeProfile?.profile_type ?? null);
-      // also set legacy userRole initially to canonical role
-      setUserRole(activeProfile?.profile_type ?? null);
+
+      const [{ data: roleRows, error: roleError }, { data: profileRow, error: profileError }] = await Promise.all([
+        supabase.from("user_roles").select("role").eq("user_id", userId).limit(5),
+        supabase.from("profiles").select("id, full_name, phone").eq("id", userId).maybeSingle(),
+      ]);
+
+      if (roleError) {
+        console.warn("Legacy user_roles lookup failed:", roleError.message);
+      }
+      if (profileError) {
+        console.warn("Legacy profiles lookup failed:", profileError.message);
+      }
+
+      const firstRole = roleRows?.[0]?.role ?? null;
+      if (firstRole) {
+        applyProfilesState([
+          {
+            id: userId,
+            profile_type: firstRole,
+            display_name: profileRow?.full_name?.trim() || "User",
+            phone: profileRow?.phone || "",
+            is_active: true,
+          },
+        ]);
+        return;
+      }
+
+      setProfiles([]);
+      setRealRole(null);
+      setUserRole(null);
     } catch (error) {
       console.error("Error fetching user profiles:", error);
       setProfiles([]);
       setRealRole(null);
       setUserRole(null);
     }
-  }, [activeProfileId]);
+  }, [applyProfilesState]);
 
   const refreshRole = useCallback(async () => {
     if (user?.id) {

@@ -1,6 +1,8 @@
 -- 202602210915_stage_5_6_rpcs.sql
 -- Stage 5.6 RPCs: account admin controls, dispute workflows, security recorders, risk jobs
 
+CREATE SCHEMA IF NOT EXISTS security;
+
 -- Admin: set account status (audit + workflow)
 CREATE OR REPLACE FUNCTION admin.set_account_status_v1(
   p_user_id uuid,
@@ -291,4 +293,3 @@ BEGIN
 END;
 $$;
 GRANT EXECUTE ON FUNCTION admin.dispute_sla_watch_v1(int) TO authenticated;
-

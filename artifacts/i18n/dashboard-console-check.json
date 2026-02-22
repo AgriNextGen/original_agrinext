@@ -1,0 +1,31 @@
+{
+  "executedAt": "2026-02-22T07:14:45.139Z",
+  "results": [
+    {
+      "role": "farmer",
+      "ok": true,
+      "finalUrl": "http://127.0.0.1:4173/farmer/transport",
+      "i18nWarnings": [],
+      "failedResponses": []
+    },
+    {
+      "role": "buyer",
+      "ok": true,
+      "finalUrl": "http://127.0.0.1:4173/marketplace/dashboard",
+      "i18nWarnings": [],
+      "failedResponses": []
+    },
+    {
+      "role": "logistics",
+      "ok": true,
+      "finalUrl": "http://127.0.0.1:4173/logistics/dashboard",
+      "i18nWarnings": [],
+      "failedResponses": []
+    }
+  ],
+  "totals": {
+    "roles": 3,
+    "passed": 3,
+    "i18nWarnings": 0
+  }
+}

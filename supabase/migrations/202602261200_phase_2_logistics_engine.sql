@@ -98,6 +98,17 @@ CREATE TABLE IF NOT EXISTS public.transport_status_events (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
+ALTER TABLE public.transport_status_events
+  ADD COLUMN IF NOT EXISTS status text,
+  ADD COLUMN IF NOT EXISTS actor_role text,
+  ADD COLUMN IF NOT EXISTS proof_file_id uuid,
+  ADD COLUMN IF NOT EXISTS geo_lat numeric,
+  ADD COLUMN IF NOT EXISTS geo_long numeric,
+  ADD COLUMN IF NOT EXISTS note text,
+  ADD COLUMN IF NOT EXISTS old_status text,
+  ADD COLUMN IF NOT EXISTS new_status text,
+  ADD COLUMN IF NOT EXISTS created_at timestamptz;
+
 DO $$
 BEGIN
   IF to_regclass('public.files') IS NOT NULL THEN
@@ -124,44 +135,52 @@ ALTER TABLE IF EXISTS public.trips ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS public.transport_status_events ENABLE ROW LEVEL SECURITY;
 
 -- transport_requests policies
-CREATE POLICY IF NOT EXISTS tr_requests_select_owner_or_admin ON public.transport_requests
+DROP POLICY IF EXISTS tr_requests_select_owner_or_admin ON public.transport_requests;
+CREATE POLICY tr_requests_select_owner_or_admin ON public.transport_requests
   FOR SELECT USING (
     is_admin()
     OR (auth.uid() IS NOT NULL AND farmer_id::text = auth.uid()::text)
     OR (auth.uid() IS NOT NULL AND transporter_id::text = auth.uid()::text)
-    OR (auth.uid() IS NOT NULL AND EXISTS (SELECT 1 FROM user_roles ur WHERE ur.user_id = auth.uid() AND ur.role = 'agent' AND is_agent_assigned(farmer_id, auth.uid())))
+    OR (auth.uid() IS NOT NULL AND EXISTS (SELECT 1 FROM user_roles ur WHERE ur.user_id = auth.uid() AND ur.role = 'agent' AND public.is_agent_assigned(farmer_id)))
   );
 
-CREATE POLICY IF NOT EXISTS tr_requests_insert_owner ON public.transport_requests
+DROP POLICY IF EXISTS tr_requests_insert_owner ON public.transport_requests;
+CREATE POLICY tr_requests_insert_owner ON public.transport_requests
   FOR INSERT WITH CHECK (auth.uid() IS NOT NULL AND farmer_id::text = auth.uid()::text);
 
-CREATE POLICY IF NOT EXISTS tr_requests_update_rpc_or_admin ON public.transport_requests
+DROP POLICY IF EXISTS tr_requests_update_rpc_or_admin ON public.transport_requests;
+CREATE POLICY tr_requests_update_rpc_or_admin ON public.transport_requests
   FOR UPDATE USING (is_admin()) WITH CHECK (current_setting('app.rpc','false') = 'true' OR is_admin());
 
 -- trips policies
-CREATE POLICY IF NOT EXISTS trips_select_owner_or_admin ON public.trips
+DROP POLICY IF EXISTS trips_select_owner_or_admin ON public.trips;
+CREATE POLICY trips_select_owner_or_admin ON public.trips
   FOR SELECT USING (
     is_admin()
     OR (auth.uid() IS NOT NULL AND transporter_id::text = auth.uid()::text)
     OR (auth.uid() IS NOT NULL AND EXISTS (SELECT 1 FROM public.transport_requests tr WHERE tr.id = transport_request_id AND tr.farmer_id::text = auth.uid()::text))
   );
 
-CREATE POLICY IF NOT EXISTS trips_insert_rpc_or_admin ON public.trips
-  FOR INSERT USING (is_admin()) WITH CHECK (current_setting('app.rpc','false') = 'true' OR is_admin());
+DROP POLICY IF EXISTS trips_insert_rpc_or_admin ON public.trips;
+CREATE POLICY trips_insert_rpc_or_admin ON public.trips
+  FOR INSERT WITH CHECK (current_setting('app.rpc','false') = 'true' OR is_admin());
 
-CREATE POLICY IF NOT EXISTS trips_update_rpc_or_admin ON public.trips
+DROP POLICY IF EXISTS trips_update_rpc_or_admin ON public.trips;
+CREATE POLICY trips_update_rpc_or_admin ON public.trips
   FOR UPDATE USING (is_admin()) WITH CHECK (current_setting('app.rpc','false') = 'true' OR is_admin());
 
 -- transport_status_events policies
-CREATE POLICY IF NOT EXISTS tse_select ON public.transport_status_events
+DROP POLICY IF EXISTS tse_select ON public.transport_status_events;
+CREATE POLICY tse_select ON public.transport_status_events
   FOR SELECT USING (
     is_admin()
     OR (auth.uid() IS NOT NULL AND EXISTS (SELECT 1 FROM public.trips t WHERE t.id = transport_status_events.trip_id AND t.transporter_id::text = auth.uid()::text))
     OR (auth.uid() IS NOT NULL AND EXISTS (SELECT 1 FROM public.transport_requests tr WHERE tr.id = transport_status_events.transport_request_id AND tr.farmer_id::text = auth.uid()::text))
   );
 
-CREATE POLICY IF NOT EXISTS tse_insert_rpc_or_actor ON public.transport_status_events
-  FOR INSERT USING (is_admin() OR current_setting('app.rpc','false') = 'true') WITH CHECK (is_admin() OR current_setting('app.rpc','false') = 'true');
+DROP POLICY IF EXISTS tse_insert_rpc_or_actor ON public.transport_status_events;
+CREATE POLICY tse_insert_rpc_or_actor ON public.transport_status_events
+  FOR INSERT WITH CHECK (is_admin() OR current_setting('app.rpc','false') = 'true');
 
 -- 8) updated_at trigger helper
 CREATE OR REPLACE FUNCTION public.touch_updated_at() RETURNS trigger LANGUAGE plpgsql AS $$
@@ -395,7 +414,7 @@ CREATE OR REPLACE FUNCTION public.get_trips_with_context_v2(p_transporter_id uui
 RETURNS TABLE (
   trip_id uuid,
   transport_request_id uuid,
-  status trip_status,
+  status text,
   transporter_id uuid,
   assigned_at timestamptz,
   updated_at timestamptz,
@@ -423,4 +442,3 @@ RETURNS TABLE (
 $$;
 
 -- end migration
-

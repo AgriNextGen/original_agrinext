@@ -35,15 +35,15 @@ const FarmerSummaryCard = ({ dashboardData }: { dashboardData?: any } ) => {
 
   if (profileLoading || statsLoading) {
     return (
-      <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-accent/10 rounded-2xl p-6 border border-border">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-          <div className="space-y-2">
-            <Skeleton className="h-8 w-48" />
-            <Skeleton className="h-5 w-64" />
+      <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-accent/10 rounded-2xl p-4 md:p-5 border border-border">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="space-y-1.5">
+            <Skeleton className="h-7 w-44" />
+            <Skeleton className="h-4 w-56" />
           </div>
-          <div className="flex flex-wrap gap-4">
+          <div className="flex flex-wrap gap-3">
             {[1, 2, 3, 4].map((i) => (
-              <Skeleton key={i} className="h-20 w-32" />
+              <Skeleton key={i} className="h-16 w-28" />
             ))}
           </div>
         </div>
@@ -79,17 +79,17 @@ const FarmerSummaryCard = ({ dashboardData }: { dashboardData?: any } ) => {
   ];
 
   return (
-    <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-accent/10 rounded-2xl p-6 border border-border shadow-soft">
-      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+    <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-accent/10 rounded-2xl p-4 md:p-5 border border-border shadow-soft">
+      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 md:gap-5">
         {/* Farmer Info */}
-        <div className="space-y-4 flex-1">
+        <div className="space-y-3 flex-1 min-w-0">
           <div>
-            <h1 className="text-2xl md:text-3xl font-display font-bold text-foreground">
+            <h1 className="text-xl md:text-2xl font-display font-bold text-foreground leading-tight">
               Welcome, {profile?.full_name || 'Farmer'}! 🌾
             </h1>
-            <div className="flex items-center gap-2 text-muted-foreground mt-1">
-              <MapPin className="h-4 w-4" />
-              <span>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+              <MapPin className="h-4 w-4 shrink-0" />
+              <span className="truncate">
                 {profile?.village && profile?.district 
                   ? `${profile.village}, ${profile.district}`
                   : 'Location not set'}
@@ -99,8 +99,8 @@ const FarmerSummaryCard = ({ dashboardData }: { dashboardData?: any } ) => {
 
           {/* Profile Completion */}
           {profileCompletion < 100 && (
-            <div className="bg-card/80 backdrop-blur-sm rounded-xl p-4 border border-border/50 max-w-md">
-              <div className="flex items-center justify-between mb-2">
+            <div className="bg-card/80 backdrop-blur-sm rounded-xl p-3 border border-border/50 max-w-lg">
+              <div className="flex items-center justify-between mb-1.5">
                 <div className="flex items-center gap-2">
                   {profileCompletion >= 80 ? (
                     <CheckCircle className="h-4 w-4 text-primary" />
@@ -112,7 +112,7 @@ const FarmerSummaryCard = ({ dashboardData }: { dashboardData?: any } ) => {
                 <span className="text-sm text-muted-foreground">{profileCompletion}%</span>
               </div>
               <Progress value={profileCompletion} className="h-2" />
-              <p className="text-xs text-muted-foreground mt-2">
+              <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
                 {profileCompletion < 40 
                   ? 'Complete your profile to unlock all features'
                   : profileCompletion < 80
@@ -132,19 +132,19 @@ const FarmerSummaryCard = ({ dashboardData }: { dashboardData?: any } ) => {
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 md:gap-3 w-full lg:w-auto">
           {stats.map((stat) => (
             <div 
               key={stat.label}
-              className="bg-card/80 backdrop-blur-sm rounded-xl p-4 border border-border/50 shadow-sm hover:shadow-md transition-shadow"
+              className="bg-card/80 backdrop-blur-sm rounded-xl p-3 border border-border/50 shadow-sm hover:shadow-md transition-shadow min-w-0"
             >
               <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg ${stat.color}`}>
-                  <stat.icon className="h-5 w-5" />
+                <div className={`p-1.5 rounded-lg ${stat.color}`}>
+                  <stat.icon className="h-4 w-4" />
                 </div>
-                <div>
-                  <p className="text-2xl font-bold text-foreground">{stat.value}</p>
-                  <p className="text-xs text-muted-foreground">{stat.label}</p>
+                <div className="min-w-0">
+                  <p className="text-lg md:text-xl font-bold text-foreground leading-tight truncate">{stat.value}</p>
+                  <p className="text-[11px] md:text-xs text-muted-foreground leading-tight mt-0.5">{stat.label}</p>
                 </div>
               </div>
             </div>

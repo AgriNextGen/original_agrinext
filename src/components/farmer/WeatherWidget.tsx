@@ -36,12 +36,21 @@ interface WeatherData {
 }
 
 interface WeatherResponse {
-  data: WeatherData;
+  data?: WeatherData | null;
   cached: boolean;
   stale?: boolean;
   cache_age_minutes?: number;
   message?: string;
 }
+
+const isExpectedWeatherUnavailable = (err: unknown) => {
+  const message = err instanceof Error ? err.message : String(err);
+  const lower = message.toLowerCase();
+  return lower.includes('404') ||
+    lower.includes('not found') ||
+    lower.includes('failed to fetch') ||
+    lower.includes('cors');
+};
 
 const getWeatherIcon = (icon: string, size: 'sm' | 'lg' = 'lg') => {
   const sizeClass = size === 'sm' ? 'h-6 w-6' : 'h-10 w-10';
@@ -109,9 +118,17 @@ const WeatherWidget = () => {
         setWeather(data.data);
         setIsCached(data.cached || false);
         setIsStale(data.stale || false);
+        setError(null);
+      } else {
+        setWeather(null);
+        setError(data?.message || 'Could not load weather');
       }
     } catch (err) {
-      console.error('Weather fetch error:', err);
+      if (isExpectedWeatherUnavailable(err)) {
+        console.warn('Weather unavailable:', err instanceof Error ? err.message : String(err));
+      } else {
+        console.error('Weather fetch error:', err);
+      }
       setError('Could not load weather');
       // DO NOT use fake fallback data - show error state instead
       setWeather(null);

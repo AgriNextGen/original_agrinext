@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
+const PRICE_FORECASTS_ENABLED = String(import.meta.env.VITE_ENABLE_PRICE_FORECASTS ?? 'false').toLowerCase() === 'true';
+
 export interface PriceForecast {
   id: string;
   crop_name: string;
@@ -33,6 +35,77 @@ export interface NeighborPrice {
   modal_price: number | null;
   confidence: string | null;
   fetched_at: string | null;
+}
+
+type MarketPriceAggCompatRow = {
+  id?: string;
+  crop_name?: string | null;
+  district?: string | null;
+  avg_price?: number | null;
+  date?: string | null;
+  created_at?: string | null;
+  trend_direction?: string | null;
+  confidence?: string | null;
+  sources_count?: number | null;
+  unit?: string | null;
+};
+
+type MarketPriceRowCompat = {
+  id?: string;
+  crop_name?: string | null;
+  district?: string | null;
+  modal_price?: number | null;
+  min_price?: number | null;
+  max_price?: number | null;
+  date?: string | null;
+  created_at?: string | null;
+  mandi_name?: string | null;
+};
+
+function syntheticId(parts: Array<string | null | undefined>) {
+  const token = parts
+    .map((part) => (part ?? '').trim())
+    .filter(Boolean)
+    .join('|');
+  return token || crypto.randomUUID();
+}
+
+function normalizeAggRow(row: MarketPriceAggCompatRow): MarketPriceAgg {
+  return {
+    id: row.id || syntheticId([row.crop_name ?? null, row.district ?? null, row.date ?? null]),
+    crop_name: row.crop_name || 'Unknown Crop',
+    district: row.district || 'Karnataka',
+    state: 'Karnataka',
+    modal_price: row.avg_price ?? null,
+    min_price: null,
+    max_price: null,
+    unit: row.unit ?? 'qtl',
+    confidence: row.confidence ?? null,
+    sources_count: row.sources_count ?? null,
+    fetched_at: row.date ?? row.created_at ?? null,
+  };
+}
+
+function normalizeMarketPriceRow(row: MarketPriceRowCompat): MarketPriceAgg {
+  return {
+    id: row.id || syntheticId([row.crop_name ?? null, row.district ?? null, row.date ?? null, row.mandi_name ?? null]),
+    crop_name: row.crop_name || 'Unknown Crop',
+    district: row.district || 'Karnataka',
+    state: 'Karnataka',
+    modal_price: row.modal_price ?? null,
+    min_price: row.min_price ?? null,
+    max_price: row.max_price ?? null,
+    unit: 'qtl',
+    confidence: null,
+    sources_count: null,
+    fetched_at: row.date ?? row.created_at ?? null,
+  };
+}
+
+function isMissingTableError(error: unknown, tableName: string) {
+  const candidate = error as { code?: string; message?: string; details?: string };
+  return candidate?.code === 'PGRST205' &&
+    `${candidate?.message ?? ''} ${candidate?.details ?? ''}`.toLowerCase().includes(tableName.toLowerCase());
 }
 
 /**
@@ -78,14 +151,19 @@ export const useMarketPricesTiered = (
       if (district && cropNames.length > 0) {
         const { data: tierA, error: errorA } = await supabase
           .from('market_prices_agg')
-          .select('*')
+          .select('id,crop_name,district,avg_price,date,created_at,trend_direction')
           .eq('district', district)
           .in('crop_name', cropNames)
-          .order('fetched_at', { ascending: false })
+          .order('date', { ascending: false })
+          .order('created_at', { ascending: false })
           .limit(8);
 
         if (!errorA && tierA && tierA.length > 0) {
-          return { tier: 'A' as const, data: tierA as MarketPriceAgg[], label: `Prices for your crops in ${district}` };
+          return {
+            tier: 'A' as const,
+            data: (tierA as unknown as MarketPriceAggCompatRow[]).map(normalizeAggRow),
+            label: `Prices for your crops in ${district}`,
+          };
         }
       }
 
@@ -93,51 +171,65 @@ export const useMarketPricesTiered = (
       if (district) {
         const { data: tierB, error: errorB } = await supabase
           .from('market_prices_agg')
-          .select('*')
+          .select('id,crop_name,district,avg_price,date,created_at,trend_direction')
           .eq('district', district)
-          .order('fetched_at', { ascending: false })
+          .order('date', { ascending: false })
+          .order('created_at', { ascending: false })
           .limit(6);
 
         if (!errorB && tierB && tierB.length > 0) {
-          return { tier: 'B' as const, data: tierB as MarketPriceAgg[], label: `Top prices in ${district}` };
+          return {
+            tier: 'B' as const,
+            data: (tierB as unknown as MarketPriceAggCompatRow[]).map(normalizeAggRow),
+            label: `Top prices in ${district}`,
+          };
         }
       }
 
-      // Tier C: State default (Karnataka, any crops)
+      // Tier C: Global latest aggregates (schema-compatible fallback)
       const { data: tierC, error: errorC } = await supabase
         .from('market_prices_agg')
-        .select('*')
-        .eq('state', 'Karnataka')
-        .order('fetched_at', { ascending: false })
+        .select('id,crop_name,district,avg_price,date,created_at,trend_direction')
+        .order('date', { ascending: false })
+        .order('created_at', { ascending: false })
         .limit(6);
 
       if (!errorC && tierC && tierC.length > 0) {
-        return { tier: 'C' as const, data: tierC as MarketPriceAgg[], label: 'Karnataka mandi prices' };
+        return {
+          tier: 'C' as const,
+          data: (tierC as unknown as MarketPriceAggCompatRow[]).map(normalizeAggRow),
+          label: 'Karnataka mandi prices',
+        };
       }
 
       // Fallback: Try raw market_prices table
-      const { data: fallback, error: fallbackError } = await supabase
+      let fallbackQuery = supabase
         .from('market_prices')
-        .select('*')
-        .eq('state', 'Karnataka')
+        .select('id,crop_name,district,modal_price,min_price,max_price,date,created_at,mandi_name')
         .order('date', { ascending: false })
+        .order('created_at', { ascending: false })
         .limit(6);
 
+      if (district) {
+        fallbackQuery = fallbackQuery.eq('district', district);
+      }
+
+      let { data: fallback, error: fallbackError } = await fallbackQuery;
+
+      if ((!fallback || fallback.length === 0) && district) {
+        const rawFallback = await supabase
+          .from('market_prices')
+          .select('id,crop_name,district,modal_price,min_price,max_price,date,created_at,mandi_name')
+          .order('date', { ascending: false })
+          .order('created_at', { ascending: false })
+          .limit(6);
+        fallback = rawFallback.data;
+        fallbackError = rawFallback.error;
+      }
+
       if (!fallbackError && fallback && fallback.length > 0) {
-        // Transform to MarketPriceAgg format
-        const transformed: MarketPriceAgg[] = fallback.map(p => ({
-          id: p.id,
-          crop_name: p.crop_name,
-          district: p.district || 'Karnataka',
-          state: p.state,
-          modal_price: p.modal_price,
-          min_price: p.min_price,
-          max_price: p.max_price,
-          unit: p.unit,
-          confidence: null,
-          sources_count: null,
-          fetched_at: p.fetched_at || p.date,
-        }));
+        const transformed: MarketPriceAgg[] = (fallback as unknown as MarketPriceRowCompat[])
+          .map(normalizeMarketPriceRow);
         return { tier: 'C' as const, data: transformed, label: 'Karnataka mandi prices' };
       }
 
@@ -163,10 +255,11 @@ export const useNeighborPrices = (
 
       const { data, error } = await supabase
         .from('market_prices_agg')
-        .select('crop_name, district, modal_price, confidence, fetched_at')
+        .select('crop_name, district, avg_price, date, created_at')
         .in('district', neighborDistricts)
         .in('crop_name', cropNames)
-        .order('fetched_at', { ascending: false });
+        .order('date', { ascending: false })
+        .order('created_at', { ascending: false });
 
       if (error) {
         console.error('Error fetching neighbor prices:', error);
@@ -176,10 +269,21 @@ export const useNeighborPrices = (
       // Group by crop and get the best price (highest modal_price) from neighbors
       const bestByaCrop: Record<string, NeighborPrice> = {};
       
-      for (const price of data || []) {
-        const existing = bestByaCrop[price.crop_name];
-        if (!existing || (price.modal_price && (!existing.modal_price || price.modal_price > existing.modal_price))) {
-          bestByaCrop[price.crop_name] = price as NeighborPrice;
+      for (const row of (data || []) as unknown as MarketPriceAggCompatRow[]) {
+        const cropName = row.crop_name || '';
+        if (!cropName) continue;
+
+        const normalized: NeighborPrice = {
+          crop_name: cropName,
+          district: row.district || 'Karnataka',
+          modal_price: row.avg_price ?? null,
+          confidence: null,
+          fetched_at: row.date ?? row.created_at ?? null,
+        };
+
+        const existing = bestByaCrop[cropName];
+        if (!existing || (normalized.modal_price && (!existing.modal_price || normalized.modal_price > existing.modal_price))) {
+          bestByaCrop[cropName] = normalized;
         }
       }
 
@@ -194,10 +298,13 @@ export const usePriceForecasts = (cropNames?: string[]) => {
   return useQuery({
     queryKey: ['price-forecasts', cropNames],
     queryFn: async () => {
+      if (!PRICE_FORECASTS_ENABLED) {
+        return [];
+      }
+
       let query = supabase
         .from('price_forecasts')
         .select('*')
-        .eq('state', 'Karnataka')
         .order('generated_at', { ascending: false })
         .limit(20);
 
@@ -206,7 +313,12 @@ export const usePriceForecasts = (cropNames?: string[]) => {
       }
 
       const { data, error } = await query;
-      if (error) throw error;
+      if (error) {
+        if (isMissingTableError(error, 'price_forecasts')) {
+          return [];
+        }
+        throw error;
+      }
       
       // Get latest forecast per crop
       const latestByC: Record<string, PriceForecast> = {};
@@ -218,5 +330,6 @@ export const usePriceForecasts = (cropNames?: string[]) => {
       
       return Object.values(latestByC);
     },
+    enabled: PRICE_FORECASTS_ENABLED,
   });
 };

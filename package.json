@@ -7,10 +7,21 @@
     "dev": "vite",
     "build": "vite build",
     "build:dev": "vite build --mode development",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "i18n:audit-dashboard": "node scripts/i18n/audit-dashboard-keys.mjs",
+    "staging:verify-baseline": "node scripts/staging/verify-baseline.mjs",
+    "staging:provision-dummy-users": "node scripts/staging/provision-dummy-users.mjs",
+    "staging:seed-dummy-data": "node scripts/staging/seed-dummy-data.mjs",
+    "staging:smoke-phone-auth": "node scripts/staging/smoke-phone-auth.mjs",
+    "staging:smoke-weather": "node scripts/staging/smoke-weather.mjs",
+    "staging:smoke-buyer-orders": "node scripts/staging/smoke-buyer-orders.mjs",
+    "staging:smoke-runtime-core": "node scripts/staging/smoke-runtime-core.mjs",
+    "staging:rollback-dummy-data": "node scripts/staging/rollback-dummy-data.mjs",
+    "staging:run-all": "node scripts/staging/run-all.mjs"
   },
   "dependencies": {
     "@googlemaps/js-api-loader": "^2.0.2",

@@ -1,0 +1,96 @@
+[
+  {
+    "role": "farmer",
+    "url": "http://127.0.0.1:4173/farmer/dashboard",
+    "badResponses": [
+      {
+        "status": 404,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/price_forecasts?select=*&state=eq.Karnataka&order=generated_at.desc&limit=20"
+      },
+      {
+        "status": 400,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/market_prices_agg?select=*&state=eq.Karnataka&order=fetched_at.desc&limit=6"
+      },
+      {
+        "status": 400,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/market_prices_agg?select=*&state=eq.Karnataka&order=fetched_at.desc&limit=6"
+      },
+      {
+        "status": 404,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/price_forecasts?select=*&state=eq.Karnataka&order=generated_at.desc&limit=20&crop_name=in.%28Tomato+Demo+Crop%2COnion+Demo+Crop%29"
+      },
+      {
+        "status": 400,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/market_prices_agg?select=*&district=eq.Mysuru&crop_name=in.%28Tomato+Demo+Crop%2COnion+Demo+Crop%29&order=fetched_at.desc&limit=8"
+      },
+      {
+        "status": 400,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/market_prices?select=*&state=eq.Karnataka&order=date.desc&limit=6"
+      },
+      {
+        "status": 400,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/market_prices_agg?select=*&district=eq.Mysuru&order=fetched_at.desc&limit=6"
+      },
+      {
+        "status": 400,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/market_prices?select=*&state=eq.Karnataka&order=date.desc&limit=6"
+      },
+      {
+        "status": 400,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/market_prices_agg?select=*&state=eq.Karnataka&order=fetched_at.desc&limit=6"
+      },
+      {
+        "status": 404,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/price_forecasts?select=*&state=eq.Karnataka&order=generated_at.desc&limit=20&crop_name=in.%28Tomato+Demo+Crop%2COnion+Demo+Crop%29"
+      },
+      {
+        "status": 400,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/market_prices?select=*&state=eq.Karnataka&order=date.desc&limit=6"
+      },
+      {
+        "status": 404,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/price_forecasts?select=*&state=eq.Karnataka&order=generated_at.desc&limit=20&crop_name=in.%28Tomato+Demo+Crop%2COnion+Demo+Crop%29"
+      }
+    ],
+    "errorLogs": [
+      "Failed to load resource: the server responded with a status of 404 ()",
+      "Failed to load resource: the server responded with a status of 400 ()",
+      "Access to fetch at 'https://rmtkkzfzdmpjlqexrbme.supabase.co/functions/v1/get-weather' from origin 'http://127.0.0.1:4173' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: It does not have HTTP ok status.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Weather fetch error: FunctionsFetchError: Failed to send a request to the Edge Function\n    at http://127.0.0.1:4173/node_modules/.vite/deps/@supabase_supabase-js.js?v=4f4e7ed7:178:21",
+      "Failed to load resource: the server responded with a status of 400 ()",
+      "Failed to load resource: the server responded with a status of 404 ()",
+      "Failed to load resource: the server responded with a status of 400 ()",
+      "Failed to load resource: the server responded with a status of 400 ()",
+      "Failed to load resource: the server responded with a status of 400 ()",
+      "Failed to load resource: the server responded with a status of 400 ()",
+      "Failed to load resource: the server responded with a status of 400 ()",
+      "Failed to load resource: the server responded with a status of 404 ()",
+      "Failed to load resource: the server responded with a status of 400 ()",
+      "Failed to load resource: the server responded with a status of 404 ()"
+    ]
+  },
+  {
+    "role": "buyer",
+    "url": "http://127.0.0.1:4173/marketplace/dashboard",
+    "badResponses": [
+      {
+        "status": 400,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/rpc/list_orders_compact_v1"
+      },
+      {
+        "status": 400,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/rpc/list_orders_compact_v1"
+      },
+      {
+        "status": 400,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/rpc/list_orders_compact_v1"
+      }
+    ],
+    "errorLogs": [
+      "Failed to load resource: the server responded with a status of 400 ()",
+      "Failed to load resource: the server responded with a status of 400 ()",
+      "Failed to load resource: the server responded with a status of 400 ()"
+    ]
+  }
+]

@@ -2,7 +2,8 @@
 -- Adds agent visibility policies, owner delete policies, and alias RPC
 
 -- 1) Agent can read assigned farmers' profiles
-CREATE POLICY IF NOT EXISTS profiles_select_agent ON public.profiles
+DROP POLICY IF EXISTS profiles_select_agent ON public.profiles;
+CREATE POLICY profiles_select_agent ON public.profiles
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM public.agent_farmer_assignments
@@ -11,7 +12,8 @@ CREATE POLICY IF NOT EXISTS profiles_select_agent ON public.profiles
   );
 
 -- 2) Agent can INSERT tasks for assigned farmers
-CREATE POLICY IF NOT EXISTS agent_tasks_agent_insert ON public.agent_tasks
+DROP POLICY IF EXISTS agent_tasks_agent_insert ON public.agent_tasks;
+CREATE POLICY agent_tasks_agent_insert ON public.agent_tasks
   FOR INSERT WITH CHECK (
     agent_id = auth.uid()
     AND EXISTS (
@@ -21,7 +23,8 @@ CREATE POLICY IF NOT EXISTS agent_tasks_agent_insert ON public.agent_tasks
   );
 
 -- 3) Agent can see assigned farmers' transport requests
-CREATE POLICY IF NOT EXISTS transport_requests_agent_select ON public.transport_requests
+DROP POLICY IF EXISTS transport_requests_agent_select ON public.transport_requests;
+CREATE POLICY transport_requests_agent_select ON public.transport_requests
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM public.agent_farmer_assignments
@@ -30,16 +33,20 @@ CREATE POLICY IF NOT EXISTS transport_requests_agent_select ON public.transport_
   );
 
 -- 4) Owner DELETE on crops, farmlands, listings
-CREATE POLICY IF NOT EXISTS crops_delete_own ON public.crops
+DROP POLICY IF EXISTS crops_delete_own ON public.crops;
+CREATE POLICY crops_delete_own ON public.crops
   FOR DELETE USING (farmer_id = auth.uid());
 
-CREATE POLICY IF NOT EXISTS farmlands_delete_own ON public.farmlands
+DROP POLICY IF EXISTS farmlands_delete_own ON public.farmlands;
+CREATE POLICY farmlands_delete_own ON public.farmlands
   FOR DELETE USING (farmer_id = auth.uid());
 
-CREATE POLICY IF NOT EXISTS listings_delete_own ON public.listings
+DROP POLICY IF EXISTS listings_delete_own ON public.listings;
+CREATE POLICY listings_delete_own ON public.listings
   FOR DELETE USING (seller_id = auth.uid() OR public.is_admin());
 
 -- 5) Create farmer_update_order_status alias to maintain frontend compatibility
+DROP FUNCTION IF EXISTS public.farmer_update_order_status(uuid, text);
 CREATE OR REPLACE FUNCTION public.farmer_update_order_status(
   p_order_id uuid, p_new_status text
 ) RETURNS jsonb
@@ -50,4 +57,3 @@ BEGIN
 END;
 $$;
 GRANT EXECUTE ON FUNCTION public.farmer_update_order_status(uuid, text) TO authenticated;
-

@@ -100,7 +100,7 @@ DECLARE
 BEGIN
   PERFORM set_config('app.rpc','true', true);
 
-  IF NOT (public.is_admin() OR current_role() = 'logistics') THEN
+  IF NOT (public.is_admin() OR public.current_role() = 'logistics') THEN
     RAISE EXCEPTION 'FORBIDDEN';
   END IF;
 
@@ -134,7 +134,7 @@ BEGIN
   UPDATE public.transport_requests SET status = 'accepted', updated_at = now() WHERE id = p_transport_request_id;
 
   INSERT INTO public.transport_status_events (transport_request_id, trip_id, actor_id, actor_role, old_status, new_status, created_at)
-  VALUES (p_transport_request_id, new_trip_id, auth.uid(), current_role(), req.status, 'accepted', now());
+  VALUES (p_transport_request_id, new_trip_id, auth.uid(), public.current_role(), req.status, 'accepted', now());
 
   -- notify farmer
   IF req.farmer_id IS NOT NULL THEN
@@ -184,7 +184,7 @@ BEGIN
   UPDATE public.trips SET status = p_new_status, updated_at = now() WHERE id = p_trip_id;
 
   INSERT INTO public.transport_status_events (transport_request_id, trip_id, actor_id, actor_role, old_status, new_status, proof_url, metadata, created_at)
-  VALUES (t.transport_request_id, p_trip_id, auth.uid(), current_role(), old_status, p_new_status, p_proof_url, p_metadata, now());
+  VALUES (t.transport_request_id, p_trip_id, auth.uid(), public.current_role(), old_status, p_new_status, p_proof_url, p_metadata, now());
 
   -- sync transport_request status where appropriate
   IF p_new_status = 'delivered' THEN
@@ -245,4 +245,3 @@ $$;
 GRANT EXECUTE ON FUNCTION public.farmer_update_order_status_v1(uuid, text, text) TO authenticated;
 
 -- End of migration
-

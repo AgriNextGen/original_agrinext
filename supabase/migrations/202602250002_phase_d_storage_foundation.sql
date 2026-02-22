@@ -26,20 +26,24 @@ CREATE INDEX IF NOT EXISTS idx_files_status_created ON public.files(status, crea
 ALTER TABLE public.files ENABLE ROW LEVEL SECURITY;
 
 -- RLS policies: only owner or admin can SELECT
-CREATE POLICY IF NOT EXISTS files_select_owner ON public.files
+DROP POLICY IF EXISTS files_select_owner ON public.files;
+CREATE POLICY files_select_owner ON public.files
   FOR SELECT USING (owner_user_id = auth.uid() OR public.is_admin());
 
 -- INSERT: only via RPC (app.rpc=true) or admin
-CREATE POLICY IF NOT EXISTS files_insert_rpc_only ON public.files
+DROP POLICY IF EXISTS files_insert_rpc_only ON public.files;
+CREATE POLICY files_insert_rpc_only ON public.files
   FOR INSERT WITH CHECK ( (current_setting('app.rpc', true) = 'true') OR public.is_admin() );
 
 -- UPDATE: only allow status change via RPC or admin; owners may update non-status fields via RPC too
-CREATE POLICY IF NOT EXISTS files_update_rpc_only ON public.files
+DROP POLICY IF EXISTS files_update_rpc_only ON public.files;
+CREATE POLICY files_update_rpc_only ON public.files
   FOR UPDATE USING ( (current_setting('app.rpc', true) = 'true') OR owner_user_id = auth.uid() OR public.is_admin() )
   WITH CHECK ( (current_setting('app.rpc', true) = 'true') OR owner_user_id = auth.uid() OR public.is_admin() );
 
 -- DELETE: admin only
-CREATE POLICY IF NOT EXISTS files_delete_admin ON public.files
+DROP POLICY IF EXISTS files_delete_admin ON public.files;
+CREATE POLICY files_delete_admin ON public.files
   FOR DELETE USING (public.is_admin());
 
 -- 3) Buckets privacy enforcement (convert common buckets to private)
@@ -160,4 +164,3 @@ GRANT EXECUTE ON FUNCTION public.files_authorize_read_v1(uuid) TO authenticated;
 -- No direct SQL change here beyond bucket privacy above.
 
 -- End of migration
-

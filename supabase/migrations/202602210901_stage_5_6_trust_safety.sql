@@ -93,7 +93,7 @@ GRANT EXECUTE ON FUNCTION public._ts_can_access_entity(uuid, text, uuid) TO auth
 ALTER TABLE public.disputes ENABLE ROW LEVEL SECURITY;
 CREATE POLICY disputes_select_admin ON public.disputes FOR SELECT USING (public.is_admin());
 CREATE POLICY disputes_select_owner ON public.disputes FOR SELECT USING (opened_by = auth.uid());
-CREATE POLICY disputes_insert_authenticated ON public.disputes FOR INSERT WITH CHECK (public._ts_can_access_entity(auth.uid(), NEW.entity_type, NEW.entity_id));
+CREATE POLICY disputes_insert_authenticated ON public.disputes FOR INSERT WITH CHECK (public._ts_can_access_entity(auth.uid(), entity_type, entity_id));
 CREATE POLICY disputes_update_admin ON public.disputes FOR UPDATE USING (public.is_admin()) WITH CHECK (public.is_admin());
 
 GRANT SELECT, INSERT, UPDATE ON public.disputes TO authenticated;
@@ -124,4 +124,3 @@ DROP TRIGGER IF EXISTS trg_disputes_after_update ON public.disputes;
 CREATE TRIGGER trg_disputes_after_update AFTER UPDATE ON public.disputes FOR EACH ROW EXECUTE PROCEDURE public._disputes_after_update_trigger();
 
 -- End migration
-

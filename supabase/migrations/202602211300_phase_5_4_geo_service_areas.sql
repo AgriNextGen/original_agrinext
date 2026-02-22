@@ -141,7 +141,16 @@ DO $$ BEGIN
   ALTER TABLE public.listings ADD CONSTRAINT listings_geo_market_fkey FOREIGN KEY (geo_market_id) REFERENCES public.geo_markets(id) ON DELETE SET NULL;
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-CREATE INDEX IF NOT EXISTS idx_listings_geo_district ON public.listings(geo_district_id, status);
+DO $$
+BEGIN
+  IF to_regclass('public.listings') IS NOT NULL
+     AND EXISTS (
+       SELECT 1 FROM information_schema.columns
+       WHERE table_schema = 'public' AND table_name = 'listings' AND column_name = 'status'
+     ) THEN
+    CREATE INDEX IF NOT EXISTS idx_listings_geo_district ON public.listings(geo_district_id, status);
+  END IF;
+END$$;
 
 -- transport_requests
 ALTER TABLE public.transport_requests

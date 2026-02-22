@@ -1,0 +1,322 @@
+- generic [ref=e2]:
+  - region "Notifications (F8)":
+    - list
+  - region "Notifications alt+T"
+  - generic [ref=e93]:
+    - complementary [ref=e95]:
+      - generic [ref=e96]:
+        - generic [ref=e98]:
+          - img [ref=e100]
+          - generic [ref=e105]: AgriNext Gen
+        - navigation [ref=e106]:
+          - link "My Day" [ref=e107] [cursor=pointer]:
+            - /url: /farmer/my-day
+            - generic [ref=e108]:
+              - img [ref=e109]
+              - text: My Day
+          - link "Dashboard" [ref=e111] [cursor=pointer]:
+            - /url: /farmer/dashboard
+            - generic [ref=e112]:
+              - img [ref=e113]
+              - text: Dashboard
+          - link "My Crops" [ref=e118] [cursor=pointer]:
+            - /url: /farmer/crops
+            - generic [ref=e119]:
+              - img [ref=e120]
+              - text: My Crops
+          - link "Farmlands" [ref=e124] [cursor=pointer]:
+            - /url: /farmer/farmlands
+            - generic [ref=e125]:
+              - img [ref=e126]
+              - text: Farmlands
+          - link "Transport" [ref=e131] [cursor=pointer]:
+            - /url: /farmer/transport
+            - generic [ref=e132]:
+              - img [ref=e133]
+              - text: Transport
+          - link "Listings" [ref=e138] [cursor=pointer]:
+            - /url: /farmer/listings
+            - generic [ref=e139]:
+              - img [ref=e140]
+              - text: Listings
+          - link "Orders" [ref=e143] [cursor=pointer]:
+            - /url: /farmer/orders
+            - generic [ref=e144]:
+              - img [ref=e145]
+              - text: Orders
+          - link "Earnings" [ref=e149] [cursor=pointer]:
+            - /url: /farmer/earnings
+            - generic [ref=e150]:
+              - img [ref=e151]
+              - text: Earnings
+          - link "Notifications 2" [ref=e153] [cursor=pointer]:
+            - /url: /farmer/notifications
+            - generic [ref=e154]:
+              - img [ref=e155]
+              - text: Notifications
+            - generic [ref=e158]: "2"
+          - link "Settings" [ref=e159] [cursor=pointer]:
+            - /url: /farmer/settings
+            - generic [ref=e160]:
+              - img [ref=e161]
+              - text: Settings
+        - button "Sign Out" [ref=e165] [cursor=pointer]:
+          - img [ref=e166]
+          - text: Sign Out
+    - generic [ref=e169]:
+      - banner [ref=e170]:
+        - generic [ref=e171]:
+          - heading "Dashboard" [level=1] [ref=e172]
+          - generic [ref=e174]: Online
+        - generic [ref=e175]:
+          - generic [ref=e176]:
+            - img [ref=e177]
+            - textbox "Search..." [ref=e180]
+          - button "Notifications" [ref=e181] [cursor=pointer]:
+            - img
+            - generic [ref=e182]: "2"
+          - button "Open profile menu" [ref=e183] [cursor=pointer]:
+            - generic [ref=e185]: DF
+      - main [ref=e186]:
+        - generic [ref=e187]:
+          - generic [ref=e189]:
+            - heading "Welcome" [level=1] [ref=e190]
+            - paragraph [ref=e191]: Quick Actions
+          - generic [ref=e192]:
+            - generic [ref=e194]:
+              - generic [ref=e196]:
+                - heading "Welcome, Dummy Farmer One! 🌾" [level=1] [ref=e197]
+                - generic [ref=e198]:
+                  - img [ref=e199]
+                  - generic [ref=e202]: Mysuru Rural, Mysuru
+              - generic [ref=e203]:
+                - generic [ref=e205]:
+                  - img [ref=e207]
+                  - generic [ref=e212]:
+                    - paragraph [ref=e213]: 7.8 acres
+                    - paragraph [ref=e214]: Total Land
+                - generic [ref=e216]:
+                  - img [ref=e218]
+                  - generic [ref=e222]:
+                    - paragraph [ref=e223]: "4"
+                    - paragraph [ref=e224]: Active Crops
+                - generic [ref=e226]:
+                  - img [ref=e228]
+                  - generic [ref=e237]:
+                    - paragraph [ref=e238]: "0"
+                    - paragraph [ref=e239]: Ready to Harvest
+                - generic [ref=e241]:
+                  - img [ref=e243]
+                  - generic [ref=e248]:
+                    - paragraph [ref=e249]: "2"
+                    - paragraph [ref=e250]: Pending Transport
+            - generic [ref=e251]:
+              - heading "Quick Actions" [level=3] [ref=e253]
+              - generic [ref=e255]:
+                - button "Add Crop" [ref=e256] [cursor=pointer]:
+                  - img
+                  - generic [ref=e257]: Add Crop
+                - button "Add Farmland" [ref=e258] [cursor=pointer]:
+                  - img
+                  - generic [ref=e259]: Add Farmland
+                - button "Request Transport" [ref=e260] [cursor=pointer]:
+                  - img
+                  - generic [ref=e261]: Request Transport
+                - button "Create Listing" [ref=e262] [cursor=pointer]:
+                  - img
+                  - generic [ref=e263]: Create Listing
+                - button "Call Agent" [ref=e264] [cursor=pointer]:
+                  - img
+                  - generic [ref=e265]: Call Agent
+            - generic [ref=e266]:
+              - generic [ref=e269]:
+                - generic [ref=e271]:
+                  - heading "Weather Today" [level=3] [ref=e272]:
+                    - img [ref=e273]
+                    - text: Weather Today
+                  - button [ref=e276] [cursor=pointer]:
+                    - img
+                - generic [ref=e278] [cursor=pointer]:
+                  - generic [ref=e279]:
+                    - img [ref=e281]
+                    - generic [ref=e283]:
+                      - paragraph [ref=e284]: 29°C
+                      - paragraph [ref=e285]: Partly cloudy
+                  - generic [ref=e286]:
+                    - generic [ref=e287]: More
+                    - img [ref=e288]
+              - generic [ref=e291]:
+                - generic [ref=e292]:
+                  - generic [ref=e293]:
+                    - heading "Mandi Prices" [level=3] [ref=e294]:
+                      - img [ref=e295]
+                      - text: Mandi Prices
+                    - paragraph [ref=e298]: 0 crops • No price data available
+                  - button [ref=e299] [cursor=pointer]:
+                    - img
+                - generic [ref=e301]:
+                  - img [ref=e302]
+                  - paragraph [ref=e305]: No price data available
+              - generic [ref=e306]:
+                - heading "Agent Notes 2 notes" [level=3] [ref=e308]:
+                  - img [ref=e309]
+                  - text: Agent Notes
+                  - generic [ref=e313]: 2 notes
+                - generic [ref=e315]:
+                  - generic [ref=e318]:
+                    - generic [ref=e319]:
+                      - img [ref=e320]
+                      - generic [ref=e323]: Field Agent
+                      - generic [ref=e324]: en
+                      - generic [ref=e325]: Feb 22
+                    - paragraph [ref=e326]: "[dummy_20260222_0955] audio summary"
+                  - generic [ref=e329]:
+                    - generic [ref=e330]:
+                      - img [ref=e331]
+                      - generic [ref=e334]: Field Agent
+                      - generic [ref=e335]: en
+                      - generic [ref=e336]: Feb 22
+                    - paragraph [ref=e337]: "[dummy_20260222_0320] audio summary"
+            - generic [ref=e339]:
+              - generic [ref=e340]:
+                - generic [ref=e341]:
+                  - heading "My Farmlands" [level=3] [ref=e342]:
+                    - img [ref=e343]
+                    - text: My Farmlands
+                  - paragraph [ref=e348]: 4 plots • 7.8 acres total
+                - button "Add" [ref=e349] [cursor=pointer]:
+                  - img
+                  - text: Add
+              - generic [ref=e350]:
+                - generic [ref=e351]:
+                  - generic [ref=e352] [cursor=pointer]:
+                    - generic [ref=e353]:
+                      - img [ref=e355]
+                      - generic [ref=e360]:
+                        - heading "Demo Farm B" [level=4] [ref=e361]
+                        - generic [ref=e362]:
+                          - img [ref=e363]
+                          - generic [ref=e366]: Nanjangud
+                    - generic [ref=e367]: 1.4 acres
+                  - generic [ref=e368] [cursor=pointer]:
+                    - generic [ref=e369]:
+                      - img [ref=e371]
+                      - generic [ref=e376]:
+                        - heading "Demo Farm A" [level=4] [ref=e377]
+                        - generic [ref=e378]:
+                          - img [ref=e379]
+                          - generic [ref=e382]: Mysuru Rural
+                    - generic [ref=e383]: 2.5 acres
+                - button "+2 more plots" [ref=e384] [cursor=pointer]:
+                  - text: +2 more plots
+                  - img
+            - generic [ref=e385]:
+              - heading "Crop Photo Reminders 3 pending" [level=3] [ref=e387]:
+                - img [ref=e388]
+                - text: Crop Photo Reminders
+                - generic [ref=e391]: 3 pending
+              - generic [ref=e392]:
+                - generic [ref=e393]:
+                  - generic [ref=e394]:
+                    - img [ref=e396]
+                    - generic [ref=e400]:
+                      - paragraph [ref=e401]:
+                        - text: Tomato Demo Crop
+                        - generic [ref=e402]: (Hybrid)
+                      - paragraph [ref=e403]: 📷 Upload Month-1 photo
+                  - button "Upload" [ref=e404] [cursor=pointer]:
+                    - img
+                    - text: Upload
+                - generic [ref=e405]:
+                  - generic [ref=e406]:
+                    - img [ref=e408]
+                    - generic [ref=e412]:
+                      - paragraph [ref=e413]:
+                        - text: Onion Demo Crop
+                        - generic [ref=e414]: (Nasik Red)
+                      - paragraph [ref=e415]: 📷 Upload Month-1 photo
+                  - button "Upload" [ref=e416] [cursor=pointer]:
+                    - img
+                    - text: Upload
+                - generic [ref=e417]:
+                  - generic [ref=e418]:
+                    - img [ref=e420]
+                    - generic [ref=e424]:
+                      - paragraph [ref=e425]:
+                        - text: Tomato Demo Crop
+                        - generic [ref=e426]: (Hybrid)
+                      - paragraph [ref=e427]: 📷 Upload Month-1 photo
+                  - button "Upload" [ref=e428] [cursor=pointer]:
+                    - img
+                    - text: Upload
+            - generic [ref=e430]:
+              - heading "myCrops" [level=3] [ref=e431]:
+                - img [ref=e432]
+                - text: myCrops
+              - button "addCrop" [ref=e436] [cursor=pointer]:
+                - img
+                - text: addCrop
+            - generic [ref=e437]:
+              - generic [ref=e439]:
+                - generic [ref=e441] [cursor=pointer]:
+                  - heading "Upcoming Harvests" [level=3] [ref=e442]:
+                    - img [ref=e443]
+                    - text: Upcoming Harvests
+                  - img [ref=e445]
+                - paragraph [ref=e449]: No harvests in the next 2 weeks
+              - generic [ref=e451]:
+                - generic [ref=e453] [cursor=pointer]:
+                  - heading "Transport & Pickup 2 active" [level=3] [ref=e454]:
+                    - img [ref=e455]
+                    - text: Transport & Pickup
+                    - generic [ref=e460]: 2 active
+                  - generic [ref=e461]:
+                    - button "New" [ref=e462]:
+                      - img
+                      - text: New
+                    - img [ref=e463]
+                - generic [ref=e466]:
+                  - generic [ref=e467]:
+                    - generic [ref=e468]:
+                      - img [ref=e469]
+                      - generic [ref=e473]: Onion Demo Crop
+                      - generic [ref=e474]: • 1200 kg
+                    - generic [ref=e475]: Requested
+                  - paragraph [ref=e476]: +1 more requests
+            - generic [ref=e478]:
+              - generic [ref=e480] [cursor=pointer]:
+                - heading "Advisories & Alerts 2 new" [level=3] [ref=e481]:
+                  - img [ref=e482]
+                  - text: Advisories & Alerts
+                  - generic [ref=e485]: 2 new
+                - img [ref=e486]
+              - generic [ref=e489]:
+                - generic [ref=e490]:
+                  - img [ref=e492]
+                  - generic [ref=e495]:
+                    - heading "[dummy_20260222_0955] New buyer order" [level=4] [ref=e496]
+                    - paragraph [ref=e497]: Dummy buyer placed an order for onion listing
+                - paragraph [ref=e498]: +1 more notifications
+            - generic [ref=e505]:
+              - heading "My Requests" [level=3] [ref=e507]:
+                - img [ref=e508]
+                - text: My Requests
+              - generic [ref=e515]:
+                - generic [ref=e516]:
+                  - img [ref=e518]
+                  - generic [ref=e521]:
+                    - generic [ref=e522]:
+                      - generic [ref=e523]: Visit Request
+                      - generic [ref=e524]: Pending
+                    - paragraph [ref=e525]: "[dummy_20260222_0955] verify crop readiness"
+                    - paragraph [ref=e526]: Feb 22, 2026
+                - generic [ref=e527]:
+                  - img [ref=e529]
+                  - generic [ref=e532]:
+                    - generic [ref=e533]:
+                      - generic [ref=e534]: Visit Request
+                      - generic [ref=e535]: Pending
+                    - paragraph [ref=e536]: "[dummy_20260222_0320] verify crop readiness"
+                    - paragraph [ref=e537]: Feb 22, 2026
+        - button [ref=e538] [cursor=pointer]:
+          - img

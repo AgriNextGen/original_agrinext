@@ -20,7 +20,6 @@ import { Plus, Truck, MapPin, Calendar, Package, Clock, CheckCircle2, XCircle } 
 import { format } from 'date-fns';
 import ConfirmDialog from '@/components/ui/confirm-dialog';
 import EmptyState from '@/components/shared/EmptyState';
-import { useToast } from '@/hooks/use-toast';
 import HelpTooltip from '@/components/farmer/HelpTooltip';
 import GeoDistrictSelect from '@/components/geo/GeoDistrictSelect';
 
@@ -493,4 +492,3 @@ const TransportPage = () => {
 };
 
 export default TransportPage;
-

@@ -1,0 +1,140 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - region "Notifications (F8)":
+      - list [ref=e74]:
+        - status [ref=e75]:
+          - generic [ref=e76]:
+            - generic [ref=e77]: Welcome back
+            - generic [ref=e78]: You have successfully signed in.
+          - button [ref=e79] [cursor=pointer]:
+            - img [ref=e80]
+    - region "Notifications alt+T"
+    - generic [ref=e84]:
+      - complementary [ref=e86]:
+        - generic [ref=e87]:
+          - generic [ref=e89]:
+            - img [ref=e91]
+            - generic [ref=e96]: AgriNext Gen
+          - navigation [ref=e97]:
+            - link "My Day" [ref=e98] [cursor=pointer]:
+              - /url: /farmer/my-day
+              - generic [ref=e99]:
+                - img [ref=e100]
+                - text: My Day
+            - link "Dashboard" [ref=e102] [cursor=pointer]:
+              - /url: /farmer/dashboard
+              - generic [ref=e103]:
+                - img [ref=e104]
+                - text: Dashboard
+            - link "My Crops" [ref=e109] [cursor=pointer]:
+              - /url: /farmer/crops
+              - generic [ref=e110]:
+                - img [ref=e111]
+                - text: My Crops
+            - link "Farmlands" [ref=e115] [cursor=pointer]:
+              - /url: /farmer/farmlands
+              - generic [ref=e116]:
+                - img [ref=e117]
+                - text: Farmlands
+            - link "Transport" [ref=e122] [cursor=pointer]:
+              - /url: /farmer/transport
+              - generic [ref=e123]:
+                - img [ref=e124]
+                - text: Transport
+            - link "Listings" [ref=e129] [cursor=pointer]:
+              - /url: /farmer/listings
+              - generic [ref=e130]:
+                - img [ref=e131]
+                - text: Listings
+            - link "Orders" [ref=e134] [cursor=pointer]:
+              - /url: /farmer/orders
+              - generic [ref=e135]:
+                - img [ref=e136]
+                - text: Orders
+            - link "Earnings" [ref=e140] [cursor=pointer]:
+              - /url: /farmer/earnings
+              - generic [ref=e141]:
+                - img [ref=e142]
+                - text: Earnings
+            - link "Notifications" [ref=e144] [cursor=pointer]:
+              - /url: /farmer/notifications
+              - generic [ref=e145]:
+                - img [ref=e146]
+                - text: Notifications
+            - link "Settings" [ref=e149] [cursor=pointer]:
+              - /url: /farmer/settings
+              - generic [ref=e150]:
+                - img [ref=e151]
+                - text: Settings
+          - button "Sign Out" [ref=e155] [cursor=pointer]:
+            - img [ref=e156]
+            - text: Sign Out
+      - generic [ref=e159]:
+        - banner [ref=e160]:
+          - generic [ref=e161]:
+            - heading "Dashboard" [level=1] [ref=e162]
+            - generic [ref=e164]: Online
+          - generic [ref=e165]:
+            - generic [ref=e166]:
+              - img [ref=e167]
+              - textbox "Search..." [ref=e170]
+            - button "Notifications" [ref=e171] [cursor=pointer]:
+              - img
+            - button "Open profile menu" [ref=e172] [cursor=pointer]:
+              - generic [ref=e174]: "91"
+        - main [ref=e175]:
+          - generic [ref=e176]:
+            - generic [ref=e178]:
+              - heading "Welcome" [level=1] [ref=e179]
+              - paragraph [ref=e180]: Quick Actions
+            - generic [ref=e181]:
+              - generic [ref=e192]:
+                - heading "Quick Actions" [level=3] [ref=e194]
+                - generic [ref=e196]:
+                  - button "Add Crop" [ref=e197] [cursor=pointer]:
+                    - img
+                    - generic [ref=e198]: Add Crop
+                  - button "Add Farmland" [ref=e199] [cursor=pointer]:
+                    - img
+                    - generic [ref=e200]: Add Farmland
+                  - button "Request Transport" [ref=e201] [cursor=pointer]:
+                    - img
+                    - generic [ref=e202]: Request Transport
+                  - button "Create Listing" [ref=e203] [cursor=pointer]:
+                    - img
+                    - generic [ref=e204]: Create Listing
+                  - button "Call Agent" [ref=e205] [cursor=pointer]:
+                    - img
+                    - generic [ref=e206]: Call Agent
+              - generic [ref=e207]:
+                - heading "Weather" [level=3] [ref=e210]:
+                  - img [ref=e211]
+                  - text: Weather
+                - heading "Mandi Prices" [level=3] [ref=e219]:
+                  - img [ref=e220]
+                  - text: Mandi Prices
+                - heading "Agent Notes" [level=3] [ref=e229]:
+                  - img [ref=e230]
+                  - text: Agent Notes
+              - heading "My Farmlands" [level=3] [ref=e238]:
+                - img [ref=e239]
+                - text: My Farmlands
+              - heading "Crop Photo Reminders" [level=3] [ref=e250]:
+                - img [ref=e251]
+                - text: Crop Photo Reminders
+              - heading "myCrops" [level=3] [ref=e258]:
+                - img [ref=e259]
+                - text: myCrops
+              - generic [ref=e268]:
+                - heading "Upcoming Harvests" [level=3] [ref=e271]:
+                  - img [ref=e272]
+                  - text: Upcoming Harvests
+                - heading "Transport Status" [level=3] [ref=e278]:
+                  - img [ref=e279]
+                  - text: Transport Status
+              - heading "Advisories & Alerts" [level=3] [ref=e288]:
+                - img [ref=e289]
+                - text: Advisories & Alerts
+          - button [ref=e308] [cursor=pointer]:
+            - img
+  - status [ref=e309]: Notification Welcome backYou have successfully signed in.

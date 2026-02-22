@@ -25,15 +25,22 @@ CREATE TABLE IF NOT EXISTS secure.kyc_records (
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS secure.kyc_documents (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  kyc_record_id uuid NOT NULL REFERENCES secure.kyc_records(id) ON DELETE CASCADE,
-  file_id uuid NOT NULL REFERENCES public.files(id),
-  document_type text NOT NULL,
-  status text NOT NULL DEFAULT 'pending',
-  uploaded_by uuid NOT NULL REFERENCES auth.users(id),
-  created_at timestamptz NOT NULL DEFAULT now()
-);
+DO $$
+BEGIN
+  IF to_regclass('public.files') IS NOT NULL THEN
+    EXECUTE $fn$
+      CREATE TABLE IF NOT EXISTS secure.kyc_documents (
+        id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+        kyc_record_id uuid NOT NULL REFERENCES secure.kyc_records(id) ON DELETE CASCADE,
+        file_id uuid NOT NULL REFERENCES public.files(id),
+        document_type text NOT NULL,
+        status text NOT NULL DEFAULT 'pending',
+        uploaded_by uuid NOT NULL REFERENCES auth.users(id),
+        created_at timestamptz NOT NULL DEFAULT now()
+      );
+    $fn$;
+  END IF;
+END$$;
 
 CREATE TABLE IF NOT EXISTS secure.payment_events (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -62,29 +69,73 @@ CREATE TABLE IF NOT EXISTS secure.external_tokens (
 );
 
 -- 3) Indexes
-CREATE INDEX IF NOT EXISTS kyc_records_user_idx ON secure.kyc_records(user_id);
-CREATE INDEX IF NOT EXISTS kyc_records_status_idx ON secure.kyc_records(status);
-CREATE INDEX IF NOT EXISTS kyc_records_created_idx ON secure.kyc_records(created_at DESC);
+DO $$
+BEGIN
+  IF to_regclass('secure.kyc_records') IS NOT NULL THEN
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'secure' AND table_name = 'kyc_records' AND column_name = 'user_id') THEN
+      CREATE INDEX IF NOT EXISTS kyc_records_user_idx ON secure.kyc_records(user_id);
+    END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'secure' AND table_name = 'kyc_records' AND column_name = 'status') THEN
+      CREATE INDEX IF NOT EXISTS kyc_records_status_idx ON secure.kyc_records(status);
+    END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'secure' AND table_name = 'kyc_records' AND column_name = 'created_at') THEN
+      CREATE INDEX IF NOT EXISTS kyc_records_created_idx ON secure.kyc_records(created_at DESC);
+    END IF;
+  END IF;
+END$$;
 
-CREATE INDEX IF NOT EXISTS kyc_documents_record_idx ON secure.kyc_documents(kyc_record_id);
-CREATE INDEX IF NOT EXISTS kyc_documents_uploaded_by_idx ON secure.kyc_documents(uploaded_by);
+DO $$
+BEGIN
+  IF to_regclass('secure.kyc_documents') IS NOT NULL THEN
+    CREATE INDEX IF NOT EXISTS kyc_documents_record_idx ON secure.kyc_documents(kyc_record_id);
+    CREATE INDEX IF NOT EXISTS kyc_documents_uploaded_by_idx ON secure.kyc_documents(uploaded_by);
+  END IF;
+END$$;
 
-CREATE INDEX IF NOT EXISTS payment_user_idx ON secure.payment_events(user_id);
-CREATE INDEX IF NOT EXISTS payment_provider_payment_idx ON secure.payment_events(provider_payment_id);
-CREATE INDEX IF NOT EXISTS payment_created_idx ON secure.payment_events(created_at DESC);
+DO $$
+BEGIN
+  IF to_regclass('secure.payment_events') IS NOT NULL THEN
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'secure' AND table_name = 'payment_events' AND column_name = 'user_id') THEN
+      CREATE INDEX IF NOT EXISTS payment_user_idx ON secure.payment_events(user_id);
+    END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'secure' AND table_name = 'payment_events' AND column_name = 'provider_payment_id') THEN
+      CREATE INDEX IF NOT EXISTS payment_provider_payment_idx ON secure.payment_events(provider_payment_id);
+    END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'secure' AND table_name = 'payment_events' AND column_name = 'created_at') THEN
+      CREATE INDEX IF NOT EXISTS payment_created_idx ON secure.payment_events(created_at DESC);
+    END IF;
+  END IF;
 
-CREATE INDEX IF NOT EXISTS external_tokens_service_idx ON secure.external_tokens(service_name);
-CREATE INDEX IF NOT EXISTS external_tokens_owner_idx ON secure.external_tokens(owner_type, owner_id);
+  IF to_regclass('secure.external_tokens') IS NOT NULL THEN
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'secure' AND table_name = 'external_tokens' AND column_name = 'service_name') THEN
+      CREATE INDEX IF NOT EXISTS external_tokens_service_idx ON secure.external_tokens(service_name);
+    END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'secure' AND table_name = 'external_tokens' AND column_name = 'owner_type')
+       AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'secure' AND table_name = 'external_tokens' AND column_name = 'owner_id') THEN
+      CREATE INDEX IF NOT EXISTS external_tokens_owner_idx ON secure.external_tokens(owner_type, owner_id);
+    END IF;
+  END IF;
+END$$;
 
 -- 4) RLS and privileges (append-only style for secure tables)
 ALTER TABLE secure.kyc_records ENABLE ROW LEVEL SECURITY;
-ALTER TABLE secure.kyc_documents ENABLE ROW LEVEL SECURITY;
+DO $$
+BEGIN
+  IF to_regclass('secure.kyc_documents') IS NOT NULL THEN
+    ALTER TABLE secure.kyc_documents ENABLE ROW LEVEL SECURITY;
+  END IF;
+END$$;
 ALTER TABLE secure.payment_events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE secure.external_tokens ENABLE ROW LEVEL SECURITY;
 
 -- Remove direct privileges to prevent frontend direct writes/reads
 REVOKE ALL ON secure.kyc_records FROM PUBLIC, authenticated, anon;
-REVOKE ALL ON secure.kyc_documents FROM PUBLIC, authenticated, anon;
+DO $$
+BEGIN
+  IF to_regclass('secure.kyc_documents') IS NOT NULL THEN
+    REVOKE ALL ON secure.kyc_documents FROM PUBLIC, authenticated, anon;
+  END IF;
+END$$;
 REVOKE ALL ON secure.payment_events FROM PUBLIC, authenticated, anon;
 REVOKE ALL ON secure.external_tokens FROM PUBLIC, authenticated, anon;
 
@@ -95,9 +146,14 @@ CREATE POLICY secure_kyc_select_admin ON secure.kyc_records FOR SELECT USING (pu
 CREATE POLICY secure_kyc_insert_rpc ON secure.kyc_records FOR INSERT WITH CHECK ( (current_setting('app.rpc', true) = 'true') OR public.is_admin() );
 CREATE POLICY secure_kyc_update_rpc ON secure.kyc_records FOR UPDATE USING ( (current_setting('app.rpc', true) = 'true') OR public.is_admin() );
 
-CREATE POLICY secure_docs_select_admin ON secure.kyc_documents FOR SELECT USING (public.is_admin());
-CREATE POLICY secure_docs_insert_rpc ON secure.kyc_documents FOR INSERT WITH CHECK ( (current_setting('app.rpc', true) = 'true') OR public.is_admin() );
-CREATE POLICY secure_docs_update_rpc ON secure.kyc_documents FOR UPDATE USING ( (current_setting('app.rpc', true) = 'true') OR public.is_admin() );
+DO $$
+BEGIN
+  IF to_regclass('secure.kyc_documents') IS NOT NULL THEN
+    CREATE POLICY secure_docs_select_admin ON secure.kyc_documents FOR SELECT USING (public.is_admin());
+    CREATE POLICY secure_docs_insert_rpc ON secure.kyc_documents FOR INSERT WITH CHECK ( (current_setting('app.rpc', true) = 'true') OR public.is_admin() );
+    CREATE POLICY secure_docs_update_rpc ON secure.kyc_documents FOR UPDATE USING ( (current_setting('app.rpc', true) = 'true') OR public.is_admin() );
+  END IF;
+END$$;
 
 CREATE POLICY secure_payments_select_admin ON secure.payment_events FOR SELECT USING (public.is_admin());
 CREATE POLICY secure_payments_insert_rpc ON secure.payment_events FOR INSERT WITH CHECK ( (current_setting('app.rpc', true) = 'true') OR public.is_admin() );
@@ -165,48 +221,55 @@ $$;
 GRANT EXECUTE ON FUNCTION secure.submit_kyc_v1(text,text,jsonb) TO authenticated;
 
 -- add_kyc_document_v1
-CREATE OR REPLACE FUNCTION secure.add_kyc_document_v1(
-  p_kyc_record_id uuid,
-  p_file_id uuid,
-  p_document_type text
-) RETURNS uuid
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = secure, public
-AS $$
-DECLARE
-  v_user uuid := auth.uid();
-  v_owner uuid;
-  v_id uuid;
-  v_req uuid;
-  v_owner_of_record uuid;
+DO $$
 BEGIN
-  IF v_user IS NULL THEN RAISE EXCEPTION 'FORBIDDEN'; END IF;
+  IF to_regclass('secure.kyc_documents') IS NOT NULL AND to_regclass('public.files') IS NOT NULL THEN
+    EXECUTE $fn$
+      CREATE OR REPLACE FUNCTION secure.add_kyc_document_v1(
+        p_kyc_record_id uuid,
+        p_file_id uuid,
+        p_document_type text
+      ) RETURNS uuid
+      LANGUAGE plpgsql
+      SECURITY DEFINER
+      SET search_path = secure, public
+      AS $body$
+      DECLARE
+        v_user uuid := auth.uid();
+        v_owner uuid;
+        v_id uuid;
+        v_req uuid;
+        v_owner_of_record uuid;
+      BEGIN
+        IF v_user IS NULL THEN RAISE EXCEPTION 'FORBIDDEN'; END IF;
 
-  -- ensure record belongs to user
-  SELECT user_id INTO v_owner_of_record FROM secure.kyc_records WHERE id = p_kyc_record_id LIMIT 1;
-  IF v_owner_of_record IS NULL OR v_owner_of_record <> v_user THEN
-    RAISE EXCEPTION 'FORBIDDEN';
+        -- ensure record belongs to user
+        SELECT user_id INTO v_owner_of_record FROM secure.kyc_records WHERE id = p_kyc_record_id LIMIT 1;
+        IF v_owner_of_record IS NULL OR v_owner_of_record <> v_user THEN
+          RAISE EXCEPTION 'FORBIDDEN';
+        END IF;
+
+        -- ensure file owner matches uploader (safety)
+        SELECT owner_user_id INTO v_owner FROM public.files WHERE id = p_file_id LIMIT 1;
+        IF v_owner IS NULL OR v_owner <> v_user THEN
+          RAISE EXCEPTION 'BAD_REQUEST: file owner mismatch';
+        END IF;
+
+        PERFORM set_config('app.rpc','true', true);
+
+        INSERT INTO secure.kyc_documents(kyc_record_id, file_id, document_type, uploaded_by)
+        VALUES (p_kyc_record_id, p_file_id, p_document_type, v_user)
+        RETURNING id INTO v_id;
+
+        v_req := audit.new_request_id_v1();
+        PERFORM audit.log_workflow_event_v1(v_req, 'kyc_document', v_id, 'KYC_DOCUMENT_UPLOADED', v_user, NULL, NULL, NULL, p_file_id, NULL, NULL, jsonb_build_object('doc_type', p_document_type));
+        RETURN v_id;
+      END;
+      $body$;
+    $fn$;
+    EXECUTE 'GRANT EXECUTE ON FUNCTION secure.add_kyc_document_v1(uuid,uuid,text) TO authenticated';
   END IF;
-
-  -- ensure file owner matches uploader (safety)
-  SELECT owner_user_id INTO v_owner FROM public.files WHERE id = p_file_id LIMIT 1;
-  IF v_owner IS NULL OR v_owner <> v_user THEN
-    RAISE EXCEPTION 'BAD_REQUEST: file owner mismatch';
-  END IF;
-
-  PERFORM set_config('app.rpc','true', true);
-
-  INSERT INTO secure.kyc_documents(kyc_record_id, file_id, document_type, uploaded_by)
-  VALUES (p_kyc_record_id, p_file_id, p_document_type, v_user)
-  RETURNING id INTO v_id;
-
-  v_req := audit.new_request_id_v1();
-  PERFORM audit.log_workflow_event_v1(v_req, 'kyc_document', v_id, 'KYC_DOCUMENT_UPLOADED', v_user, NULL, NULL, NULL, p_file_id, NULL, NULL, jsonb_build_object('doc_type', p_document_type));
-  RETURN v_id;
-END;
-$$;
-GRANT EXECUTE ON FUNCTION secure.add_kyc_document_v1(uuid,uuid,text) TO authenticated;
+END$$;
 
 -- admin_update_kyc_status_v1
 CREATE OR REPLACE FUNCTION secure.admin_update_kyc_status_v1(
@@ -297,4 +360,3 @@ GRANT USAGE ON SCHEMA secure TO authenticated;
 --    SELECT secure.admin_update_kyc_status_v1('<kyc-id>','verified','manual check passed');
 -- 6) Test payment event:
 --    SELECT secure.record_payment_event_v1('<user-id>', 'payment_captured', 'razorpay', 1000.00, 'success', '{}'::jsonb);
-

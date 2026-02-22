@@ -160,14 +160,14 @@ const LogisticsDashboard = () => {
           <Card className="w-full max-w-md">
             <CardHeader className="text-center">
               <Truck className="mx-auto mb-4 h-16 w-16 text-primary" />
-              <CardTitle>Welcome, Transporter!</CardTitle>
+              <CardTitle>{t('logistics.welcomeTransporter')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-center text-muted-foreground">
-                Set up your transporter profile to start accepting loads and managing trips.
+                {t('logistics.setupTransporterProfile')}
               </p>
               <Button className="w-full" onClick={handleCreateProfile} disabled={createProfile.isPending}>
-                {createProfile.isPending ? 'Creating...' : 'Create Profile'}
+                {createProfile.isPending ? t('logistics.creatingProfile') : t('logistics.createProfile')}
               </Button>
             </CardContent>
           </Card>
@@ -179,8 +179,8 @@ const LogisticsDashboard = () => {
   return (
     <DashboardLayout title={t('nav.dashboard')}>
       <PageHeader
-        title="Transporter Dashboard"
-        subtitle={`Welcome back, ${profile.name} - ${profile.operating_village || 'Set your location'}`}
+        title={t('logistics.transporterDashboard')}
+        subtitle={`Welcome back, ${profile.name} - ${profile.operating_village || t('logistics.setYourLocation')}`}
         actions={
           <Button aria-label="Open profile" variant="outline" onClick={() => navigate('/logistics/profile')}>
             <User className="mr-2 h-4 w-4" />
@@ -190,8 +190,8 @@ const LogisticsDashboard = () => {
       >
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           <KpiCard label={t('logistics.availableLoads')} value={stats.availableLoads} icon={Package} priority="warning" onClick={() => navigate('/logistics/loads')} />
-          <KpiCard label="Accepted Trips" value={stats.acceptedTrips} icon={Clock} priority="info" onClick={() => navigate('/logistics/trips')} />
-          <KpiCard label="In Progress" value={stats.tripsInProgress} icon={Truck} priority="primary" onClick={() => navigate('/logistics/trips')} />
+          <KpiCard label={t('logistics.acceptedTrips')} value={stats.acceptedTrips} icon={Clock} priority="info" onClick={() => navigate('/logistics/trips')} />
+          <KpiCard label={t('logistics.inProgress')} value={stats.tripsInProgress} icon={Truck} priority="primary" onClick={() => navigate('/logistics/trips')} />
           <KpiCard label={t('logistics.completedTrips')} value={stats.completedTrips} icon={CheckCircle2} priority="success" onClick={() => navigate('/logistics/completed')} />
         </div>
 
@@ -201,7 +201,7 @@ const LogisticsDashboard = () => {
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <Truck className="h-5 w-5 text-primary" />
-                  Today's Active Trips
+                  {t('logistics.todaysActiveTrips')}
                 </CardTitle>
                 <Button variant="ghost" size="sm" onClick={() => navigate('/logistics/trips')}>
                   {t('common.viewAll')} <ArrowRight className="ml-1 h-4 w-4" />
@@ -241,7 +241,7 @@ const LogisticsDashboard = () => {
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <Package className="h-5 w-5 text-amber-600" />
-                  New Load Requests
+                  {t('logistics.newLoadRequests')}
                 </CardTitle>
                 <Button variant="ghost" size="sm" onClick={() => navigate('/logistics/loads')}>
                   {t('common.viewAll')} <ArrowRight className="ml-1 h-4 w-4" />
@@ -280,19 +280,19 @@ const LogisticsDashboard = () => {
         </div>
 
         <ActionPanel
-          title="AI-Powered Suggestions"
-          context="Optimize routing and return loads to reduce idle distance and improve earnings."
-          primaryAction={<Button size="sm" onClick={handleAIRouteOptimization} disabled={aiLoading || !availableLoads?.length}>{aiLoading ? 'Analyzing...' : 'Suggest Best Route'}</Button>}
-          secondaryAction={<Button size="sm" variant="outline" onClick={handleReverseLogistics} disabled={reverseLoading}><RotateCcw className="mr-2 h-4 w-4" />{reverseLoading ? 'Finding...' : 'Find Return Loads'}</Button>}
+          title={t('logistics.aiSuggestions')}
+          context={t('logistics.aiSuggestionsContext')}
+          primaryAction={<Button size="sm" onClick={handleAIRouteOptimization} disabled={aiLoading || !availableLoads?.length}>{aiLoading ? t('logistics.analyzing') : t('logistics.suggestBestRoute')}</Button>}
+          secondaryAction={<Button size="sm" variant="outline" onClick={handleReverseLogistics} disabled={reverseLoading}><RotateCcw className="mr-2 h-4 w-4" />{reverseLoading ? t('logistics.finding') : t('logistics.findReturnLoads')}</Button>}
         >
           <div className="grid gap-4 md:grid-cols-2">
             <div className="rounded-lg border bg-background p-4">
-              <h4 className="mb-2 flex items-center gap-2 font-medium"><Sparkles className="h-4 w-4 text-primary" />Route Optimization</h4>
-              <p className="text-sm text-muted-foreground whitespace-pre-wrap">{aiSuggestion || 'Click "Suggest Best Route" to get AI-recommended pickup sequencing.'}</p>
+              <h4 className="mb-2 flex items-center gap-2 font-medium"><Sparkles className="h-4 w-4 text-primary" />{t('logistics.routeOptimization')}</h4>
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap">{aiSuggestion || t('logistics.routeOptimizationHint')}</p>
             </div>
             <div className="rounded-lg border bg-background p-4">
-              <h4 className="mb-2 flex items-center gap-2 font-medium"><RotateCcw className="h-4 w-4" />Reverse Logistics</h4>
-              <p className="text-sm text-muted-foreground whitespace-pre-wrap">{reverseSuggestion || 'Click "Find Return Loads" to identify profitable return trips.'}</p>
+              <h4 className="mb-2 flex items-center gap-2 font-medium"><RotateCcw className="h-4 w-4" />{t('logistics.reverseLogistics')}</h4>
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap">{reverseSuggestion || t('logistics.reverseLogisticsHint')}</p>
             </div>
           </div>
         </ActionPanel>

@@ -1,0 +1,30 @@
+{
+  "kind": "core_runtime_verification_report",
+  "generated_at": "2026-02-22T06:23:37.563Z",
+  "staging_ref": "rmtkkzfzdmpjlqexrbme",
+  "smoke_artifacts": {
+    "weather": "artifacts/staging/smoke-weather-dummy_20260222_0955.json",
+    "buyer_orders": "artifacts/staging/smoke-buyer-orders-dummy_20260222_0955.json",
+    "runtime_core": "artifacts/staging/smoke-runtime-core-dummy_20260222_0955.json"
+  },
+  "screenshots": {
+    "farmer": "output/playwright/roles/farmer-core-runtime-final.png",
+    "buyer": "output/playwright/roles/buyer-core-runtime-final.png"
+  },
+  "summary": {
+    "smoke_weather_ok": true,
+    "smoke_buyer_orders_ok": true,
+    "smoke_runtime_core_failed": 0,
+    "farmer_weather_http_200": true,
+    "farmer_market_prices_agg_200": true,
+    "farmer_price_forecasts_absent_requests": true,
+    "farmer_agent_profile_500_absent": true,
+    "buyer_list_orders_compact_200": true,
+    "buyer_total_amount_error_absent": true
+  },
+  "residual_console_notes": {
+    "router_future_warnings": true,
+    "favicon_404": true,
+    "i18n_missing_key_warnings": true
+  }
+}

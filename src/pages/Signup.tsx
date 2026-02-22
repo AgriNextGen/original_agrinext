@@ -13,6 +13,53 @@ import { useLanguage } from "@/hooks/useLanguage";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
 
+type SignupErrorCode =
+  | "PHONE_ALREADY_EXISTS"
+  | "EMAIL_ALREADY_EXISTS"
+  | "ROLE_CLOSED"
+  | "SIGNUP_DISABLED"
+  | "RATE_LIMITED"
+  | "VALIDATION_ERROR"
+  | "INTERNAL";
+
+type SignupByPhoneResponse =
+  | {
+      ok: true;
+      user_id: string;
+      role: AppRole;
+      phone: string;
+      auth_email: string;
+      dashboard_route: string;
+      access_token: string;
+      refresh_token: string;
+      expires_in: number;
+      request_id: string;
+    }
+  | {
+      ok: false;
+      error_code: SignupErrorCode;
+      message: string;
+      request_id?: string;
+    };
+
+const logSupabaseError = (label: string, error: unknown) => {
+  if (!error) return;
+  const err = error as {
+    message?: string;
+    code?: string;
+    details?: string;
+    hint?: string;
+    status?: number;
+  };
+  console.error(label, {
+    message: err.message,
+    code: err.code,
+    details: err.details,
+    hint: err.hint,
+    status: err.status,
+  });
+};
+
 const getRoles = (t: (key: string) => string): { id: AppRole; label: string; icon: typeof Users; description: string }[] => [
   { id: "farmer", label: t("roles.farmer"), icon: Users, description: t("roles.farmer_description") },
   { id: "buyer", label: t("roles.buyer"), icon: ShoppingBag, description: t("roles.buyer_description") },
@@ -75,7 +122,7 @@ const Signup = () => {
     e.preventDefault();
     setError(null);
     // Prevent duplicate submits from rapid clicks/race conditions
-    if (isSubmittingRef.current) {
+    if (isLoading || isSubmittingRef.current) {
       console.warn("Signup already in progress - ignoring duplicate submit");
       return;
     }
@@ -101,123 +148,72 @@ const Signup = () => {
       setIsLoading(true);
 
       try {
-        const redirectUrl = `${window.location.origin}/`;
         const normalizedPhone = normalizePhone(formData.phone);
         const authEmail = formData.email.trim()
           ? formData.email.trim().toLowerCase()
           : getAuthEmailFromPhone(formData.phone);
 
-        // Sign up: email optional; use synthetic phone@agrinext.local when not provided
-        const { data: authData, error: authError } = await supabase.auth.signUp({
-          email: authEmail,
-          password: formData.password,
-          options: {
-            emailRedirectTo: redirectUrl,
-            data: {
-              full_name: formData.name.trim(),
-              phone: normalizedPhone,
-              role: selectedRole,
-              auth_email: authEmail,
-            },
-          },
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const signupRes = await fetch(`${supabaseUrl}/functions/v1/signup-by-phone`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            role: selectedRole,
+            phone: normalizedPhone,
+            password: formData.password,
+            full_name: formData.name.trim(),
+            email: authEmail,
+            profile_metadata: {},
+          }),
         });
+        const signupData = (await signupRes.json().catch(() => null)) as SignupByPhoneResponse | null;
 
-        if (authError) {
-          // Log full error for diagnostics
-          console.error("Supabase auth.signUp error:", authError);
-          if (authError.message.toLowerCase().includes("rate limit")) {
-            setError(t("auth.rate_limit_exceeded"));
-            toast({
-              title: t("auth.signup_failed"),
-              description: t("auth.rate_limit_retry_hint"),
-              variant: "destructive",
-            });
-          } else if (authError.message.includes("already registered")) {
-            setError(t("auth.phone_or_email_exists"));
-            toast({
-              title: t("auth.account_exists"),
-              description: t("auth.phone_or_email_exists"),
-              variant: "destructive",
-            });
-          } else {
-            setError(authError.message);
-            toast({
-              title: t("auth.signup_failed"),
-              description: authError.message,
-              variant: "destructive",
-            });
+        if (!signupRes.ok || !signupData || !signupData.ok) {
+          const errorCode = signupData && "error_code" in signupData ? signupData.error_code : null;
+          const fallbackMessage = signupData && "message" in signupData ? signupData.message : t("common.error");
+
+          let message = fallbackMessage;
+          if (errorCode === "RATE_LIMITED") message = t("auth.rate_limit_retry_hint");
+          if (errorCode === "PHONE_ALREADY_EXISTS" || errorCode === "EMAIL_ALREADY_EXISTS") {
+            message = t("auth.phone_or_email_exists");
           }
+          if (errorCode === "ROLE_CLOSED") message = "Signups for this role are currently closed.";
+          if (errorCode === "SIGNUP_DISABLED") message = "Signups are temporarily disabled.";
+          if (errorCode === "VALIDATION_ERROR") message = fallbackMessage || t("common.error");
+
+          setError(message);
+          toast({
+            title: t("auth.signup_failed"),
+            description: message,
+            variant: "destructive",
+          });
           return;
         }
 
-        if (authData.user) {
-          // Email confirmation required: no session until user clicks link
-          if (!authData.session) {
-            toast({
-              title: t("auth.email_confirmation_required"),
-              description: t("auth.check_email_confirm"),
-            });
-            setError(null);
-            return;
-          }
-
-          // Wait a moment for the trigger to create the profile
-          await new Promise(resolve => setTimeout(resolve, 500));
-
-          // Assign role explicitly (backup in case trigger doesn't work)
-          const { error: roleError } = await supabase
-            .from("user_roles")
-            .upsert({
-              user_id: authData.user.id,
-              role: selectedRole as AppRole,
-            }, { onConflict: 'user_id' });
-
-          if (roleError) {
-            console.error("Role assignment error:", roleError);
-          }
-
-          // Create role-specific profile
-          if (selectedRole === "buyer") {
-            {
-              const { error: buyersError } = await supabase
-                .from("buyers")
-                .upsert({
-                  user_id: authData.user.id,
-                  name: formData.name.trim(),
-                  phone: normalizedPhone || null,
-                }, { onConflict: 'user_id' });
-              if (buyersError) console.error("buyers upsert error:", buyersError);
-            }
-          } else if (selectedRole === "logistics") {
-            {
-              const { error: transError } = await supabase
-                .from("transporters")
-                .upsert({
-                  user_id: authData.user.id,
-                  name: formData.name.trim(),
-                  phone: normalizedPhone || null,
-                }, { onConflict: 'user_id' });
-              if (transError) console.error("transporters upsert error:", transError);
-            }
-          }
-
-          // Ensure auth_email is in profiles for login-by-phone
-          {
-            const { error: profilesUpdateError } = await supabase.from("profiles").update({ auth_email: authEmail }).eq("id", authData.user.id);
-            if (profilesUpdateError) console.error("profiles update error:", profilesUpdateError);
-          }
-
-          // Refresh the role in auth context
-          await refreshRole();
-
+        const { error: sessionError } = await supabase.auth.setSession({
+          access_token: signupData.access_token,
+          refresh_token: signupData.refresh_token,
+        });
+        if (sessionError) {
+          logSupabaseError("Signup setSession error", sessionError);
+          setError(sessionError.message);
           toast({
-            title: t("auth.account_created"),
-            description: t("auth.welcome_agrinext"),
+            title: t("auth.signup_failed"),
+            description: sessionError.message,
+            variant: "destructive",
           });
-
-          // Navigate to the appropriate dashboard
-          navigate(roleRoutes[selectedRole] || "/");
+          return;
         }
+
+        await refreshRole();
+
+        toast({
+          title: t("auth.account_created"),
+          description: t("auth.welcome_agrinext"),
+        });
+
+        const nextRoute = signupData.dashboard_route || roleRoutes[selectedRole] || "/";
+        navigate(nextRoute);
       } catch (error) {
         console.error("Signup unexpected error:", error);
         setError(t("common.error"));
@@ -277,10 +273,10 @@ const Signup = () => {
               {/* Step 1: Role Selection */}
               <div className="mb-8">
                 <h1 className="text-3xl font-display font-bold text-foreground mb-2">
-                  {t("auth.join_agrinext")}
+                  {t("auth.joinAgriNextGen")}
                 </h1>
                 <p className="text-muted-foreground">
-                  {t("auth.select_role")}
+                  {t("auth.selectRoleToStart")}
                 </p>
               </div>
 
@@ -460,6 +456,7 @@ const Signup = () => {
                         },
                       });
                       if (oauthError) {
+                        logSupabaseError("Supabase OAuth error", oauthError);
                         setError(oauthError.message);
                         toast({ title: t("auth.signup_failed"), description: oauthError.message, variant: "destructive" });
                       }
@@ -485,7 +482,7 @@ const Signup = () => {
 
           {/* Login Link */}
           <p className="mt-8 text-center text-muted-foreground">
-            {t("auth.have_account")}{" "}
+            {t("auth.already_have_account")}{" "}
             <Link to="/login" className="text-primary font-medium hover:underline">
               {t("auth.sign_in")}
             </Link>

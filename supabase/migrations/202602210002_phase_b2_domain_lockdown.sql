@@ -15,6 +15,9 @@
 -- ============================================================
 
 DROP POLICY IF EXISTS buyers_all_own ON public.buyers;
+DROP POLICY IF EXISTS buyers_select ON public.buyers;
+DROP POLICY IF EXISTS buyers_insert ON public.buyers;
+DROP POLICY IF EXISTS buyers_update ON public.buyers;
 
 CREATE POLICY buyers_select ON public.buyers FOR SELECT
   USING (user_id = auth.uid() OR public.is_admin());
@@ -33,6 +36,9 @@ CREATE POLICY buyers_update ON public.buyers FOR UPDATE
 -- ============================================================
 
 DROP POLICY IF EXISTS transporters_all_own ON public.transporters;
+DROP POLICY IF EXISTS transporters_select ON public.transporters;
+DROP POLICY IF EXISTS transporters_insert ON public.transporters;
+DROP POLICY IF EXISTS transporters_update ON public.transporters;
 
 CREATE POLICY transporters_select ON public.transporters FOR SELECT
   USING (user_id = auth.uid() OR public.is_admin());
@@ -50,6 +56,8 @@ CREATE POLICY transporters_update ON public.transporters FOR UPDATE
 -- ============================================================
 
 DROP POLICY IF EXISTS crop_activity_logs_via_crop ON public.crop_activity_logs;
+DROP POLICY IF EXISTS cal_select ON public.crop_activity_logs;
+DROP POLICY IF EXISTS cal_insert ON public.crop_activity_logs;
 
 CREATE POLICY cal_select ON public.crop_activity_logs FOR SELECT
   USING (
@@ -83,6 +91,9 @@ CREATE POLICY cal_insert ON public.crop_activity_logs FOR INSERT
 -- ============================================================
 
 DROP POLICY IF EXISTS crop_media_via_crop ON public.crop_media;
+DROP POLICY IF EXISTS crop_media_select ON public.crop_media;
+DROP POLICY IF EXISTS crop_media_insert ON public.crop_media;
+DROP POLICY IF EXISTS crop_media_delete ON public.crop_media;
 
 CREATE POLICY crop_media_select ON public.crop_media FOR SELECT
   USING (
@@ -126,6 +137,10 @@ CREATE POLICY crop_media_delete ON public.crop_media FOR DELETE
 
 DROP POLICY IF EXISTS soil_test_reports_farmer ON public.soil_test_reports;
 DROP POLICY IF EXISTS soil_test_reports_uploader ON public.soil_test_reports;
+DROP POLICY IF EXISTS str_select ON public.soil_test_reports;
+DROP POLICY IF EXISTS str_insert ON public.soil_test_reports;
+DROP POLICY IF EXISTS str_update ON public.soil_test_reports;
+DROP POLICY IF EXISTS str_delete ON public.soil_test_reports;
 
 CREATE POLICY str_select ON public.soil_test_reports FOR SELECT
   USING (
@@ -153,6 +168,8 @@ CREATE POLICY str_delete ON public.soil_test_reports FOR DELETE
 -- ============================================================
 
 DROP POLICY IF EXISTS admin_users_select ON public.admin_users;
+DROP POLICY IF EXISTS admin_users_insert ON public.admin_users;
+DROP POLICY IF EXISTS admin_users_update ON public.admin_users;
 
 CREATE POLICY admin_users_select ON public.admin_users FOR SELECT
   USING (user_id = auth.uid() OR public.is_admin());

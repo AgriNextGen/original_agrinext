@@ -67,6 +67,9 @@ CREATE TABLE IF NOT EXISTS public.market_orders (
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 
+ALTER TABLE public.market_orders
+  ADD COLUMN IF NOT EXISTS proof_file_id uuid;
+
 DO $$
 BEGIN
   IF to_regclass('public.listings') IS NOT NULL THEN
@@ -103,28 +106,34 @@ ALTER TABLE IF EXISTS public.listings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS public.market_orders ENABLE ROW LEVEL SECURITY;
 
 -- 6) RLS policies
-CREATE POLICY IF NOT EXISTS listings_select_public ON public.listings
+DROP POLICY IF EXISTS listings_select_public ON public.listings;
+CREATE POLICY listings_select_public ON public.listings
   FOR SELECT USING (
     (status = 'approved' AND auth.role() IS NOT NULL) OR is_admin() OR (auth.uid() IS NOT NULL AND farmer_id::text = auth.uid()::text)
   );
 
-CREATE POLICY IF NOT EXISTS listings_insert_farmer ON public.listings
+DROP POLICY IF EXISTS listings_insert_farmer ON public.listings;
+CREATE POLICY listings_insert_farmer ON public.listings
   FOR INSERT WITH CHECK (auth.uid() IS NOT NULL AND EXISTS (SELECT 1 FROM user_roles ur WHERE ur.user_id = auth.uid() AND ur.role = 'farmer'));
 
-CREATE POLICY IF NOT EXISTS listings_update_rpc_or_owner_or_admin ON public.listings
+DROP POLICY IF EXISTS listings_update_rpc_or_owner_or_admin ON public.listings;
+CREATE POLICY listings_update_rpc_or_owner_or_admin ON public.listings
   FOR UPDATE USING (is_admin() OR (auth.uid() IS NOT NULL AND farmer_id::text = auth.uid()::text)) WITH CHECK (is_admin() OR current_setting('app.rpc','false') = 'true' OR farmer_id::text = auth.uid()::text);
 
-CREATE POLICY IF NOT EXISTS orders_select_owner_farmer_admin ON public.market_orders
+DROP POLICY IF EXISTS orders_select_owner_farmer_admin ON public.market_orders;
+CREATE POLICY orders_select_owner_farmer_admin ON public.market_orders
   FOR SELECT USING (
     is_admin()
     OR (auth.uid() IS NOT NULL AND buyer_id::text = auth.uid()::text)
     OR (auth.uid() IS NOT NULL AND EXISTS (SELECT 1 FROM public.listings l WHERE l.id = listing_id AND l.farmer_id::text = auth.uid()::text))
   );
 
-CREATE POLICY IF NOT EXISTS orders_insert_rpc_or_buyer ON public.market_orders
+DROP POLICY IF EXISTS orders_insert_rpc_or_buyer ON public.market_orders;
+CREATE POLICY orders_insert_rpc_or_buyer ON public.market_orders
   FOR INSERT WITH CHECK (current_setting('app.rpc','false') = 'true' OR (auth.uid() IS NOT NULL AND buyer_id::text = auth.uid()::text));
 
-CREATE POLICY IF NOT EXISTS orders_update_rpc_or_admin ON public.market_orders
+DROP POLICY IF EXISTS orders_update_rpc_or_admin ON public.market_orders;
+CREATE POLICY orders_update_rpc_or_admin ON public.market_orders
   FOR UPDATE USING (is_admin()) WITH CHECK (current_setting('app.rpc','false') = 'true' OR is_admin());
 
 -- 7) updated_at trigger
@@ -142,4 +151,3 @@ DROP TRIGGER IF EXISTS trg_market_orders_touch ON public.market_orders;
 CREATE TRIGGER trg_market_orders_touch BEFORE UPDATE ON public.market_orders FOR EACH ROW EXECUTE FUNCTION public.touch_updated_at_marketplace();
 
 -- End migration
-

@@ -14,6 +14,8 @@
 
 DROP POLICY IF EXISTS karnataka_districts_select ON public.karnataka_districts;
 DROP POLICY IF EXISTS karnataka_districts_select_all ON public.karnataka_districts;
+DROP POLICY IF EXISTS karnataka_districts_read ON public.karnataka_districts;
+DROP POLICY IF EXISTS karnataka_districts_admin_write ON public.karnataka_districts;
 
 CREATE POLICY karnataka_districts_read
   ON public.karnataka_districts FOR SELECT
@@ -32,6 +34,8 @@ CREATE POLICY karnataka_districts_admin_write
 
 DROP POLICY IF EXISTS market_prices_select ON public.market_prices;
 DROP POLICY IF EXISTS market_prices_select_all ON public.market_prices;
+DROP POLICY IF EXISTS market_prices_read ON public.market_prices;
+DROP POLICY IF EXISTS market_prices_admin_write ON public.market_prices;
 
 CREATE POLICY market_prices_read
   ON public.market_prices FOR SELECT
@@ -50,6 +54,8 @@ CREATE POLICY market_prices_admin_write
 
 DROP POLICY IF EXISTS market_prices_agg_select ON public.market_prices_agg;
 DROP POLICY IF EXISTS market_prices_agg_select_all ON public.market_prices_agg;
+DROP POLICY IF EXISTS market_prices_agg_read ON public.market_prices_agg;
+DROP POLICY IF EXISTS market_prices_agg_admin_write ON public.market_prices_agg;
 
 CREATE POLICY market_prices_agg_read
   ON public.market_prices_agg FOR SELECT
@@ -68,6 +74,8 @@ CREATE POLICY market_prices_agg_admin_write
 
 DROP POLICY IF EXISTS roles_select ON public.roles;
 DROP POLICY IF EXISTS roles_select_all ON public.roles;
+DROP POLICY IF EXISTS roles_read ON public.roles;
+DROP POLICY IF EXISTS roles_admin_write ON public.roles;
 
 CREATE POLICY roles_read
   ON public.roles FOR SELECT
@@ -84,6 +92,8 @@ CREATE POLICY roles_admin_write
 -- Now: Keep existing SELECT + add admin-only write.
 -- ============================================================
 
+DROP POLICY IF EXISTS farmer_segments_admin_write ON public.farmer_segments;
+
 CREATE POLICY farmer_segments_admin_write
   ON public.farmer_segments FOR ALL
   USING (public.is_admin())
@@ -95,6 +105,8 @@ CREATE POLICY farmer_segments_admin_write
 -- Now: Keep existing SELECT + add admin-only write.
 -- ============================================================
 
+DROP POLICY IF EXISTS trusted_sources_admin_write ON public.trusted_sources;
+
 CREATE POLICY trusted_sources_admin_write
   ON public.trusted_sources FOR ALL
   USING (public.is_admin())
@@ -105,6 +117,8 @@ CREATE POLICY trusted_sources_admin_write
 -- Was: SELECT = true for authenticated. No write protection.
 -- Now: Keep existing SELECT + add admin-only write.
 -- ============================================================
+
+DROP POLICY IF EXISTS web_fetch_logs_admin_write ON public.web_fetch_logs;
 
 CREATE POLICY web_fetch_logs_admin_write
   ON public.web_fetch_logs FOR ALL

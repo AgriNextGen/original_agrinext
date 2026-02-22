@@ -141,7 +141,7 @@ const DashboardHeader = ({ title, onMenuClick }: DashboardHeaderProps) => {
         <div className="hidden md:flex relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search..."
+            placeholder={`${t('common.search')}...`}
             className="w-64 pl-9 bg-muted/50 border-0"
           />
         </div>
@@ -232,14 +232,14 @@ const DashboardHeader = ({ title, onMenuClick }: DashboardHeaderProps) => {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => navigate(getSettingsPath())}>
-              {t('settings.profile_settings')}
+              {t('settings.profileSettings')}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem 
               className="text-destructive focus:text-destructive"
               onClick={signOut}
             >
-              {t('auth.sign_out')}
+              {t('auth.signOut')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -251,7 +251,7 @@ const DashboardHeader = ({ title, onMenuClick }: DashboardHeaderProps) => {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search..."
+              placeholder={`${t('common.search')}...`}
               className="w-full pl-9"
               autoFocus
             />
