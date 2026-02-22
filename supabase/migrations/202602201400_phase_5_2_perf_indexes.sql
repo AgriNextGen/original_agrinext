@@ -17,7 +17,11 @@ END$$;
 -- 3) market_orders indexing (buyer/listing + updated_at)
 DO $$
 BEGIN
-  IF to_regclass('public.market_orders') IS NOT NULL THEN
+  IF to_regclass('public.market_orders') IS NOT NULL
+     AND EXISTS (
+       SELECT 1 FROM information_schema.columns
+       WHERE table_schema = 'public' AND table_name = 'market_orders' AND column_name = 'status'
+     ) THEN
     CREATE INDEX IF NOT EXISTS idx_market_orders_buyer_status_updated ON public.market_orders (buyer_id, status, updated_at DESC);
     CREATE INDEX IF NOT EXISTS idx_market_orders_listing_status_updated ON public.market_orders (listing_id, status, updated_at DESC);
   END IF;
@@ -26,7 +30,11 @@ END$$;
 -- 4) listings
 DO $$
 BEGIN
-  IF to_regclass('public.listings') IS NOT NULL THEN
+  IF to_regclass('public.listings') IS NOT NULL
+     AND EXISTS (
+       SELECT 1 FROM information_schema.columns
+       WHERE table_schema = 'public' AND table_name = 'listings' AND column_name = 'status'
+     ) THEN
     CREATE INDEX IF NOT EXISTS idx_listings_status_updated ON public.listings (status, updated_at DESC);
   END IF;
 END$$;
@@ -34,12 +42,20 @@ END$$;
 -- 5) trips / transport_requests
 DO $$
 BEGIN
-  IF to_regclass('public.trips') IS NOT NULL THEN
+  IF to_regclass('public.trips') IS NOT NULL
+     AND EXISTS (
+       SELECT 1 FROM information_schema.columns
+       WHERE table_schema = 'public' AND table_name = 'trips' AND column_name = 'status'
+     ) THEN
     CREATE INDEX IF NOT EXISTS idx_trips_transporter_status_updated ON public.trips (transporter_id, status, updated_at DESC);
     CREATE INDEX IF NOT EXISTS idx_trips_transport_request ON public.trips (transport_request_id);
   END IF;
 
-  IF to_regclass('public.transport_requests') IS NOT NULL THEN
+  IF to_regclass('public.transport_requests') IS NOT NULL
+     AND EXISTS (
+       SELECT 1 FROM information_schema.columns
+       WHERE table_schema = 'public' AND table_name = 'transport_requests' AND column_name = 'status'
+     ) THEN
     CREATE INDEX IF NOT EXISTS idx_transport_requests_farmer_status_updated ON public.transport_requests (farmer_id, status, updated_at DESC);
   END IF;
 END$$;
@@ -48,7 +64,17 @@ END$$;
 DO $$
 BEGIN
   IF to_regclass('public.agent_tasks') IS NOT NULL THEN
-    CREATE INDEX IF NOT EXISTS idx_agent_tasks_agent_status_updated ON public.agent_tasks (agent_id, status, updated_at DESC);
+    IF EXISTS (
+      SELECT 1 FROM information_schema.columns
+      WHERE table_schema = 'public' AND table_name = 'agent_tasks' AND column_name = 'status'
+    ) THEN
+      CREATE INDEX IF NOT EXISTS idx_agent_tasks_agent_status_updated ON public.agent_tasks (agent_id, status, updated_at DESC);
+    ELSIF EXISTS (
+      SELECT 1 FROM information_schema.columns
+      WHERE table_schema = 'public' AND table_name = 'agent_tasks' AND column_name = 'task_status'
+    ) THEN
+      CREATE INDEX IF NOT EXISTS idx_agent_tasks_agent_status_updated ON public.agent_tasks (agent_id, task_status, updated_at DESC);
+    END IF;
   END IF;
 
   IF to_regclass('public.agent_visits') IS NOT NULL THEN
@@ -79,4 +105,3 @@ BEGIN
     ORDER BY cnt_7d DESC;
   END IF;
 END$$;
-

@@ -11,7 +11,7 @@ CREATE SCHEMA IF NOT EXISTS secure;
 -- STEP 2: secure.kyc_records
 -- ============================================================
 
-CREATE TABLE secure.kyc_records (
+CREATE TABLE IF NOT EXISTS secure.kyc_records (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE,
   kyc_status text CHECK (kyc_status IN ('pending','verified','rejected')),
@@ -22,14 +22,22 @@ CREATE TABLE secure.kyc_records (
   created_at timestamptz DEFAULT now()
 );
 
-CREATE INDEX idx_kyc_user ON secure.kyc_records (user_id);
-CREATE INDEX idx_kyc_status ON secure.kyc_records (kyc_status);
+CREATE INDEX IF NOT EXISTS idx_kyc_user ON secure.kyc_records (user_id);
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'secure' AND table_name = 'kyc_records' AND column_name = 'kyc_status'
+  ) THEN
+    CREATE INDEX IF NOT EXISTS idx_kyc_status ON secure.kyc_records (kyc_status);
+  END IF;
+END$$;
 
 -- ============================================================
 -- STEP 3: secure.payment_events
 -- ============================================================
 
-CREATE TABLE secure.payment_events (
+CREATE TABLE IF NOT EXISTS secure.payment_events (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid,
   order_id uuid,
@@ -42,23 +50,31 @@ CREATE TABLE secure.payment_events (
   created_at timestamptz DEFAULT now()
 );
 
-CREATE INDEX idx_payment_user ON secure.payment_events (user_id);
-CREATE INDEX idx_payment_order ON secure.payment_events (order_id);
-CREATE INDEX idx_payment_provider_event ON secure.payment_events (provider_event_id);
-CREATE INDEX idx_payment_created ON secure.payment_events (created_at);
+CREATE INDEX IF NOT EXISTS idx_payment_user ON secure.payment_events (user_id);
+CREATE INDEX IF NOT EXISTS idx_payment_order ON secure.payment_events (order_id);
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'secure' AND table_name = 'payment_events' AND column_name = 'provider_event_id'
+  ) THEN
+    CREATE INDEX IF NOT EXISTS idx_payment_provider_event ON secure.payment_events (provider_event_id);
+  END IF;
+END$$;
+CREATE INDEX IF NOT EXISTS idx_payment_created ON secure.payment_events (created_at);
 
 -- ============================================================
 -- STEP 4: secure.external_tokens
 -- ============================================================
 
-CREATE TABLE secure.external_tokens (
+CREATE TABLE IF NOT EXISTS secure.external_tokens (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   service_name text NOT NULL,
   encrypted_token bytea,
   created_at timestamptz DEFAULT now()
 );
 
-CREATE INDEX idx_ext_tokens_service ON secure.external_tokens (service_name);
+CREATE INDEX IF NOT EXISTS idx_ext_tokens_service ON secure.external_tokens (service_name);
 
 -- ============================================================
 -- STEP 5: ENABLE RLS
@@ -72,14 +88,17 @@ ALTER TABLE secure.external_tokens ENABLE ROW LEVEL SECURITY;
 -- STEP 6: POLICIES — admin-only SELECT, no client writes
 -- ============================================================
 
+DROP POLICY IF EXISTS kyc_select_admin ON secure.kyc_records;
 CREATE POLICY kyc_select_admin
   ON secure.kyc_records FOR SELECT
   USING (public.is_admin());
 
+DROP POLICY IF EXISTS payment_events_select_admin ON secure.payment_events;
 CREATE POLICY payment_events_select_admin
   ON secure.payment_events FOR SELECT
   USING (public.is_admin());
 
+DROP POLICY IF EXISTS ext_tokens_select_admin ON secure.external_tokens;
 CREATE POLICY ext_tokens_select_admin
   ON secure.external_tokens FOR SELECT
   USING (public.is_admin());

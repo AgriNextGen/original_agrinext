@@ -1,0 +1,58 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - region "Notifications (F8)":
+      - list [ref=e74]:
+        - status [ref=e75]:
+          - generic [ref=e76]:
+            - generic [ref=e77]: Welcome back
+            - generic [ref=e78]: You have successfully signed in.
+          - button [ref=e79] [cursor=pointer]:
+            - img [ref=e80]
+    - region "Notifications alt+T"
+    - generic [ref=e84]:
+      - complementary [ref=e86]:
+        - generic [ref=e87]:
+          - generic [ref=e89]:
+            - img [ref=e91]
+            - generic [ref=e94]:
+              - generic [ref=e95]: AgriNext Gen Market
+              - text: Marketplace Buyer
+          - navigation [ref=e96]:
+            - link "Dashboard" [ref=e97] [cursor=pointer]:
+              - /url: /marketplace/dashboard
+              - generic [ref=e98]:
+                - img [ref=e99]
+                - text: Dashboard
+            - link "Browse Products" [ref=e104] [cursor=pointer]:
+              - /url: /marketplace/browse
+              - generic [ref=e105]:
+                - img [ref=e106]
+                - text: Browse Products
+            - link "My Orders" [ref=e109] [cursor=pointer]:
+              - /url: /marketplace/orders
+              - generic [ref=e110]:
+                - img [ref=e111]
+                - text: My Orders
+            - link "Profile" [ref=e115] [cursor=pointer]:
+              - /url: /marketplace/profile
+              - generic [ref=e116]:
+                - img [ref=e117]
+                - text: Profile
+          - button "Sign Out" [ref=e121] [cursor=pointer]:
+            - img [ref=e122]
+            - text: Sign Out
+      - generic [ref=e125]:
+        - banner [ref=e126]:
+          - generic [ref=e127]:
+            - heading "Dashboard" [level=1] [ref=e128]
+            - generic [ref=e130]: Online
+          - generic [ref=e131]:
+            - generic [ref=e132]:
+              - img [ref=e133]
+              - textbox "Search..." [ref=e136]
+            - button "Notifications" [ref=e137] [cursor=pointer]:
+              - img
+            - button "Open profile menu" [ref=e138] [cursor=pointer]:
+              - generic [ref=e140]: "91"
+        - main [ref=e141]
+  - status [ref=e149]: Notification Welcome backYou have successfully signed in.

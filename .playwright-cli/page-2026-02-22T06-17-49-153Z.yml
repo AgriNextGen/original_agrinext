@@ -1,0 +1,16 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - region "Notifications (F8)":
+      - list [ref=e74]:
+        - status [ref=e75]:
+          - generic [ref=e76]:
+            - generic [ref=e77]: Welcome back
+            - generic [ref=e78]: You have successfully signed in.
+          - button [ref=e79] [cursor=pointer]:
+            - img [ref=e80]
+    - region "Notifications alt+T"
+    - generic [ref=e85]:
+      - img [ref=e88]
+      - paragraph [ref=e90]: Setting up your account...
+      - paragraph [ref=e91]: If this takes too long, you will be redirected to sign in again.
+  - status [ref=e92]: Notification Welcome backYou have successfully signed in.

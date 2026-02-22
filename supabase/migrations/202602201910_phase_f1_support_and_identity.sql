@@ -1,4 +1,6 @@
 -- Phase F1: support tickets and identity hygiene
+CREATE SCHEMA IF NOT EXISTS admin;
+
 -- 1) profiles.is_locked (additive)
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS is_locked boolean NOT NULL DEFAULT false;
 
@@ -82,7 +84,7 @@ CREATE OR REPLACE FUNCTION admin.lock_user_v1(p_user_id uuid, p_lock boolean)
 RETURNS void LANGUAGE plpgsql SECURITY DEFINER AS $$
 BEGIN
   PERFORM set_config('app.rpc','true',true);
-  UPDATE public.profiles SET is_locked = p_lock WHERE user_id = p_user_id;
+  UPDATE public.profiles SET is_locked = p_lock WHERE id = p_user_id;
   INSERT INTO audit.workflow_events (actor_user_id, event_type, payload, created_at)
     VALUES (auth.uid(), 'ADMIN_USER_LOCK_TOGGLE', jsonb_build_object('user_id', p_user_id, 'locked', p_lock), now());
 END;
@@ -103,4 +105,3 @@ END;
 $$;
 
 -- RLS: admin schema privileges for above admin.* RPCs implicitly enforced by SECURITY DEFINER + is_admin() checks in policies elsewhere
-

@@ -1,0 +1,130 @@
+[
+  {
+    "kind": "console",
+    "level": "warning",
+    "text": "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+    "url": "http://127.0.0.1:4173/"
+  },
+  {
+    "kind": "console",
+    "level": "warning",
+    "text": "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
+    "url": "http://127.0.0.1:4173/"
+  },
+  {
+    "kind": "route",
+    "route": "/",
+    "url": "http://127.0.0.1:4173/",
+    "status": 200,
+    "screenshot": "output/playwright/home.png",
+    "title": "AgriNext Gen - Connecting India's Agricultural Ecosystem",
+    "h1": "India's Agricultural Operating System",
+    "bodySnippet": "AgriNext Gen\nHome\nMarketplace\nAbout\nContact\nLog In\nGet Started\nConnecting India's Agricultural Ecosystem\nIndia's Agricultural Operating System\n\nUnifying farmers, agents, transport, and buyers into one real-world platform—built for hyperlocal trade, traceability, and efficient logistics.\n\nJoin the Pilot Program\nSign In\nChoose your path:\nI'm a Farmer / Agent\nI'm a Buyer / Partner\nFarmers\n\nTrack crops, request transport, and sell with transparency.\n\nBuyers\n\nSource verified produce with traceable or"
+  },
+  {
+    "kind": "console",
+    "level": "warning",
+    "text": "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+    "url": "http://127.0.0.1:4173/login"
+  },
+  {
+    "kind": "console",
+    "level": "warning",
+    "text": "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
+    "url": "http://127.0.0.1:4173/login"
+  },
+  {
+    "kind": "route",
+    "route": "/login",
+    "url": "http://127.0.0.1:4173/login",
+    "status": 200,
+    "screenshot": "output/playwright/login.png",
+    "title": "AgriNext Gen - Connecting India's Agricultural Ecosystem",
+    "h1": "Welcome back",
+    "bodySnippet": "AgriNext Gen\nWelcome back\n\nSign in to your account to continue\n\nSelect your role to sign in\nFarmer\nBuyer\nAgent\nLogistics\nPhone\nPassword\nSign In\nor continue with\nContinue with Google\n\nDon't have an account? Sign Up\n\nWelcome to AgriNext Gen\n\nConnect with buyers, manage your farm, and grow your agricultural business with India's leading agtech platform."
+  },
+  {
+    "kind": "console",
+    "level": "warning",
+    "text": "[i18n] Missing EN key: \"auth.join_agrinext\"",
+    "url": "http://127.0.0.1:4173/signup"
+  },
+  {
+    "kind": "console",
+    "level": "warning",
+    "text": "[i18n] Missing EN key: \"auth.select_role\"",
+    "url": "http://127.0.0.1:4173/signup"
+  },
+  {
+    "kind": "console",
+    "level": "warning",
+    "text": "[i18n] Missing EN key: \"auth.have_account\"",
+    "url": "http://127.0.0.1:4173/signup"
+  },
+  {
+    "kind": "console",
+    "level": "warning",
+    "text": "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+    "url": "http://127.0.0.1:4173/signup"
+  },
+  {
+    "kind": "console",
+    "level": "warning",
+    "text": "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
+    "url": "http://127.0.0.1:4173/signup"
+  },
+  {
+    "kind": "route",
+    "route": "/signup",
+    "url": "http://127.0.0.1:4173/signup",
+    "status": 200,
+    "screenshot": "output/playwright/signup.png",
+    "title": "AgriNext Gen - Connecting India's Agricultural Ecosystem",
+    "h1": "join_agrinext",
+    "bodySnippet": "AgriNext Gen\njoin_agrinext\n\nselect_role\n\nFarmer\n\nSell your produce directly\n\nBuyer\n\nSource quality products\n\nAgent\n\nCollect field data\n\nLogistics\n\nDeliver goods\n\nContinue\n\nhave_account Sign In\n\nJoin Our Growing Community\n\nBecome part of India's largest agricultural network. Connect, trade, and grow with thousands of farmers and buyers."
+  },
+  {
+    "kind": "console",
+    "level": "warning",
+    "text": "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+    "url": "http://127.0.0.1:4173/about"
+  },
+  {
+    "kind": "console",
+    "level": "warning",
+    "text": "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
+    "url": "http://127.0.0.1:4173/about"
+  },
+  {
+    "kind": "route",
+    "route": "/about",
+    "url": "http://127.0.0.1:4173/about",
+    "status": 200,
+    "screenshot": "output/playwright/about.png",
+    "title": "AgriNext Gen - Connecting India's Agricultural Ecosystem",
+    "h1": "Empowering India's Agricultural Future",
+    "bodySnippet": "AgriNext Gen\nHome\nMarketplace\nAbout\nContact\nLog In\nGet Started\nAbout Us\nEmpowering India's Agricultural Future\n\nAgriNext Gen is on a mission to revolutionize how farmers, buyers, and logistics partners connect across India, creating a transparent and efficient agricultural marketplace.\n\nOur Mission\n\nWe believe every farmer deserves fair access to markets, transparent pricing, and efficient logistics. AgriNext Gen bridges the gap between rural farms and urban markets through technology.\n\nFounded "
+  },
+  {
+    "kind": "console",
+    "level": "warning",
+    "text": "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+    "url": "http://127.0.0.1:4173/contact"
+  },
+  {
+    "kind": "console",
+    "level": "warning",
+    "text": "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
+    "url": "http://127.0.0.1:4173/contact"
+  },
+  {
+    "kind": "route",
+    "route": "/contact",
+    "url": "http://127.0.0.1:4173/contact",
+    "status": 200,
+    "screenshot": "output/playwright/contact.png",
+    "title": "AgriNext Gen - Connecting India's Agricultural Ecosystem",
+    "h1": "We'd Love to Hear From You",
+    "bodySnippet": "AgriNext Gen\nHome\nMarketplace\nAbout\nContact\nLog In\nGet Started\nGet in Touch\nWe'd Love to Hear From You\n\nHave questions about AgriNext Gen? Want to partner with us? Our team is here to help you every step of the way.\n\nContact Information\nEmail\n\nsupport@agrinextgen.in\n\nWe'll respond within 24 hours\n\nPhone\n\n+91 1800-XXX-XXXX\n\nMon-Sat, 9AM-6PM IST\n\nOffice\n\nBengaluru, Karnataka\n\nVisit us by appointment\n\nFrequently Asked Questions\n\nFind quick answers to common questions about our platform.\n\nView FAQs\n"
+  }
+]

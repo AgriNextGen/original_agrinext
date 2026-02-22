@@ -1,0 +1,111 @@
+{
+  "executedAt": "2026-02-22T07:25:31.539Z",
+  "listingChecks": {
+    "topHeaderTitle": "My Listings",
+    "pageTitle": "My Listings",
+    "hasRawTitleWordOnly": false,
+    "hasRawSearchPlaceholderKey": false,
+    "hasRawAddListingKey": false,
+    "hasRawNoListingsYetKey": false,
+    "hasRawStartSellingKey": false,
+    "hasRawAddFirstListingKey": false,
+    "i18nWarnings": [
+      {
+        "type": "warning",
+        "text": "[i18n] Missing EN key: \"farmer.listings.addNewListing\"",
+        "url": "http://127.0.0.1:4173/farmer/listings"
+      },
+      {
+        "type": "warning",
+        "text": "[i18n] Missing EN key: \"farmer.listings.addDescription\"",
+        "url": "http://127.0.0.1:4173/farmer/listings"
+      },
+      {
+        "type": "warning",
+        "text": "[i18n] Missing EN key: \"farmer.listings.productNamePlaceholder\"",
+        "url": "http://127.0.0.1:4173/farmer/listings"
+      },
+      {
+        "type": "warning",
+        "text": "[i18n] Missing EN key: \"farmer.listings.descriptionPlaceholder\"",
+        "url": "http://127.0.0.1:4173/farmer/listings"
+      },
+      {
+        "type": "warning",
+        "text": "[i18n] Missing EN key: \"farmer.listings.selectCategory\"",
+        "url": "http://127.0.0.1:4173/farmer/listings"
+      },
+      {
+        "type": "warning",
+        "text": "[i18n] Missing EN key: \"enum.categories.vegetables\"",
+        "url": "http://127.0.0.1:4173/farmer/listings"
+      },
+      {
+        "type": "warning",
+        "text": "[i18n] Missing EN key: \"enum.categories.fruits\"",
+        "url": "http://127.0.0.1:4173/farmer/listings"
+      },
+      {
+        "type": "warning",
+        "text": "[i18n] Missing EN key: \"enum.categories.grains\"",
+        "url": "http://127.0.0.1:4173/farmer/listings"
+      },
+      {
+        "type": "warning",
+        "text": "[i18n] Missing EN key: \"enum.categories.pulses\"",
+        "url": "http://127.0.0.1:4173/farmer/listings"
+      },
+      {
+        "type": "warning",
+        "text": "[i18n] Missing EN key: \"enum.categories.dairy\"",
+        "url": "http://127.0.0.1:4173/farmer/listings"
+      },
+      {
+        "type": "warning",
+        "text": "[i18n] Missing EN key: \"enum.categories.spices\"",
+        "url": "http://127.0.0.1:4173/farmer/listings"
+      },
+      {
+        "type": "warning",
+        "text": "[i18n] Missing EN key: \"enum.categories.other\"",
+        "url": "http://127.0.0.1:4173/farmer/listings"
+      },
+      {
+        "type": "warning",
+        "text": "[i18n] Missing EN key: \"farmer.listings.locationPlaceholder\"",
+        "url": "http://127.0.0.1:4173/farmer/listings"
+      },
+      {
+        "type": "warning",
+        "text": "[i18n] Missing EN key: \"farmer.listings.quantity\"",
+        "url": "http://127.0.0.1:4173/farmer/listings"
+      },
+      {
+        "type": "warning",
+        "text": "[i18n] Missing EN key: \"enum.units.piece\"",
+        "url": "http://127.0.0.1:4173/farmer/listings"
+      },
+      {
+        "type": "warning",
+        "text": "[i18n] Missing EN key: \"enum.units.dozen\"",
+        "url": "http://127.0.0.1:4173/farmer/listings"
+      },
+      {
+        "type": "warning",
+        "text": "[i18n] Missing EN key: \"farmer.listings.deactivate\"",
+        "url": "http://127.0.0.1:4173/farmer/listings"
+      },
+      {
+        "type": "warning",
+        "text": "[i18n] Missing EN key: \"farmer.listings.available\"",
+        "url": "http://127.0.0.1:4173/farmer/listings"
+      }
+    ]
+  },
+  "summaryCardBoundingBox": {
+    "x": 280,
+    "y": 172,
+    "width": 685,
+    "height": 206
+  }
+}

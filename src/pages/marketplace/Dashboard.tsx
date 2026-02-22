@@ -118,14 +118,14 @@ const MarketplaceDashboard = () => {
           <Card className="w-full max-w-md">
             <CardHeader className="text-center">
               <ShoppingCart className="mx-auto mb-4 h-16 w-16 text-primary" />
-              <CardTitle>Welcome to AgriNext Gen Marketplace!</CardTitle>
+              <CardTitle>{t('marketplace.welcomeMarketplace')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-center text-muted-foreground">
-                Set up your buyer profile to start purchasing fresh produce directly from farmers.
+                {t('marketplace.setupBuyerProfile')}
               </p>
               <Button className="w-full" onClick={handleCreateProfile} disabled={createProfile.isPending}>
-                {createProfile.isPending ? 'Creating...' : 'Create Buyer Profile'}
+                {createProfile.isPending ? t('marketplace.creatingProfile') : t('marketplace.createBuyerProfile')}
               </Button>
             </CardContent>
           </Card>
@@ -151,9 +151,9 @@ const MarketplaceDashboard = () => {
       >
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           <KpiCard label={t('marketplace.available')} value={stats.totalProducts} icon={Package} priority="primary" onClick={() => navigate('/marketplace/browse')} />
-          <KpiCard label="Fresh Harvest" value={stats.freshHarvest} icon={Leaf} priority="success" />
-          <KpiCard label="Coming Soon" value={stats.oneWeekAway} icon={TrendingUp} priority="warning" />
-          <KpiCard label="Active Orders" value={stats.activeOrders} icon={ShoppingCart} priority="info" onClick={() => navigate('/marketplace/orders')} />
+          <KpiCard label={t('marketplace.freshHarvest')} value={stats.freshHarvest} icon={Leaf} priority="success" />
+          <KpiCard label={t('marketplace.comingSoon')} value={stats.oneWeekAway} icon={TrendingUp} priority="warning" />
+          <KpiCard label={t('marketplace.activeOrdersLabel')} value={stats.activeOrders} icon={ShoppingCart} priority="info" onClick={() => navigate('/marketplace/orders')} />
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
@@ -162,7 +162,7 @@ const MarketplaceDashboard = () => {
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <Leaf className="h-5 w-5 text-green-600" />
-                  Fresh Harvest Available
+                  {t('marketplace.freshHarvestAvailable')}
                 </CardTitle>
                 <Button variant="ghost" size="sm" onClick={() => navigate('/marketplace/browse')}>
                   {t('common.viewAll')} <ArrowRight className="ml-1 h-4 w-4" />
@@ -196,7 +196,7 @@ const MarketplaceDashboard = () => {
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <ShoppingCart className="h-5 w-5 text-blue-600" />
-                  Your Active Orders
+                  {t('marketplace.yourActiveOrders')}
                 </CardTitle>
                 <Button variant="ghost" size="sm" onClick={() => navigate('/marketplace/orders')}>
                   {t('common.viewAll')} <ArrowRight className="ml-1 h-4 w-4" />
@@ -227,14 +227,14 @@ const MarketplaceDashboard = () => {
         </div>
 
         <ActionPanel
-          title="AI Stock Advisor"
-          context="Get recommendations on what to stock this week from your market profile and fresh inventory."
-          primaryAction={<Button onClick={handleStockRecommendation} disabled={aiLoading}><Sparkles className="mr-2 h-4 w-4" />{aiLoading ? 'Analyzing...' : 'What Should I Stock?'}</Button>}
+          title={t('marketplace.aiStockAdvisor')}
+          context={t('marketplace.stockAdvisorContext')}
+          primaryAction={<Button onClick={handleStockRecommendation} disabled={aiLoading}><Sparkles className="mr-2 h-4 w-4" />{aiLoading ? t('marketplace.stockAdvisorAnalyzing') : t('marketplace.stockAdvisorCta')}</Button>}
         >
           {stockAdvice ? (
             <div className="rounded-lg bg-background p-4 text-sm whitespace-pre-wrap">{stockAdvice}</div>
           ) : (
-            <p className="text-muted-foreground">Get AI-powered recommendations based on market trends and your buyer profile.</p>
+            <p className="text-muted-foreground">{t('marketplace.stockAdvisorFallback')}</p>
           )}
         </ActionPanel>
       </PageHeader>

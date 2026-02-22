@@ -11,7 +11,7 @@ CREATE SCHEMA IF NOT EXISTS audit;
 -- STEP 2: audit.audit_logs
 -- ============================================================
 
-CREATE TABLE audit.audit_logs (
+CREATE TABLE IF NOT EXISTS audit.audit_logs (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   actor_id uuid,
   actor_role text,
@@ -24,15 +24,15 @@ CREATE TABLE audit.audit_logs (
   created_at timestamptz DEFAULT now()
 );
 
-CREATE INDEX idx_audit_logs_actor ON audit.audit_logs (actor_id);
-CREATE INDEX idx_audit_logs_entity ON audit.audit_logs (entity_type, entity_id);
-CREATE INDEX idx_audit_logs_created ON audit.audit_logs (created_at);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_actor ON audit.audit_logs (actor_id);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_entity ON audit.audit_logs (entity_type, entity_id);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_created ON audit.audit_logs (created_at);
 
 -- ============================================================
 -- STEP 3: audit.security_events
 -- ============================================================
 
-CREATE TABLE audit.security_events (
+CREATE TABLE IF NOT EXISTS audit.security_events (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   event_type text NOT NULL,
   severity text CHECK (severity IN ('low','medium','high','critical')),
@@ -41,9 +41,9 @@ CREATE TABLE audit.security_events (
   created_at timestamptz DEFAULT now()
 );
 
-CREATE INDEX idx_security_events_type ON audit.security_events (event_type);
-CREATE INDEX idx_security_events_severity ON audit.security_events (severity);
-CREATE INDEX idx_security_events_created ON audit.security_events (created_at);
+CREATE INDEX IF NOT EXISTS idx_security_events_type ON audit.security_events (event_type);
+CREATE INDEX IF NOT EXISTS idx_security_events_severity ON audit.security_events (severity);
+CREATE INDEX IF NOT EXISTS idx_security_events_created ON audit.security_events (created_at);
 
 -- ============================================================
 -- STEP 4: ENABLE RLS
@@ -56,10 +56,12 @@ ALTER TABLE audit.security_events ENABLE ROW LEVEL SECURITY;
 -- STEP 5: POLICIES — admin-only SELECT, no client INSERT/UPDATE/DELETE
 -- ============================================================
 
+DROP POLICY IF EXISTS audit_logs_select_admin ON audit.audit_logs;
 CREATE POLICY audit_logs_select_admin
   ON audit.audit_logs FOR SELECT
   USING (public.is_admin());
 
+DROP POLICY IF EXISTS security_events_select_admin ON audit.security_events;
 CREATE POLICY security_events_select_admin
   ON audit.security_events FOR SELECT
   USING (public.is_admin());

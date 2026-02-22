@@ -1,0 +1,271 @@
+[
+  {
+    "role": "farmer",
+    "expectedRoute": "/farmer/dashboard",
+    "logs": [
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "url": "http://127.0.0.1:4173/login"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
+        "url": "http://127.0.0.1:4173/login"
+      }
+    ],
+    "responses": [],
+    "url": "http://127.0.0.1:4173/login",
+    "onExpectedRoute": false,
+    "h1": "Welcome back",
+    "bodySnippet": "AgriNext Gen\nWelcome back\n\nSign in to your account to continue\n\nSelect your role to sign in\nFarmer\nBuyer\nAgent\nLogistics\nPhone\nPassword\nSigning in...\nor continue with\nContinue with Google\n\nDon't have an account? Sign Up\n\nWelcome to AgriNext Gen\n\nConnect with buyers, manage your farm, and grow your agricultural business with India's leading agtech platform.",
+    "rpc400s": [],
+    "neighborTableErrors": [],
+    "screenshot": "output/playwright/roles/farmer-post-migrations.png"
+  },
+  {
+    "role": "buyer",
+    "expectedRoute": "/marketplace/dashboard",
+    "logs": [
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "url": "http://127.0.0.1:4173/login"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
+        "url": "http://127.0.0.1:4173/login"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "[i18n] Missing EN key: \"settings.profile_settings\"",
+        "url": "http://127.0.0.1:4173/marketplace/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "[i18n] Missing EN key: \"auth.sign_out\"",
+        "url": "http://127.0.0.1:4173/marketplace/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://127.0.0.1:4173/marketplace/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://127.0.0.1:4173/marketplace/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://127.0.0.1:4173/marketplace/dashboard"
+      }
+    ],
+    "responses": [
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/functions/v1/login-by-phone"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/rpc/buyer_dashboard_v1"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/rpc/list_market_products_compact_v1"
+      },
+      {
+        "status": 400,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/rpc/list_orders_compact_v1"
+      },
+      {
+        "status": 400,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/rpc/list_orders_compact_v1"
+      },
+      {
+        "status": 400,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/rpc/list_orders_compact_v1"
+      }
+    ],
+    "url": "http://127.0.0.1:4173/marketplace/dashboard",
+    "onExpectedRoute": true,
+    "h1": "Dashboard",
+    "bodySnippet": "Welcome back\nYou have successfully signed in.\nAgriNext Gen Market\nMarketplace Buyer\nDashboard\nBrowse Products\nMy Orders\nProfile\nSign Out\nDashboard\nOnline\n2\nDB\nBrowse Marketplace\n\nWelcome, Dummy Buyer One - null\n\nBrowse Products\n\nAVAILABLE\n\n4\n\nFRESH HARVEST\n\n2\n\nCOMING SOON\n\n0\n\nACTIVE ORDERS\n\n2\n\nFresh Harvest Available\nView All\nNo products found\n\nTry different search terms or filters\n\nYour Active Orders\nView All\nYou haven't received any orders yet.\n\nBrowse Products\n\nBrowse Products\nAI Stock Advisor\n\nGet recommendations on what to stock this week from your market profile and fresh inventory.\n\nWhat Should I Stock?\n\nGet AI-powered recommendations based on market trends and your buyer profile.",
+    "rpc400s": [
+      {
+        "status": 400,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/rpc/list_orders_compact_v1"
+      },
+      {
+        "status": 400,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/rpc/list_orders_compact_v1"
+      }
+    ],
+    "neighborTableErrors": [],
+    "screenshot": "output/playwright/roles/buyer-post-migrations.png"
+  },
+  {
+    "role": "agent",
+    "expectedRoute": "/agent/dashboard",
+    "logs": [
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "url": "http://127.0.0.1:4173/login"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
+        "url": "http://127.0.0.1:4173/login"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "[i18n] Missing EN key: \"settings.profile_settings\"",
+        "url": "http://127.0.0.1:4173/agent/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "[i18n] Missing EN key: \"auth.sign_out\"",
+        "url": "http://127.0.0.1:4173/agent/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "error",
+        "text": "Failed to load resource: the server responded with a status of 404 ()",
+        "url": "http://127.0.0.1:4173/agent/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://127.0.0.1:4173/agent/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://127.0.0.1:4173/agent/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "error",
+        "text": "Failed to load resource: the server responded with a status of 404 ()",
+        "url": "http://127.0.0.1:4173/agent/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://127.0.0.1:4173/agent/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://127.0.0.1:4173/agent/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://127.0.0.1:4173/agent/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "error",
+        "text": "Failed to load resource: the server responded with a status of 404 ()",
+        "url": "http://127.0.0.1:4173/agent/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://127.0.0.1:4173/agent/dashboard"
+      }
+    ],
+    "responses": [
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/functions/v1/login-by-phone"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/rpc/agent_dashboard_v1"
+      }
+    ],
+    "url": "http://127.0.0.1:4173/agent/dashboard",
+    "onExpectedRoute": true,
+    "h1": "Agent Dashboard",
+    "bodySnippet": "Welcome back\nYou have successfully signed in.\nAgriNext Gen Agent\nField Operations\nToday\nDashboard\nMy Tasks\nMy Farmers\nFarmers & Crops\nTransport\nService Area\nProfile\nSign Out\nAgent Dashboard\nOnline\n2\nDA\nAgent Dashboard\n\nAssigned Farmers\n\nFarmers Assigned\n\nActive Crops\n\nTasks Today\n\nundefined/undefined\n\nReady to Harvest\n\nPending Transport\n\nToday's Tasks\nView All\n\nNo tasks scheduled for today\n\nCrops Near Harvest\nAI Insights\nPowered by AI\nPrioritize Today's Visits\nGenerate Cluster Summary\nRecent AI Insights\nPending Transport",
+    "rpc400s": [],
+    "neighborTableErrors": [],
+    "screenshot": "output/playwright/roles/agent-post-migrations.png"
+  },
+  {
+    "role": "logistics",
+    "expectedRoute": "/logistics/dashboard",
+    "logs": [
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.",
+        "url": "http://127.0.0.1:4173/login"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.",
+        "url": "http://127.0.0.1:4173/login"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "[i18n] Missing EN key: \"settings.profile_settings\"",
+        "url": "http://127.0.0.1:4173/logistics/dashboard"
+      },
+      {
+        "kind": "console",
+        "level": "warning",
+        "text": "[i18n] Missing EN key: \"auth.sign_out\"",
+        "url": "http://127.0.0.1:4173/logistics/dashboard"
+      }
+    ],
+    "responses": [
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/functions/v1/login-by-phone"
+      },
+      {
+        "status": 200,
+        "url": "https://rmtkkzfzdmpjlqexrbme.supabase.co/rest/v1/rpc/logistics_dashboard_v1"
+      }
+    ],
+    "url": "http://127.0.0.1:4173/logistics/dashboard",
+    "onExpectedRoute": true,
+    "h1": "Dashboard",
+    "bodySnippet": "AgriNext Gen Transport\nLogistics Partner\nDashboard\nAvailable Loads\nActive Trips\nCompleted\nMy Vehicles\nService Area\nProfile\nSign Out\nDashboard\nOnline\n2\nDL\nTransporter Dashboard\n\nWelcome back, Dummy Logistics One - Channapatna\n\nProfile\n\nAVAILABLE LOADS\n\n2\n\nACCEPTED TRIPS\n\n0\n\nIN PROGRESS\n\n0\n\nCOMPLETED TRIPS\n\n0\n\nToday's Active Trips\nView All\nNo active trips\nNew Load Requests\nView All\nAI-Powered Suggestions\n\nOptimize routing and return loads to reduce idle distance and improve earnings.\n\nFind Return Loads\nSuggest Best Route\nRoute Optimization\n\nClick \"Suggest Best Route\" to get AI-recommended pickup sequencing.\n\nReverse Logistics\n\nClick \"Find Return Loads\" to identify profitable return trips.",
+    "rpc400s": [],
+    "neighborTableErrors": [],
+    "screenshot": "output/playwright/roles/logistics-post-migrations.png"
+  },
+  {
+    "kind": "admin_rpc",
+    "loginStatus": 500,
+    "loginBodySnippet": "{\"error\":\"Unexpected token 'u', \\\"upstream r\\\"... is not valid JSON\"}"
+  }
+]

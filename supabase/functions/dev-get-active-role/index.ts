@@ -16,6 +16,12 @@ serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: { ...corsHeaders, "Access-Control-Allow-Methods": "GET, OPTIONS" } });
   }
+  if (req.method !== "GET") {
+    return new Response(JSON.stringify({ ok: false, error: "Method not allowed" }), {
+      status: 405,
+      headers: corsHeaders,
+    });
+  }
 
   if (DEV_TOOLS_ENABLED !== "true") {
     return new Response(JSON.stringify({ ok: false, error: "Not found" }), { status: 404, headers: corsHeaders });
@@ -49,16 +55,31 @@ serve(async (req: Request) => {
   const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
   try {
+    const { data: roleData, error: roleErr } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .maybe_single();
+    if (roleErr) {
+      return new Response(JSON.stringify({ ok: false, error: "role_check_failed" }), { status: 500, headers: corsHeaders });
+    }
+    const isAdmin = roleData?.role === "admin";
+    const { data: allowRow, error: allowErr } = await supabase
+      .from("dev_allowlist")
+      .select("user_id")
+      .eq("user_id", userId)
+      .maybe_single();
+    if (allowErr) {
+      return new Response(JSON.stringify({ ok: false, error: "allowlist_check_failed" }), { status: 500, headers: corsHeaders });
+    }
+    if (!isAdmin && !allowRow) {
+      return new Response(JSON.stringify({ ok: false, error: "Forbidden" }), { status: 403, headers: corsHeaders });
+    }
+
     // Check for override that is not expired
     const { data: overrideData } = await supabase
       .from("dev_role_overrides")
       .select("active_role, expires_at")
-      .eq("user_id", userId)
-      .maybe_single();
-
-    const { data: roleData } = await supabase
-      .from("user_roles")
-      .select("role")
       .eq("user_id", userId)
       .maybe_single();
 
@@ -76,4 +97,3 @@ serve(async (req: Request) => {
     return new Response(JSON.stringify({ ok: false, error: "server_error" }), { status: 500, headers: corsHeaders });
   }
 });
-

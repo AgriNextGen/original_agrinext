@@ -16,6 +16,12 @@ serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: { ...corsHeaders, "Access-Control-Allow-Methods": "POST, OPTIONS" } });
   }
+  if (req.method !== "POST") {
+    return new Response(JSON.stringify({ ok: false, error: "Method not allowed" }), {
+      status: 405,
+      headers: corsHeaders,
+    });
+  }
 
   if (DEV_TOOLS_ENABLED !== "true") {
     return new Response(JSON.stringify({ ok: false, error: "Not found" }), { status: 404, headers: corsHeaders });
@@ -49,6 +55,27 @@ serve(async (req: Request) => {
   const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
   try {
+    const { data: roleData, error: roleErr } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .maybe_single();
+    if (roleErr) {
+      return new Response(JSON.stringify({ ok: false, error: "role_check_failed" }), { status: 500, headers: corsHeaders });
+    }
+    const isAdmin = roleData?.role === "admin";
+    const { data: allowRow, error: allowErr } = await supabase
+      .from("dev_allowlist")
+      .select("user_id")
+      .eq("user_id", userId)
+      .maybe_single();
+    if (allowErr) {
+      return new Response(JSON.stringify({ ok: false, error: "allowlist_check_failed" }), { status: 500, headers: corsHeaders });
+    }
+    if (!isAdmin && !allowRow) {
+      return new Response(JSON.stringify({ ok: false, error: "Forbidden" }), { status: 403, headers: corsHeaders });
+    }
+
     const body = await req.json().catch(() => ({}));
     const active_role = body.hasOwnProperty("active_role") ? body.active_role : undefined;
 
@@ -72,12 +99,6 @@ serve(async (req: Request) => {
       .eq("user_id", userId)
       .maybe_single();
 
-    const { data: roleData } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId)
-      .maybe_single();
-
     const real_role = roleData?.role ?? null;
     const activeRole = overrideData && new Date(overrideData.expires_at) > new Date() ? overrideData.active_role : real_role;
     const expires_at = overrideData?.expires_at ?? null;
@@ -91,4 +112,3 @@ serve(async (req: Request) => {
     return new Response(JSON.stringify({ ok: false, error: "server_error" }), { status: 500, headers: corsHeaders });
   }
 });
-

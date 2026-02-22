@@ -16,6 +16,10 @@ DROP POLICY IF EXISTS "traceability-media_authenticated" ON storage.objects;
 DROP POLICY IF EXISTS "soil-reports_authenticated" ON storage.objects;
 DROP POLICY IF EXISTS "trip-proofs_authenticated" ON storage.objects;
 DROP POLICY IF EXISTS "voice_media_authenticated" ON storage.objects;
+DROP POLICY IF EXISTS storage_select_own_path ON storage.objects;
+DROP POLICY IF EXISTS storage_select_admin ON storage.objects;
+DROP POLICY IF EXISTS storage_update_admin ON storage.objects;
+DROP POLICY IF EXISTS storage_delete_admin ON storage.objects;
 
 -- ============================================================
 -- STEP 3: NEW SELECT POLICIES (read via signed URLs or path prefix)

@@ -1,5 +1,6 @@
 import { en } from './en';
 import { kn } from './kn';
+import { resolveTranslationAlias } from './aliases';
 
 export type Language = 'en' | 'kn';
 export type TranslationKeys = typeof en;
@@ -85,6 +86,14 @@ export function t(key: string, language: Language = 'en'): string {
   if (translation !== undefined) {
     return translation;
   }
+
+  const aliasedKey = resolveTranslationAlias(key);
+  if (aliasedKey && aliasedKey !== key) {
+    const aliasedTranslation = getNestedValue(translations[language], aliasedKey);
+    if (aliasedTranslation !== undefined) {
+      return aliasedTranslation;
+    }
+  }
   
   // Log missing key
   logMissingKey(key, language);
@@ -94,6 +103,13 @@ export function t(key: string, language: Language = 'en'): string {
     const fallback = getNestedValue(translations.en, key);
     if (fallback !== undefined) {
       return fallback;
+    }
+
+    if (aliasedKey && aliasedKey !== key) {
+      const aliasedFallback = getNestedValue(translations.en, aliasedKey);
+      if (aliasedFallback !== undefined) {
+        return aliasedFallback;
+      }
     }
   }
   

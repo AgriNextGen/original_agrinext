@@ -32,6 +32,9 @@ DROP POLICY IF EXISTS trace_attachments_insert_auth ON public.trace_attachments;
 DROP POLICY IF EXISTS trace_attachments_select_auth ON public.trace_attachments;
 DROP POLICY IF EXISTS trace_attachments_insert ON public.trace_attachments;
 DROP POLICY IF EXISTS trace_attachments_select ON public.trace_attachments;
+DROP POLICY IF EXISTS ta_insert_owner ON public.trace_attachments;
+DROP POLICY IF EXISTS ta_select ON public.trace_attachments;
+DROP POLICY IF EXISTS ta_update_visibility ON public.trace_attachments;
 
 -- ============================================================
 -- STEP 4: NEW RLS POLICIES

@@ -46,7 +46,7 @@ const DashboardSidebar = ({ onClose, isOpen = true, isMobile = false }: Dashboar
 
   // Farmer navigation items
   const farmerNavItems = [
-    { icon: CalendarDays, label: 'My Day', href: '/farmer/my-day' },
+    { icon: CalendarDays, label: t('nav.myDay'), href: '/farmer/my-day' },
     { icon: LayoutDashboard, label: t('nav.dashboard'), href: '/farmer/dashboard' },
     { icon: CropIcon, label: t('nav.crops'), href: '/farmer/crops' },
     { icon: LandPlot, label: t('nav.farmlands'), href: '/farmer/farmlands' },
@@ -65,13 +65,13 @@ const DashboardSidebar = ({ onClose, isOpen = true, isMobile = false }: Dashboar
 
   // Agent navigation items
   const agentNavItems = [
-    { icon: CalendarDays, label: 'Today', href: '/agent/today' },
+    { icon: CalendarDays, label: t('nav.today'), href: '/agent/today' },
     { icon: LayoutDashboard, label: t('nav.dashboard'), href: '/agent/dashboard' },
     { icon: ClipboardList, label: t('nav.myTasks'), href: '/agent/tasks' },
     { icon: Users, label: t('nav.myFarmers'), href: '/agent/my-farmers' },
     { icon: Users, label: t('nav.farmersAndCrops'), href: '/agent/farmers' },
     { icon: Truck, label: t('nav.transport'), href: '/agent/transport' },
-    { icon: MapPin, label: 'Service Area', href: '/agent/service-area' },
+    { icon: MapPin, label: t('nav.serviceArea'), href: '/agent/service-area' },
     { icon: Settings, label: t('nav.profile'), href: '/agent/profile' },
   ];
 
@@ -82,7 +82,7 @@ const DashboardSidebar = ({ onClose, isOpen = true, isMobile = false }: Dashboar
     { icon: Truck, label: t('nav.activeTrips'), href: '/logistics/trips' },
     { icon: CropIcon, label: t('nav.completed'), href: '/logistics/completed' },
     { icon: LandPlot, label: t('nav.myVehicles'), href: '/logistics/vehicles' },
-    { icon: MapPin, label: 'Service Area', href: '/logistics/service-area' },
+    { icon: MapPin, label: t('nav.serviceArea'), href: '/logistics/service-area' },
     { icon: Settings, label: t('nav.profile'), href: '/logistics/profile' },
   ];
 
@@ -96,24 +96,24 @@ const DashboardSidebar = ({ onClose, isOpen = true, isMobile = false }: Dashboar
 
   // Admin navigation items
   const adminNavItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', href: '/admin/dashboard' },
-    { icon: Inbox, label: 'Ops Inbox', href: '/admin/ops' },
-    { icon: Ticket, label: 'Tickets', href: '/admin/tickets' },
-    { icon: Users, label: 'Farmers', href: '/admin/farmers' },
-    { icon: Sparkles, label: 'Agents', href: '/admin/agents' },
-    { icon: Truck, label: 'Transporters', href: '/admin/transporters' },
-    { icon: ShoppingBag, label: 'Buyers', href: '/admin/buyers' },
-    { icon: CropIcon, label: 'Crops', href: '/admin/crops' },
-    { icon: Package, label: 'Transport', href: '/admin/transport' },
-    { icon: ClipboardList, label: 'Orders', href: '/admin/orders' },
-    { icon: ClipboardList, label: 'Pending Updates', href: '/admin/pending-updates' },
-    { icon: Bot, label: 'AI Review', href: '/admin/ai-review' },
-    { icon: Briefcase, label: 'Jobs', href: '/admin/jobs' },
-    { icon: DollarSign, label: 'Finance', href: '/admin/finance' },
-    { icon: Sparkles, label: 'AI Console', href: '/admin/ai-console' },
-    { icon: Database, label: 'Seed Data', href: '/admin/seed-data' },
-    { icon: TestTube, label: 'Mysuru Demo', href: '/admin/mysuru-demo' },
-    { icon: Settings, label: 'Data Health', href: '/admin/data-health' },
+    { icon: LayoutDashboard, label: t('nav.dashboard'), href: '/admin/dashboard' },
+    { icon: Inbox, label: t('nav.opsInbox'), href: '/admin/ops' },
+    { icon: Ticket, label: t('nav.tickets'), href: '/admin/tickets' },
+    { icon: Users, label: t('nav.farmers'), href: '/admin/farmers' },
+    { icon: Sparkles, label: t('nav.agents'), href: '/admin/agents' },
+    { icon: Truck, label: t('nav.transporters'), href: '/admin/transporters' },
+    { icon: ShoppingBag, label: t('nav.buyers'), href: '/admin/buyers' },
+    { icon: CropIcon, label: t('nav.allCrops'), href: '/admin/crops' },
+    { icon: Package, label: t('nav.transport'), href: '/admin/transport' },
+    { icon: ClipboardList, label: t('nav.orders'), href: '/admin/orders' },
+    { icon: ClipboardList, label: t('nav.pendingUpdates'), href: '/admin/pending-updates' },
+    { icon: Bot, label: t('nav.aiReview'), href: '/admin/ai-review' },
+    { icon: Briefcase, label: t('nav.jobs'), href: '/admin/jobs' },
+    { icon: DollarSign, label: t('nav.finance'), href: '/admin/finance' },
+    { icon: Sparkles, label: t('nav.aiConsole'), href: '/admin/ai-console' },
+    { icon: Database, label: t('nav.seedData'), href: '/admin/seed-data' },
+    { icon: TestTube, label: t('nav.mysuruDemo'), href: '/admin/mysuru-demo' },
+    { icon: Settings, label: t('nav.dataHealth'), href: '/admin/data-health' },
   ];
 
   // Select nav items based on user role
@@ -128,14 +128,14 @@ const DashboardSidebar = ({ onClose, isOpen = true, isMobile = false }: Dashboar
           : farmerNavItems;
   
   const dashboardTitle = userRole === 'agent' 
-    ? 'AgriNext Gen Agent' 
+    ? t('dashboardShell.title.agent')
     : userRole === 'logistics'
-      ? 'AgriNext Gen Transport'
+      ? t('dashboardShell.title.logistics')
       : userRole === 'buyer'
-        ? 'AgriNext Gen Market'
+        ? t('dashboardShell.title.buyer')
         : userRole === 'admin'
-          ? 'AgriNext Gen Admin'
-          : 'AgriNext Gen';
+          ? t('dashboardShell.title.admin')
+          : t('dashboardShell.title.farmer');
 
   const handleNavClick = () => {
     if (onClose) onClose();
@@ -185,16 +185,16 @@ const DashboardSidebar = ({ onClose, isOpen = true, isMobile = false }: Dashboar
                 {dashboardTitle}
               </span>
               {userRole === 'agent' && (
-                <span className="text-xs text-purple-500 font-medium">Field Operations</span>
+                <span className="text-xs text-purple-500 font-medium">{t('dashboardShell.subtitle.agent')}</span>
               )}
               {userRole === 'logistics' && (
-                <span className="text-xs text-blue-500 font-medium">Logistics Partner</span>
+                <span className="text-xs text-blue-500 font-medium">{t('dashboardShell.subtitle.logistics')}</span>
               )}
               {userRole === 'buyer' && (
-                <span className="text-xs text-orange-500 font-medium">Marketplace Buyer</span>
+                <span className="text-xs text-orange-500 font-medium">{t('dashboardShell.subtitle.buyer')}</span>
               )}
               {userRole === 'admin' && (
-                <span className="text-xs text-rose-500 font-medium">Command Center</span>
+                <span className="text-xs text-rose-500 font-medium">{t('dashboardShell.subtitle.admin')}</span>
               )}
             </div>
           </div>
