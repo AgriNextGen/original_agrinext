@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,6 +40,7 @@ const Signup = () => {
     password: "",
   });
   const [isLoading, setIsLoading] = useState(false);
+  const isSubmittingRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -73,7 +74,11 @@ const Signup = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    
+    // Prevent duplicate submits from rapid clicks/race conditions
+    if (isSubmittingRef.current) {
+      console.warn("Signup already in progress - ignoring duplicate submit");
+      return;
+    }
     if (step === 1 && selectedRole) {
       setStep(2);
       return;
@@ -91,6 +96,8 @@ const Signup = () => {
         return;
       }
 
+      // mark synchronous in-flight flag before async work
+      isSubmittingRef.current = true;
       setIsLoading(true);
 
       try {
@@ -116,6 +123,8 @@ const Signup = () => {
         });
 
         if (authError) {
+          // Log full error for diagnostics
+          console.error("Supabase auth.signUp error:", authError);
           if (authError.message.toLowerCase().includes("rate limit")) {
             setError(t("auth.rate_limit_exceeded"));
             toast({
@@ -169,25 +178,34 @@ const Signup = () => {
 
           // Create role-specific profile
           if (selectedRole === "buyer") {
-            await supabase
-              .from("buyers")
-              .upsert({
-                user_id: authData.user.id,
-                name: formData.name.trim(),
-                phone: normalizedPhone || null,
-              }, { onConflict: 'user_id' });
+            {
+              const { error: buyersError } = await supabase
+                .from("buyers")
+                .upsert({
+                  user_id: authData.user.id,
+                  name: formData.name.trim(),
+                  phone: normalizedPhone || null,
+                }, { onConflict: 'user_id' });
+              if (buyersError) console.error("buyers upsert error:", buyersError);
+            }
           } else if (selectedRole === "logistics") {
-            await supabase
-              .from("transporters")
-              .upsert({
-                user_id: authData.user.id,
-                name: formData.name.trim(),
-                phone: normalizedPhone || null,
-              }, { onConflict: 'user_id' });
+            {
+              const { error: transError } = await supabase
+                .from("transporters")
+                .upsert({
+                  user_id: authData.user.id,
+                  name: formData.name.trim(),
+                  phone: normalizedPhone || null,
+                }, { onConflict: 'user_id' });
+              if (transError) console.error("transporters upsert error:", transError);
+            }
           }
 
           // Ensure auth_email is in profiles for login-by-phone
-          await supabase.from("profiles").update({ auth_email: authEmail }).eq("id", authData.user.id);
+          {
+            const { error: profilesUpdateError } = await supabase.from("profiles").update({ auth_email: authEmail }).eq("id", authData.user.id);
+            if (profilesUpdateError) console.error("profiles update error:", profilesUpdateError);
+          }
 
           // Refresh the role in auth context
           await refreshRole();
@@ -201,7 +219,7 @@ const Signup = () => {
           navigate(roleRoutes[selectedRole] || "/");
         }
       } catch (error) {
-        console.error("Signup error:", error);
+        console.error("Signup unexpected error:", error);
         setError(t("common.error"));
         toast({
           title: t("common.error"),
@@ -210,6 +228,7 @@ const Signup = () => {
         });
       } finally {
         setIsLoading(false);
+        isSubmittingRef.current = false;
       }
     }
   };
