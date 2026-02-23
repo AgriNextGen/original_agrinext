@@ -189,17 +189,17 @@ const SettingsPage = () => {
                 </div>
 
                 <Separator />
-                <p className="text-sm font-medium text-muted-foreground">{language === 'kn' ? 'ಭೌಗೋಳಿಕ ಮಾಹಿತಿ' : 'Geographic Location'}</p>
+                <p className="text-sm font-medium text-muted-foreground">{t('settings.geographicLocation')}</p>
                 <div className="grid sm:grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label>{language === 'kn' ? 'ರಾಜ್ಯ' : 'State'}</Label>
+                    <Label>{t('settings.state')}</Label>
                     <GeoStateSelect
                       value={geoStateId}
                       onValueChange={(v) => { setGeoStateId(v); setGeoDistrictId(''); setGeoMarketId(''); }}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>{language === 'kn' ? 'ಜಿಲ್ಲೆ' : 'District'}</Label>
+                    <Label>{t('settings.district')}</Label>
                     <GeoDistrictSelect
                       stateId={geoStateId || null}
                       value={geoDistrictId}
@@ -207,7 +207,7 @@ const SettingsPage = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>{language === 'kn' ? 'ಮಾರುಕಟ್ಟೆ' : 'Home Market'}</Label>
+                    <Label>{t('settings.homeMarket')}</Label>
                     <GeoMarketSelect
                       districtId={geoDistrictId || null}
                       value={geoMarketId}
@@ -263,7 +263,7 @@ const SettingsPage = () => {
                 <div>
                   <p className="font-medium">{t('settings.language')}</p>
                   <p className="text-sm text-muted-foreground">
-                    {language === 'en' ? t('common.english') : t('common.kannada')}
+                    {language === 'en' ? t('settings.english') : t('settings.kannada')}
                   </p>
                 </div>
               </div>
@@ -275,7 +275,7 @@ const SettingsPage = () => {
                   disabled={languageLoading}
                 >
                   {language === 'en' && <Check className="h-3 w-3 mr-1" />}
-                  {t('common.english')}
+                  {t('settings.english')}
                 </Button>
                 <Button 
                   variant={language === 'kn' ? 'default' : 'outline'} 
@@ -284,7 +284,7 @@ const SettingsPage = () => {
                   disabled={languageLoading}
                 >
                   {language === 'kn' && <Check className="h-3 w-3 mr-1" />}
-                  {t('common.kannada')}
+                  {t('settings.kannada')}
                 </Button>
               </div>
             </div>
