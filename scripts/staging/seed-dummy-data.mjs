@@ -52,7 +52,7 @@ async function ensureBuyerId(userId, demoTag) {
       {
         id: userId,
         user_id: userId,
-        name: "Dummy Buyer One",
+        name: "Ayesha Fathima",
         phone: null,
         district: "Bengaluru Urban",
         preferred_crops: ["onion", "tomato"],
@@ -74,7 +74,7 @@ async function ensureTransporterId(userId, demoTag) {
   if (existing.data?.id) return existing.data.id;
   const inserted = await insertOne("transporters", {
     user_id: userId,
-    name: "Dummy Logistics One",
+    name: "Manjunath N",
     phone: null,
     operating_district: "Ramanagara",
     vehicle_type: "mini_truck",
@@ -96,7 +96,7 @@ async function optionalInsertSupportTicket(adminUserId, demoTag, entityId) {
       created_by: adminUserId,
       category: "order",
       entity_id: entityId,
-      message: `[${demoTag}] Dummy support ticket for admin dashboard`,
+      message: `[${demoTag}] Buyer requested order coordination support for Mysuru onion load`,
       status: "open",
       priority: "normal",
     });
@@ -164,13 +164,13 @@ async function main() {
 
   const farmA = await insertOnce(
     "farmlands",
-    { farmer_id: farmer.user_id, demo_tag: demoTag, name: "Demo Farm A" },
+    { farmer_id: farmer.user_id, demo_tag: demoTag, name: "KRS Canal Plot" },
     {
       farmer_id: farmer.user_id,
-      name: "Demo Farm A",
+      name: "KRS Canal Plot",
       area: 2.5,
       area_unit: "acres",
-      village: "Mysuru Rural",
+      village: "Hunsuru",
       district: "Mysuru",
       soil_type: "loamy",
       geo_verified: true,
@@ -181,10 +181,10 @@ async function main() {
 
   const farmB = await insertOnce(
     "farmlands",
-    { farmer_id: farmer.user_id, demo_tag: demoTag, name: "Demo Farm B" },
+    { farmer_id: farmer.user_id, demo_tag: demoTag, name: "Nanjangud Red Soil Plot" },
     {
       farmer_id: farmer.user_id,
-      name: "Demo Farm B",
+      name: "Nanjangud Red Soil Plot",
       area: 1.4,
       area_unit: "acres",
       village: "Nanjangud",
@@ -198,11 +198,11 @@ async function main() {
 
   const cropOnion = await insertOnce(
     "crops",
-    { farmer_id: farmer.user_id, demo_tag: demoTag, crop_name: "Onion Demo Crop" },
+    { farmer_id: farmer.user_id, demo_tag: demoTag, crop_name: "Mysuru Red Onion Crop" },
     {
       farmer_id: farmer.user_id,
       land_id: farmA.record.id,
-      crop_name: "Onion Demo Crop",
+      crop_name: "Mysuru Red Onion Crop",
       variety: "Nasik Red",
       status: "growing",
       health_status: "good",
@@ -215,11 +215,11 @@ async function main() {
 
   const cropTomato = await insertOnce(
     "crops",
-    { farmer_id: farmer.user_id, demo_tag: demoTag, crop_name: "Tomato Demo Crop" },
+    { farmer_id: farmer.user_id, demo_tag: demoTag, crop_name: "Mandya Hybrid Tomato Crop" },
     {
       farmer_id: farmer.user_id,
       land_id: farmB.record.id,
-      crop_name: "Tomato Demo Crop",
+      crop_name: "Mandya Hybrid Tomato Crop",
       variety: "Hybrid",
       status: "growing",
       health_status: "excellent",
@@ -232,12 +232,12 @@ async function main() {
 
   const listing = await insertOnce(
     "listings",
-    { seller_id: farmer.user_id, demo_tag: demoTag, title: "Demo Onion Listing" },
+    { seller_id: farmer.user_id, demo_tag: demoTag, title: "A-Grade Mysuru Onion Lot" },
     {
       seller_id: farmer.user_id,
       crop_id: cropOnion.record.id,
-      title: "Demo Onion Listing",
-      description: `[${demoTag}] High quality onion lot`,
+      title: "A-Grade Mysuru Onion Lot",
+      description: `[${demoTag}] Fresh onion lot from Hunsuru, suitable for wholesale buyers`,
       category: "vegetables",
       price: 24,
       quantity: 1200,
@@ -251,17 +251,17 @@ async function main() {
 
   const request = await insertOnce(
     "transport_requests",
-    { farmer_id: farmer.user_id, demo_tag: demoTag, pickup_location: "Demo Farm A Gate" },
+    { farmer_id: farmer.user_id, demo_tag: demoTag, pickup_location: "KRS Canal Plot Gate" },
     {
       farmer_id: farmer.user_id,
       crop_id: cropOnion.record.id,
-      pickup_location: "Demo Farm A Gate",
-      pickup_village: "Mysuru Rural",
+      pickup_location: "KRS Canal Plot Gate",
+      pickup_village: "Hunsuru",
       drop_location: "Mysuru Mandi Yard",
       quantity: 1200,
       quantity_unit: "kg",
       status: "requested",
-      notes: `[${demoTag}] dummy transport load`,
+      notes: `[${demoTag}] Onion load for Bengaluru wholesale buyer dispatch`,
       demo_tag: demoTag,
     },
   );
@@ -371,7 +371,7 @@ async function main() {
       farmer_id: farmer.user_id,
       crop_id: cropOnion.record.id,
       task_id: task.record.id,
-      note_text: `[${demoTag}] audio summary`,
+      note_text: `[${demoTag}] Farmer requested dispatch support after mandi rate update`,
       language_code: "en",
     },
   );
@@ -386,7 +386,7 @@ async function main() {
       farm_location: "Mysuru",
       crop_type: "onion",
       crop_health: "good",
-      notes: `[${demoTag}] agent observation`,
+      notes: `[${demoTag}] Crop is market-ready in 5-7 days; irrigation stable via canal supply`,
       demo_tag: demoTag,
     },
   );
@@ -412,31 +412,31 @@ async function main() {
   const noteFarmer = await appendNotification(
     farmer.user_id,
     `[${demoTag}] New buyer order`,
-    "Dummy buyer placed an order for onion listing",
+    "Bengaluru buyer placed an order for your Mysuru onion listing",
     "order",
   );
   const noteAgent = await appendNotification(
     agent.user_id,
     `[${demoTag}] Assignment active`,
-    "Dummy farmer assignment is active",
+    "Farmer monitoring assignment for Mysuru onion crop is active",
     "task",
   );
   const noteLogistics = await appendNotification(
     logistics.user_id,
     `[${demoTag}] Trip available`,
-    "Dummy transport request has been assigned",
+    "Mysuru mandi dispatch trip has been assigned to your vehicle",
     "shipment",
   );
   const noteBuyer = await appendNotification(
     buyerUser.user_id,
     `[${demoTag}] Order placed`,
-    "Your dummy marketplace order was created",
+    "Your Karnataka wholesale order was created successfully",
     "order",
   );
   const noteAdmin = await appendNotification(
     adminUser.user_id,
     `[${demoTag}] System seed complete`,
-    "Dummy seed data set is available for dashboard checks",
+    "Karnataka demo seed dataset is ready for dashboard validation",
     "system",
   );
   inserted.notifications.push(noteFarmer, noteAgent, noteLogistics, noteBuyer, noteAdmin);

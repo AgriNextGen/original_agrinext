@@ -10,45 +10,44 @@ import {
 } from "./common.mjs";
 import { CreateDummyUserRequestSchema, validateSchema } from "./contracts.mjs";
 
-const admin = createAdminClient();
-assertStagingEnvironment();
+let admin;
 
 const DEFAULT_PASSWORD = "Dummy@12345";
 const USER_SPECS = [
   {
     role: "farmer",
     phone: "+919900000101",
-    full_name: "Dummy Farmer One",
+    full_name: "Basavaraju Gowda",
     dashboard_path: "/farmer/dashboard",
-    profile_metadata: { village: "Mysuru Rural", district: "Mysuru", preferred_language: "en" },
+    profile_metadata: { village: "Hunsuru", district: "Mysuru", preferred_language: "kn" },
   },
   {
     role: "agent",
     phone: "+919900000102",
-    full_name: "Dummy Agent One",
+    full_name: "Shwetha Kumar",
     dashboard_path: "/agent/dashboard",
-    profile_metadata: { village: "Mandya", district: "Mandya", preferred_language: "en" },
+    profile_metadata: { village: "Srirangapatna", district: "Mandya", preferred_language: "kn" },
   },
   {
     role: "logistics",
     phone: "+919900000103",
-    full_name: "Dummy Logistics One",
+    full_name: "Manjunath N",
     dashboard_path: "/logistics/dashboard",
-    profile_metadata: { village: "Channapatna", district: "Ramanagara", preferred_language: "en" },
+    profile_metadata: { village: "Channapatna", district: "Ramanagara", preferred_language: "kn" },
   },
   {
     role: "buyer",
     phone: "+919900000104",
-    full_name: "Dummy Buyer One",
+    full_name: "Ayesha Fathima",
     dashboard_path: "/marketplace/dashboard",
-    profile_metadata: { village: "Bengaluru", district: "Bengaluru Urban", preferred_language: "en" },
+    profile_metadata: { village: "Yeshwanthpur", district: "Bengaluru Urban", preferred_language: "en" },
   },
   {
     role: "admin",
     phone: "+919900000105",
-    full_name: "Dummy Admin One",
+    full_name: "Raghavendra S",
     dashboard_path: "/admin/dashboard",
-    profile_metadata: { village: "HQ", district: "Bengaluru Urban", preferred_language: "en" },
+    profile_metadata: { village: "Malleshwaram", district: "Bengaluru Urban", preferred_language: "en" },
   },
 ];
 
@@ -107,6 +106,7 @@ async function ensureAuthUser(spec, password, demoTag) {
     phone: normalizedPhone,
     full_name: spec.full_name,
     auth_email: email,
+    state: "Karnataka",
     demo_tag: demoTag,
     created_by: "staging-provision-dummy-users",
     created_at: new Date().toISOString(),
@@ -161,6 +161,11 @@ async function alignRelationalRows(spec, user, demoTag, warnings) {
     full_name: spec.full_name,
     phone: user.phone,
     auth_email: user.email,
+    account_status: "active",
+    blocked_until: null,
+    failed_login_count_window: 0,
+    failed_login_window_started_at: null,
+    last_failed_login_at: null,
     district: spec.profile_metadata.district ?? null,
     village: spec.profile_metadata.village ?? null,
     preferred_language: spec.profile_metadata.preferred_language ?? "en",
@@ -227,7 +232,7 @@ async function alignRelationalRows(spec, user, demoTag, warnings) {
         operating_village: spec.profile_metadata.village ?? null,
         vehicle_type: "mini_truck",
         vehicle_capacity: 1200,
-        registration_number: `DL-${demoTag.slice(-4)}-${user.phone.slice(-4)}`,
+        registration_number: `KA-${demoTag.slice(-4)}-${user.phone.slice(-4)}`,
         demo_tag: demoTag,
         updated_at: new Date().toISOString(),
       },
@@ -266,6 +271,11 @@ async function main() {
 
   if (!/^dummy_\d{8}_\d{4}$/.test(demoTag)) {
     throw new Error("demo_tag must match dummy_YYYYMMDD_HHMM");
+  }
+
+  if (!dryRun) {
+    admin = createAdminClient();
+    assertStagingEnvironment();
   }
 
   const warnings = [];

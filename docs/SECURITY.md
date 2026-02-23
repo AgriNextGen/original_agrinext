@@ -47,6 +47,15 @@
 - Full live RLS policy SQL and trigger source are not available through REST-only access.
 - Non-public schema policy details need SQL-catalog verification path.
 
+## Hardening Updates (Current Repo)
+- Internal reconciliation trigger endpoint (`finance-reconcile`) is now worker-secret protected and POST-only.
+- Dev role endpoints enforce admin/dev allowlist checks when enabled.
+- Frontend `/dev-console` route is gated to non-production + dev-tools-enabled builds and admin users.
+- Edge Function `verify_jwt` settings are explicitly declared in `supabase/config.toml` and can be checked via `npm run security:check-edge`.
+- Job worker/webhook RPC paths are tightened via additive SQL hardening migrations (service-role/admin gating + grant tightening).
+- SQL security audit can be run via `npm run security:check-sql` (baseline-backed for historical migration debt visibility).
+- Client-side `VITE_DEV_TOOLS_SECRET` usage is deprecated and no longer used by the app auth hook.
+
 ## Weather Edge Function Security Notes
 - `get-weather` is deployed with `--no-verify-jwt` to avoid gateway preflight/JWT verification blocking browser invocation.
 - Security requirement (implemented in function): manual bearer-token validation against `GET /auth/v1/user` before any profile/weather lookup.

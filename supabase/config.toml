@@ -258,6 +258,58 @@ max_frequency = "5s"
 # Force log out if the user has been inactive longer than the specified duration.
 # inactivity_timeout = "8h"
 
+# Edge Functions: explicit verify_jwt matrix (deny implicit defaults)
+[functions."signup-by-phone"]
+verify_jwt = false
+
+[functions."login-by-phone"]
+verify_jwt = false
+
+[functions."get-weather"]
+verify_jwt = false
+
+[functions."payment-webhook"]
+verify_jwt = false
+
+[functions."job-worker"]
+verify_jwt = false
+
+[functions."finance-cron"]
+verify_jwt = false
+
+[functions."finance-admin-api"]
+verify_jwt = false
+
+[functions."finance-reconcile"]
+verify_jwt = false
+
+[functions."admin-enqueue"]
+verify_jwt = true
+
+[functions."admin-jobs-summary"]
+verify_jwt = true
+
+[functions."admin-finance-summary"]
+verify_jwt = true
+
+[functions."create-payment-order"]
+verify_jwt = true
+
+[functions."storage-sign-upload-v1"]
+verify_jwt = true
+
+[functions."dev-create-acting-session"]
+verify_jwt = true
+
+[functions."dev-get-active-role"]
+verify_jwt = true
+
+[functions."dev-revoke-acting-session"]
+verify_jwt = true
+
+[functions."dev-switch-role"]
+verify_jwt = true
+
 # This hook runs before a new user is created and allows developers to reject the request based on the incoming user object.
 # [auth.hook.before_user_created]
 # enabled = true

@@ -161,9 +161,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
         const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/dev-get-active-role`;
         const headers: Record<string, string> = { Authorization: `Bearer ${accessToken}` };
-        if (import.meta.env.VITE_DEV_TOOLS_SECRET) {
-          headers["x-dev-secret"] = import.meta.env.VITE_DEV_TOOLS_SECRET;
-        }
 
         const res = await fetch(url, { headers });
         if (!res.ok) {
@@ -198,9 +195,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       };
-      if (import.meta.env.VITE_DEV_TOOLS_SECRET) {
-        headers["x-dev-secret"] = import.meta.env.VITE_DEV_TOOLS_SECRET;
-      }
       const res = await fetch(url, {
         method: "POST",
         headers,
