@@ -1,0 +1,489 @@
+{
+  "generatedAt": "2026-02-23T06:41:04.943Z",
+  "baseUrl": "http://127.0.0.1:4173",
+  "checks": [
+    {
+      "role": "farmer",
+      "dashboard": "/farmer/dashboard",
+      "userId": "3b9f09e2-3f79-4968-b55d-4942d3626a79",
+      "preferredLanguagePatch": {
+        "ok": true,
+        "status": 200,
+        "text": "[{\"id\":\"3b9f09e2-3f79-4968-b55d-4942d3626a79\",\"full_name\":\"Basavaraju Gowda\",\"phone\":\"+919900000101\",\"avatar_url\":null,\"preferred_language\":\"kn\",\"district\":\"Mysuru\",\"district_confidence\":null,\"district_source\":null,\"village\":\"Hunsuru\",\"taluk\":null,\"pincode\":null,\"location\":null,\"total_land_area\":null,\"demo_tag\":\"dummy_20260222_1745\",\"created_at\":\"2026-02-22T03:20:31.970324+00:00\",\"updated_at\":\"2026-02-23T06:41:14.008227+00:00\",\"auth_email\":\"919900000101@agrinext.local\",\"role_id\":null,\"kyc_status"
+      },
+      "metrics": {
+        "path": "/farmer/dashboard",
+        "hasMojibake": false,
+        "placeholderRuns": 0,
+        "cp1252Degree": 0,
+        "kannadaCharCount": 236,
+        "sample": "AgriNext Gen\nನನ್ನ ದಿನ\nಡ್ಯಾಶ್‌ಬೋರ್ಡ್\nನನ್ನ ಬೆಳೆಗಳು\nಕೃಷಿಭೂಮಿಗಳು\nಸಾರಿಗೆ\nಪಟ್ಟಿಗಳು\nಆರ್ಡರ್‌ಗಳು\nಆದಾಯ\nಅಧಿಸೂಚನೆಗಳು\n3\nಸೆಟ್ಟಿಂಗ್‌ಗಳು\nಸೈನ್ ಔಟ್\nಡ್ಯಾಶ್‌ಬೋರ್ಡ್\nOnline\n3\nBG\nಸ್ವಾಗತ\n\nತ್ವರಿತ ಕ್ರಿಯೆಗಳು\n\nWelcome to Agri Mitra! 🎉\n\nYou're all set up and ready to go\n\nGreat job! You've added your farmland and crops. Now you can track harvests, request transport, and monitor market prices.\n\nRequest Transport\nView Dashboard",
+        "topLines": [
+          "AgriNext Gen",
+          "ನನ್ನ ದಿನ",
+          "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
+          "ನನ್ನ ಬೆಳೆಗಳು",
+          "ಕೃಷಿಭೂಮಿಗಳು",
+          "ಸಾರಿಗೆ",
+          "ಪಟ್ಟಿಗಳು",
+          "ಆರ್ಡರ್‌ಗಳು",
+          "ಆದಾಯ",
+          "ಅಧಿಸೂಚನೆಗಳು",
+          "3",
+          "ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
+          "ಸೈನ್ ಔಟ್",
+          "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
+          "Online",
+          "3",
+          "BG",
+          "ಸ್ವಾಗತ",
+          "ತ್ವರಿತ ಕ್ರಿಯೆಗಳು",
+          "Welcome to Agri Mitra! 🎉",
+          "You're all set up and ready to go",
+          "Great job! You've added your farmland and crops. Now you can track harvests, request transport, and monitor market prices.",
+          "Request Transport",
+          "View Dashboard",
+          "Don't show this again",
+          "Welcome, Basavaraju Gowda! 🌾",
+          "Hunsuru, Mysuru",
+          "11.7 acres",
+          "Total Land",
+          "6"
+        ]
+      },
+      "consoleSummary": {
+        "errorCount": 1,
+        "warningCount": 18,
+        "sample": [
+          {
+            "type": "debug",
+            "text": "[vite] connecting..."
+          },
+          {
+            "type": "debug",
+            "text": "[vite] connected."
+          },
+          {
+            "type": "info",
+            "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold"
+          },
+          {
+            "type": "warning",
+            "text": "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition."
+          },
+          {
+            "type": "warning",
+            "text": "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath."
+          },
+          {
+            "type": "warning",
+            "text": "[i18n] Missing KN key: \"farmer.market.title\""
+          },
+          {
+            "type": "warning",
+            "text": "[i18n] Missing KN key: \"farmer.crops.editCrop\""
+          },
+          {
+            "type": "warning",
+            "text": "[i18n] Missing KN key: \"farmer.crops.cropNamePlaceholder\""
+          },
+          {
+            "type": "warning",
+            "text": "[i18n] Missing KN key: \"farmer.crops.varietyPlaceholder\""
+          },
+          {
+            "type": "warning",
+            "text": "[i18n] Missing KN key: \"farmer.transport.crop\""
+          }
+        ]
+      },
+      "pageErrors": [],
+      "screenshot": "output\\playwright\\roles\\farmer-kannada-verify.png",
+      "pass": true
+    },
+    {
+      "role": "agent",
+      "dashboard": "/agent/dashboard",
+      "userId": "96ad19e4-4316-4224-b08e-e40efef6a468",
+      "preferredLanguagePatch": {
+        "ok": true,
+        "status": 200,
+        "text": "[{\"id\":\"96ad19e4-4316-4224-b08e-e40efef6a468\",\"full_name\":\"Shwetha Kumar\",\"phone\":\"+919900000102\",\"avatar_url\":null,\"preferred_language\":\"kn\",\"district\":\"Mandya\",\"district_confidence\":null,\"district_source\":null,\"village\":\"Srirangapatna\",\"taluk\":null,\"pincode\":null,\"location\":null,\"total_land_area\":null,\"demo_tag\":\"dummy_20260222_1745\",\"created_at\":\"2026-02-22T03:20:32.971628+00:00\",\"updated_at\":\"2026-02-23T06:41:28.358591+00:00\",\"auth_email\":\"919900000102@agrinext.local\",\"role_id\":null,\"kyc_sta"
+      },
+      "metrics": {
+        "path": "/agent/dashboard",
+        "hasMojibake": false,
+        "placeholderRuns": 0,
+        "cp1252Degree": 0,
+        "kannadaCharCount": 153,
+        "sample": "AgriNext Gen Agent\nಕ್ಷೇತ್ರ ಕಾರ್ಯಾಚರಣೆಗಳು\nಇಂದು\nಡ್ಯಾಶ್‌ಬೋರ್ಡ್\nನನ್ನ ಕಾರ್ಯಗಳು\nನನ್ನ ರೈತರು\nರೈತರು ಮತ್ತು ಬೆಳೆಗಳು\nಸಾರಿಗೆ\nಸೇವಾ ಪ್ರದೇಶ\nಪ್ರೊಫೈಲ್\nಸೈನ್ ಔಟ್\nಏಜೆಂಟ್ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್\nOnline\n3\nSK\nಏಜೆಂಟ್ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್\n\nನಿಯೋಜಿತ ರೈತರು\n\nFarmers Assigned\n\nActive Crops\n\nTasks Today\n\nundefined/undefined\n\nReady to Harvest\n\nPending Transport\n\nToday's Tasks\nView All\n\nNo tasks scheduled for today\n\nCrops Near Harvest\nAI Insights\n",
+        "topLines": [
+          "AgriNext Gen Agent",
+          "ಕ್ಷೇತ್ರ ಕಾರ್ಯಾಚರಣೆಗಳು",
+          "ಇಂದು",
+          "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
+          "ನನ್ನ ಕಾರ್ಯಗಳು",
+          "ನನ್ನ ರೈತರು",
+          "ರೈತರು ಮತ್ತು ಬೆಳೆಗಳು",
+          "ಸಾರಿಗೆ",
+          "ಸೇವಾ ಪ್ರದೇಶ",
+          "ಪ್ರೊಫೈಲ್",
+          "ಸೈನ್ ಔಟ್",
+          "ಏಜೆಂಟ್ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
+          "Online",
+          "3",
+          "SK",
+          "ಏಜೆಂಟ್ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
+          "ನಿಯೋಜಿತ ರೈತರು",
+          "Farmers Assigned",
+          "Active Crops",
+          "Tasks Today",
+          "undefined/undefined",
+          "Ready to Harvest",
+          "Pending Transport",
+          "Today's Tasks",
+          "View All",
+          "No tasks scheduled for today",
+          "Crops Near Harvest",
+          "AI Insights",
+          "Powered by AI",
+          "Prioritize Today's Visits"
+        ]
+      },
+      "consoleSummary": {
+        "errorCount": 18,
+        "warningCount": 4,
+        "sample": [
+          {
+            "type": "debug",
+            "text": "[vite] connecting..."
+          },
+          {
+            "type": "debug",
+            "text": "[vite] connected."
+          },
+          {
+            "type": "info",
+            "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold"
+          },
+          {
+            "type": "warning",
+            "text": "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition."
+          },
+          {
+            "type": "warning",
+            "text": "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath."
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: the server responded with a status of 400 ()"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: the server responded with a status of 404 ()"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: the server responded with a status of 400 ()"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: the server responded with a status of 400 ()"
+          },
+          {
+            "type": "error",
+            "text": "Failed to load resource: the server responded with a status of 400 ()"
+          }
+        ]
+      },
+      "pageErrors": [],
+      "screenshot": "output\\playwright\\roles\\agent-kannada-verify.png",
+      "pass": true
+    },
+    {
+      "role": "logistics",
+      "dashboard": "/logistics/dashboard",
+      "userId": "936fc845-eb3c-4d3b-ab28-58f507239ab7",
+      "preferredLanguagePatch": {
+        "ok": true,
+        "status": 200,
+        "text": "[{\"id\":\"936fc845-eb3c-4d3b-ab28-58f507239ab7\",\"full_name\":\"Manjunath N\",\"phone\":\"+919900000103\",\"avatar_url\":null,\"preferred_language\":\"kn\",\"district\":\"Ramanagara\",\"district_confidence\":null,\"district_source\":null,\"village\":\"Channapatna\",\"taluk\":null,\"pincode\":null,\"location\":null,\"total_land_area\":null,\"demo_tag\":\"dummy_20260222_1745\",\"created_at\":\"2026-02-22T03:20:33.787499+00:00\",\"updated_at\":\"2026-02-23T06:41:43.361247+00:00\",\"auth_email\":\"919900000103@agrinext.local\",\"role_id\":null,\"kyc_sta"
+      },
+      "metrics": {
+        "path": "/logistics/dashboard",
+        "hasMojibake": false,
+        "placeholderRuns": 0,
+        "cp1252Degree": 0,
+        "kannadaCharCount": 116,
+        "sample": "AgriNext Gen Transport\nಲಾಜಿಸ್ಟಿಕ್ಸ್ ಪಾಲುದಾರ\nಡ್ಯಾಶ್‌ಬೋರ್ಡ್\nಲಭ್ಯ ಲೋಡ್‌ಗಳು\nಸಕ್ರಿಯ ಪ್ರಯಾಣಗಳು\nಪೂರ್ಣಗೊಂಡವು\nನನ್ನ ವಾಹನಗಳು\nಸೇವಾ ಪ್ರದೇಶ\nಪ್ರೊಫೈಲ್\nಸೈನ್ ಔಟ್\nಡ್ಯಾಶ್‌ಬೋರ್ಡ್\nOnline\n91",
+        "topLines": [
+          "AgriNext Gen Transport",
+          "ಲಾಜಿಸ್ಟಿಕ್ಸ್ ಪಾಲುದಾರ",
+          "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
+          "ಲಭ್ಯ ಲೋಡ್‌ಗಳು",
+          "ಸಕ್ರಿಯ ಪ್ರಯಾಣಗಳು",
+          "ಪೂರ್ಣಗೊಂಡವು",
+          "ನನ್ನ ವಾಹನಗಳು",
+          "ಸೇವಾ ಪ್ರದೇಶ",
+          "ಪ್ರೊಫೈಲ್",
+          "ಸೈನ್ ಔಟ್",
+          "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
+          "Online",
+          "91"
+        ]
+      },
+      "consoleSummary": {
+        "errorCount": 0,
+        "warningCount": 20,
+        "sample": [
+          {
+            "type": "debug",
+            "text": "[vite] connecting..."
+          },
+          {
+            "type": "debug",
+            "text": "[vite] connected."
+          },
+          {
+            "type": "info",
+            "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold"
+          },
+          {
+            "type": "warning",
+            "text": "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition."
+          },
+          {
+            "type": "warning",
+            "text": "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath."
+          },
+          {
+            "type": "warning",
+            "text": "[i18n] Missing KN key: \"logistics.transporterDashboard\""
+          },
+          {
+            "type": "warning",
+            "text": "[i18n] Missing KN key: \"logistics.availableLoads\""
+          },
+          {
+            "type": "warning",
+            "text": "[i18n] Missing KN key: \"logistics.acceptedTrips\""
+          },
+          {
+            "type": "warning",
+            "text": "[i18n] Missing KN key: \"logistics.inProgress\""
+          },
+          {
+            "type": "warning",
+            "text": "[i18n] Missing KN key: \"logistics.completedTrips\""
+          }
+        ]
+      },
+      "pageErrors": [],
+      "screenshot": "output\\playwright\\roles\\logistics-kannada-verify.png",
+      "pass": true
+    },
+    {
+      "role": "buyer",
+      "dashboard": "/marketplace/dashboard",
+      "userId": "e540bdde-931f-442e-9cad-9f4ce55a45ae",
+      "preferredLanguagePatch": {
+        "ok": true,
+        "status": 200,
+        "text": "[{\"id\":\"e540bdde-931f-442e-9cad-9f4ce55a45ae\",\"full_name\":\"Ayesha Fathima\",\"phone\":\"+919900000104\",\"avatar_url\":null,\"preferred_language\":\"kn\",\"district\":\"Bengaluru Urban\",\"district_confidence\":null,\"district_source\":null,\"village\":\"Yeshwanthpur\",\"taluk\":null,\"pincode\":null,\"location\":null,\"total_land_area\":null,\"demo_tag\":\"dummy_20260222_1745\",\"created_at\":\"2026-02-22T03:20:34.695925+00:00\",\"updated_at\":\"2026-02-23T06:42:14.657852+00:00\",\"auth_email\":\"919900000104@agrinext.local\",\"role_id\":null"
+      },
+      "metrics": {
+        "path": "/marketplace/dashboard",
+        "hasMojibake": false,
+        "placeholderRuns": 0,
+        "cp1252Degree": 0,
+        "kannadaCharCount": 108,
+        "sample": "AgriNext Gen Market\nಮಾರುಕಟ್ಟೆ ಖರೀದಿದಾರ\nಡ್ಯಾಶ್‌ಬೋರ್ಡ್\nಉತ್ಪನ್ನಗಳನ್ನು ವೀಕ್ಷಿಸಿ\nನನ್ನ ಆರ್ಡರ್‌ಗಳು\nಪ್ರೊಫೈಲ್\nಸೈನ್ ಔಟ್\nಡ್ಯಾಶ್‌ಬೋರ್ಡ್\nOnline\n3\nAF\nBrowse Marketplace\n\nWelcome, Ayesha Fathima - null\n\nBrowse Products\n\nAVAILABLE\n\n0\n\nFRESH HARVEST\n\n3\n\nCOMING SOON\n\n0\n\nACTIVE ORDERS\n\n3\n\nFresh Harvest Available\nಎಲ್ಲಾ ನೋಡಿ\nNo products found\n\nTry different search terms or filters\n\nYour Active Orders\nಎಲ್ಲಾ ನೋಡಿ\nYou ha",
+        "topLines": [
+          "AgriNext Gen Market",
+          "ಮಾರುಕಟ್ಟೆ ಖರೀದಿದಾರ",
+          "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
+          "ಉತ್ಪನ್ನಗಳನ್ನು ವೀಕ್ಷಿಸಿ",
+          "ನನ್ನ ಆರ್ಡರ್‌ಗಳು",
+          "ಪ್ರೊಫೈಲ್",
+          "ಸೈನ್ ಔಟ್",
+          "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
+          "Online",
+          "3",
+          "AF",
+          "Browse Marketplace",
+          "Welcome, Ayesha Fathima - null",
+          "Browse Products",
+          "AVAILABLE",
+          "0",
+          "FRESH HARVEST",
+          "3",
+          "COMING SOON",
+          "0",
+          "ACTIVE ORDERS",
+          "3",
+          "Fresh Harvest Available",
+          "ಎಲ್ಲಾ ನೋಡಿ",
+          "No products found",
+          "Try different search terms or filters",
+          "Your Active Orders",
+          "ಎಲ್ಲಾ ನೋಡಿ",
+          "You haven't received any orders yet.",
+          "Browse Products"
+        ]
+      },
+      "consoleSummary": {
+        "errorCount": 0,
+        "warningCount": 32,
+        "sample": [
+          {
+            "type": "debug",
+            "text": "[vite] connecting..."
+          },
+          {
+            "type": "debug",
+            "text": "[vite] connected."
+          },
+          {
+            "type": "info",
+            "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold"
+          },
+          {
+            "type": "warning",
+            "text": "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition."
+          },
+          {
+            "type": "warning",
+            "text": "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath."
+          },
+          {
+            "type": "warning",
+            "text": "[i18n] Missing KN key: \"marketplace.browseMarketplace\""
+          },
+          {
+            "type": "warning",
+            "text": "[i18n] Missing KN key: \"marketplace.browseProducts\""
+          },
+          {
+            "type": "warning",
+            "text": "[i18n] Missing KN key: \"marketplace.available\""
+          },
+          {
+            "type": "warning",
+            "text": "[i18n] Missing KN key: \"marketplace.freshHarvest\""
+          },
+          {
+            "type": "warning",
+            "text": "[i18n] Missing KN key: \"marketplace.comingSoon\""
+          }
+        ]
+      },
+      "pageErrors": [],
+      "screenshot": "output\\playwright\\roles\\buyer-kannada-verify.png",
+      "pass": true
+    },
+    {
+      "role": "admin",
+      "dashboard": "/admin/dashboard",
+      "userId": "09e8698b-404b-4ec1-ba01-9d592ee4761b",
+      "preferredLanguagePatch": {
+        "ok": true,
+        "status": 200,
+        "text": "[{\"id\":\"09e8698b-404b-4ec1-ba01-9d592ee4761b\",\"full_name\":\"Raghavendra S\",\"phone\":\"+919900000105\",\"avatar_url\":null,\"preferred_language\":\"kn\",\"district\":\"Bengaluru Urban\",\"district_confidence\":null,\"district_source\":null,\"village\":\"Malleshwaram\",\"taluk\":null,\"pincode\":null,\"location\":null,\"total_land_area\":null,\"demo_tag\":\"dummy_20260222_1745\",\"created_at\":\"2026-02-22T03:20:35.562794+00:00\",\"updated_at\":\"2026-02-23T06:42:31.24663+00:00\",\"auth_email\":\"919900000105@agrinext.local\",\"role_id\":null,\""
+      },
+      "metrics": {
+        "path": "/admin/dashboard",
+        "hasMojibake": false,
+        "placeholderRuns": 0,
+        "cp1252Degree": 0,
+        "kannadaCharCount": 527,
+        "sample": "AgriNext Gen Admin\nನಿಯಂತ್ರಣ ಕೇಂದ್ರ\nಡ್ಯಾಶ್‌ಬೋರ್ಡ್\nOps Inbox\nಟಿಕೆಟ್‌ಗಳು\nರೈತರು\nಏಜೆಂಟ್‌ಗಳು\nಸಾರಿಗೆದಾರರು\nಖರೀದಿದಾರರು\nಎಲ್ಲಾ ಬೆಳೆಗಳು\nಸಾರಿಗೆ\nಆರ್ಡರ್‌ಗಳು\nಬಾಕಿ ನವೀಕರಣಗಳು\nAI Review\nJobs\nFinance\nAI ಕನ್‌ಸೋಲ್\nSeed Data\nಮೈಸೂರು ಡೆಮೋ\nಡೇಟಾ ಆರೋಗ್ಯ\nಸೈನ್ ಔಟ್\nನಿರ್ವಾಹಕ ಕಮಾಂಡ್ ಸೆಂಟರ್\nOnline\n3\nRS\nನಿರ್ವಾಹಕ ಕಮಾಂಡ್ ಸೆಂಟರ್\n\nಸಂಪೂರ್ಣ ಪರಿಸರ ವ್ಯವಸ್ಥೆ ಗೋಚರತೆ ಮತ್ತು ನಿಯಂತ್ರಣ\n\nಲೈವ್\nರಿಫ್ರೆಶ್\n\nಒಟ್ಟು ರೈತರು\n\n1\n\nಸಕ್ರಿಯ ಖರೀದಿದಾರರು\n\n1\n\nಸಾರಿಗೆದ",
+        "topLines": [
+          "AgriNext Gen Admin",
+          "ನಿಯಂತ್ರಣ ಕೇಂದ್ರ",
+          "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
+          "Ops Inbox",
+          "ಟಿಕೆಟ್‌ಗಳು",
+          "ರೈತರು",
+          "ಏಜೆಂಟ್‌ಗಳು",
+          "ಸಾರಿಗೆದಾರರು",
+          "ಖರೀದಿದಾರರು",
+          "ಎಲ್ಲಾ ಬೆಳೆಗಳು",
+          "ಸಾರಿಗೆ",
+          "ಆರ್ಡರ್‌ಗಳು",
+          "ಬಾಕಿ ನವೀಕರಣಗಳು",
+          "AI Review",
+          "Jobs",
+          "Finance",
+          "AI ಕನ್‌ಸೋಲ್",
+          "Seed Data",
+          "ಮೈಸೂರು ಡೆಮೋ",
+          "ಡೇಟಾ ಆರೋಗ್ಯ",
+          "ಸೈನ್ ಔಟ್",
+          "ನಿರ್ವಾಹಕ ಕಮಾಂಡ್ ಸೆಂಟರ್",
+          "Online",
+          "3",
+          "RS",
+          "ನಿರ್ವಾಹಕ ಕಮಾಂಡ್ ಸೆಂಟರ್",
+          "ಸಂಪೂರ್ಣ ಪರಿಸರ ವ್ಯವಸ್ಥೆ ಗೋಚರತೆ ಮತ್ತು ನಿಯಂತ್ರಣ",
+          "ಲೈವ್",
+          "ರಿಫ್ರೆಶ್",
+          "ಒಟ್ಟು ರೈತರು"
+        ]
+      },
+      "consoleSummary": {
+        "errorCount": 0,
+        "warningCount": 6,
+        "sample": [
+          {
+            "type": "debug",
+            "text": "[vite] connecting..."
+          },
+          {
+            "type": "debug",
+            "text": "[vite] connected."
+          },
+          {
+            "type": "info",
+            "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold"
+          },
+          {
+            "type": "warning",
+            "text": "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition."
+          },
+          {
+            "type": "warning",
+            "text": "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath."
+          },
+          {
+            "type": "debug",
+            "text": "[vite] connecting..."
+          },
+          {
+            "type": "debug",
+            "text": "[vite] connected."
+          },
+          {
+            "type": "info",
+            "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold"
+          },
+          {
+            "type": "warning",
+            "text": "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition."
+          },
+          {
+            "type": "warning",
+            "text": "⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath."
+          }
+        ]
+      },
+      "pageErrors": [],
+      "screenshot": "output\\playwright\\roles\\admin-kannada-verify.png",
+      "pass": true
+    }
+  ],
+  "summary": {
+    "total": 5,
+    "passed": 5,
+    "failed": 0
+  }
+}
