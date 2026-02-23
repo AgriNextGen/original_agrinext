@@ -12,6 +12,12 @@ import { normalizePhone } from "@/lib/auth";
 import type { Database } from "@/integrations/supabase/types";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
+type LoginByPhoneError = {
+  error?: string;
+  message?: string;
+  retry_at?: string;
+  retry_after_seconds?: number;
+};
 
 const roleRoutes: Record<string, string> = {
   farmer: "/farmer/dashboard",
@@ -28,6 +34,37 @@ const LOGIN_ROLES: { id: AppRole; labelKey: string; icon: typeof Users }[] = [
   { id: "logistics", labelKey: "roles.logistics", icon: Truck },
 ];
 
+function formatCooldown(seconds: number): string {
+  const safe = Math.max(0, Math.floor(seconds));
+  const minutes = Math.floor(safe / 60);
+  const remaining = safe % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(remaining).padStart(2, "0")}`;
+}
+
+function parseLockoutUntilMs(payload: unknown): number | null {
+  if (!payload || typeof payload !== "object") return null;
+  const data = payload as LoginByPhoneError;
+  if (typeof data.retry_after_seconds === "number" && Number.isFinite(data.retry_after_seconds) && data.retry_after_seconds > 0) {
+    return Date.now() + (data.retry_after_seconds * 1000);
+  }
+  if (typeof data.retry_at === "string") {
+    const parsed = Date.parse(data.retry_at);
+    return Number.isNaN(parsed) ? null : parsed;
+  }
+  return null;
+}
+
+function getLoginErrorMessage(status: number, payload: unknown, fallback: string): string {
+  if (!payload || typeof payload !== "object") return fallback;
+  const data = payload as LoginByPhoneError;
+  if (typeof data.message === "string" && data.message.trim()) {
+    if (status === 429 || data.error === "temporarily_blocked" || data.error === "account_locked") {
+      return data.message;
+    }
+  }
+  return fallback;
+}
+
 const Login = () => {
   const { t } = useLanguage();
   const [selectedRole, setSelectedRole] = useState<AppRole | "">("");
@@ -36,6 +73,8 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [lockoutUntilMs, setLockoutUntilMs] = useState<number | null>(null);
+  const [lockoutRemainingSeconds, setLockoutRemainingSeconds] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
@@ -60,10 +99,36 @@ const Login = () => {
     }
   }, [user, userRole, navigate]);
 
+  useEffect(() => {
+    if (!lockoutUntilMs) {
+      setLockoutRemainingSeconds(0);
+      return;
+    }
+
+    const updateRemaining = () => {
+      const seconds = Math.max(0, Math.ceil((lockoutUntilMs - Date.now()) / 1000));
+      setLockoutRemainingSeconds(seconds);
+      if (seconds <= 0) {
+        setLockoutUntilMs(null);
+      }
+    };
+
+    updateRemaining();
+    const timer = window.setInterval(updateRemaining, 1000);
+    return () => window.clearInterval(timer);
+  }, [lockoutUntilMs]);
+
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
       setError(null);
+
+      if (lockoutRemainingSeconds > 0) {
+        const msg = `Too many failed attempts. Try again in ${formatCooldown(lockoutRemainingSeconds)}.`;
+        setError(msg);
+        toast({ title: t("auth.login_failed"), description: msg, variant: "destructive" });
+        return;
+      }
 
       if (!selectedRole) {
         setError(t("auth.select_role_to_login"));
@@ -96,8 +161,13 @@ const Login = () => {
         const data = await res.json().catch(() => ({}));
 
         if (!res.ok) {
-          setError(t("auth.invalid_credentials"));
-          toast({ title: t("auth.login_failed"), description: t("auth.invalid_credentials"), variant: "destructive" });
+          const parsedLockout = parseLockoutUntilMs(data);
+          if (parsedLockout && parsedLockout > Date.now()) {
+            setLockoutUntilMs(parsedLockout);
+          }
+          const message = getLoginErrorMessage(res.status, data, t("auth.invalid_credentials"));
+          setError(message);
+          toast({ title: t("auth.login_failed"), description: message, variant: "destructive" });
           return;
         }
 
@@ -119,6 +189,7 @@ const Login = () => {
         }
 
         toast({ title: t("auth.welcome_back"), description: t("auth.login_success") });
+        setLockoutUntilMs(null);
         navigate(roleRoutes[selectedRole] || "/");
       } catch {
         setError(t("common.error"));
@@ -127,7 +198,7 @@ const Login = () => {
         setIsLoading(false);
       }
     },
-    [selectedRole, phone, password, supabaseUrl, toast, t, navigate]
+    [selectedRole, phone, password, supabaseUrl, toast, t, navigate, lockoutRemainingSeconds]
   );
 
   return (
@@ -155,7 +226,14 @@ const Login = () => {
           {error && (
             <div className="mb-6 p-4 rounded-lg bg-destructive/10 border border-destructive/20 flex items-start gap-3">
               <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
-              <p className="text-sm text-destructive">{error}</p>
+              <div className="text-sm text-destructive">
+                <p>{error}</p>
+                {lockoutRemainingSeconds > 0 && (
+                  <p className="mt-1 font-medium">
+                    Retry in {formatCooldown(lockoutRemainingSeconds)}
+                  </p>
+                )}
+              </div>
             </div>
           )}
 
@@ -232,11 +310,21 @@ const Login = () => {
               </div>
             </div>
 
-            <Button type="submit" variant="hero" className="w-full" size="lg" disabled={isLoading}>
+            <Button
+              type="submit"
+              variant="hero"
+              className="w-full"
+              size="lg"
+              disabled={isLoading || lockoutRemainingSeconds > 0}
+            >
               {isLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   {t("auth.signing_in")}
+                </>
+              ) : lockoutRemainingSeconds > 0 ? (
+                <>
+                  Try again in {formatCooldown(lockoutRemainingSeconds)}
                 </>
               ) : (
                 <>

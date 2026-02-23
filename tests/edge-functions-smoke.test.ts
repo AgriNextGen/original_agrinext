@@ -171,3 +171,27 @@ describe("public-listing-trace (no JWT required)", () => {
     expect(body.error.code).toBe("not_implemented");
   });
 });
+
+describe("internal worker/admin functions reject missing worker secret", () => {
+  for (const fn of ["job-worker", "finance-cron", "finance-admin-api", "finance-reconcile"]) {
+    it(`${fn} rejects without x-worker-secret`, async () => {
+      const res = await fetch(fnUrl(fn), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      expect([401, 403, 404, 405]).toContain(res.status);
+    });
+  }
+});
+
+describe("payment-webhook signature enforcement", () => {
+  it("rejects invalid or missing signature", async () => {
+    const res = await fetch(fnUrl("payment-webhook"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ event: "test" }),
+    });
+    expect([401, 403, 404, 405]).toContain(res.status);
+  });
+});

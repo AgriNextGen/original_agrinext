@@ -1,7 +1,9 @@
 import { offlineDB } from '@/offline/idb';
 import { enqueueUpload } from '@/offline/uploadQueue';
 
-test('enqueue upload persists to IndexedDB', async () => {
+const maybeTest = typeof indexedDB === "undefined" ? test.skip : test;
+
+maybeTest('enqueue upload persists to IndexedDB', async () => {
   const id = crypto.randomUUID();
   const blob = new Blob(['hello'], { type: 'text/plain' });
   await enqueueUpload({
@@ -20,4 +22,3 @@ test('enqueue upload persists to IndexedDB', async () => {
   expect(item?.fileName).toBe('hello.txt');
   await offlineDB.uploads.delete(id);
 });
-

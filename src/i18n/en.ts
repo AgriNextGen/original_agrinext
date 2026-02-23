@@ -811,7 +811,7 @@ export const en = {
   },
 
   // Enums - Crop Status
-  enum: {
+  "enum": {
     crop_status: {
       growing: 'Growing',
       one_week: '1 Week',

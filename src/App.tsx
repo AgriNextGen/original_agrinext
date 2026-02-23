@@ -97,6 +97,9 @@ queryClient.getQueryCache().subscribe(() => {
   clearTimeout(persistTimer);
   persistTimer = setTimeout(() => persister.persist(queryClient), 2000);
 });
+const enableDevConsoleRoute =
+  import.meta.env.MODE !== "production" &&
+  import.meta.env.VITE_DEV_TOOLS_ENABLED === "true";
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -112,7 +115,16 @@ const App = () => (
             <Route path="/signup" element={<Signup />} />
             <Route path="/auth/callback" element={<CallbackHandler />} />
             <Route path="/account/switch" element={<AccountSwitcher />} />
-            <Route path="/dev-console" element={<DevConsole />} />
+            {enableDevConsoleRoute ? (
+              <Route
+                path="/dev-console"
+                element={
+                  <ProtectedRoute allowedRoles={["admin"]}>
+                    <DevConsole />
+                  </ProtectedRoute>
+                }
+              />
+            ) : null}
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
             

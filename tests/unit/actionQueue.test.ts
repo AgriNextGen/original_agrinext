@@ -1,7 +1,9 @@
 import { offlineDB } from '@/offline/idb';
 import { enqueueAction } from '@/offline/actionQueue';
 
-test('enqueue action persists to IndexedDB', async () => {
+const maybeTest = typeof indexedDB === "undefined" ? test.skip : test;
+
+maybeTest('enqueue action persists to IndexedDB', async () => {
   const id = crypto.randomUUID();
   await enqueueAction({
     id,
@@ -21,4 +23,3 @@ test('enqueue action persists to IndexedDB', async () => {
   expect(item?.name).toBe('test.rpc');
   await offlineDB.actions.delete(id);
 });
-

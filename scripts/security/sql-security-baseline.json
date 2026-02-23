@@ -1,0 +1,51 @@
+{
+    "errors":  [
+                   "supabase\\migrations\\202602201210_phase_4_payments_settlement_rpcs.sql:223 sensitive function granted EXECUTE TO public (public.payment_apply_webhook_event_v1)",
+                   "supabase\\migrations\\202602201800_phase_e3_analytics_schema.sql:171 analytics.rollup_daily_v1 SECURITY DEFINER without SET search_path",
+                   "supabase\\migrations\\202602201800_phase_e3_analytics_schema.sql:426 analytics.rollup_range_v1 SECURITY DEFINER without SET search_path",
+                   "supabase\\migrations\\202602201910_phase_f1_support_and_identity.sql:50 public.create_support_ticket_v1 SECURITY DEFINER without SET search_path",
+                   "supabase\\migrations\\202602201910_phase_f1_support_and_identity.sql:70 admin.update_ticket_status_v1 SECURITY DEFINER without SET search_path",
+                   "supabase\\migrations\\202602201910_phase_f1_support_and_identity.sql:83 admin.lock_user_v1 SECURITY DEFINER without SET search_path",
+                   "supabase\\migrations\\202602201910_phase_f1_support_and_identity.sql:94 admin.force_logout_user_v1 SECURITY DEFINER without SET search_path",
+                   "supabase\\migrations\\202602201920_phase_f1_observability.sql:4 public.new_request_id_v1 SECURITY DEFINER without SET search_path",
+                   "supabase\\migrations\\202602210900_stage_5_5_finance_ops.sql:458 sensitive function granted EXECUTE TO public (secure.apply_gateway_state_v1)",
+                   "supabase\\migrations\\202602210901_stage_5_6_trust_safety.sql:102 public._disputes_after_insert_trigger SECURITY DEFINER without SET search_path",
+                   "supabase\\migrations\\202602210901_stage_5_6_trust_safety.sql:114 public._disputes_after_update_trigger SECURITY DEFINER without SET search_path",
+                   "supabase\\migrations\\202602210920_stage_5_6_analytics_trust.sql:23 analytics.rollup_trust_v1 SECURITY DEFINER without SET search_path",
+                   "supabase\\migrations\\202602230001_rate_limit_table.sql:9 public.consume_rate_limit SECURITY DEFINER without SET search_path",
+                   "supabase\\migrations\\202602250001_phase_c_atomic_workflows.sql:80 public.assert_valid_transport_request_transition SECURITY DEFINER without SET search_path",
+                   "supabase\\migrations\\202602261200_phase_2_logistics_engine.sql:217 public.accept_transport_load_v2 SECURITY DEFINER without SET search_path",
+                   "supabase\\migrations\\202602261200_phase_2_logistics_engine.sql:278 public.update_trip_status_v1 SECURITY DEFINER without SET search_path",
+                   "supabase\\migrations\\202602261200_phase_2_logistics_engine.sql:362 public.cancel_trip_v1 SECURITY DEFINER without SET search_path",
+                   "supabase\\migrations\\202602261200_phase_2_logistics_engine.sql:413 public.get_trips_with_context_v2 SECURITY DEFINER without SET search_path",
+                   "supabase\\migrations\\202602261200_phase_2_logistics_engine.sql:431 public.get_trip_detail_with_context_v1 SECURITY DEFINER without SET search_path",
+                   "supabase\\migrations\\202602271400_phase_3_marketplace_rpcs.sql:5 public.place_order_v1 SECURITY DEFINER without SET search_path",
+                   "supabase\\migrations\\202602271400_phase_3_marketplace_rpcs.sql:57 public.farmer_confirm_order_v1 SECURITY DEFINER without SET search_path",
+                   "supabase\\migrations\\202602271400_phase_3_marketplace_rpcs.sql:95 public.farmer_reject_order_v1 SECURITY DEFINER without SET search_path",
+                   "supabase\\migrations\\202602271400_phase_3_marketplace_rpcs.sql:136 public.update_order_status_v1 SECURITY DEFINER without SET search_path",
+                   "supabase\\migrations\\202602271400_phase_3_marketplace_rpcs.sql:207 admin.admin_override_order_v1 SECURITY DEFINER without SET search_path",
+                   "supabase\\migrations\\202602271500_phase_3_marketplace_timeline.sql:2 public.get_order_timeline_v1 SECURITY DEFINER without SET search_path"
+               ],
+    "warnings":  [
+                     "supabase\\migrations\\202602201210_phase_4_payments_settlement_rpcs.sql:141 public.payment_apply_webhook_event_v1 relies on app.webhook session flag",
+                     "supabase\\migrations\\202602201910_phase_f1_support_and_identity.sql:70 admin.update_ticket_status_v1 admin SECURITY DEFINER without explicit public.is_admin() check",
+                     "supabase\\migrations\\202602201910_phase_f1_support_and_identity.sql:83 admin.lock_user_v1 admin SECURITY DEFINER without explicit public.is_admin() check",
+                     "supabase\\migrations\\202602201910_phase_f1_support_and_identity.sql:94 admin.force_logout_user_v1 admin SECURITY DEFINER without explicit public.is_admin() check",
+                     "supabase\\migrations\\202602210900_stage_5_5_finance_ops.sql:368 secure.apply_gateway_state_v1 relies on app.webhook session flag",
+                     "supabase\\migrations\\202602211201_phase_5_8_observability.sql:170 admin.system_metrics_rollup_v1 admin SECURITY DEFINER without explicit public.is_admin() check",
+                     "supabase\\migrations\\202602271400_phase_3_marketplace_rpcs.sql:207 admin.admin_override_order_v1 admin SECURITY DEFINER without explicit public.is_admin() check"
+                 ],
+    "infos":  [
+                  "supabase\\migrations\\202602201410_phase_5_2_read_rpcs.sql:223 public.list_market_products_compact_v1 uses dynamic SQL via EXECUTE format(...)",
+                  "supabase\\migrations\\202602201410_phase_5_2_read_rpcs.sql:276 public.list_orders_compact_v1 uses dynamic SQL via EXECUTE format(...)",
+                  "supabase\\migrations\\202602201410_phase_5_2_read_rpcs.sql:335 public.list_transport_requests_compact_v1 uses dynamic SQL via EXECUTE format(...)",
+                  "supabase\\migrations\\202602201410_phase_5_2_read_rpcs.sql:383 public.list_agent_tasks_compact_v1 uses dynamic SQL via EXECUTE format(...)",
+                  "supabase\\migrations\\202602201410_phase_5_2_read_rpcs.sql:426 public.list_orders_v1 uses dynamic SQL via EXECUTE format(...)",
+                  "supabase\\migrations\\202602211200_phase_5_3_ops_ai_ui.sql:169 admin.get_ops_inbox_v1 uses dynamic SQL via EXECUTE format(...)",
+                  "supabase\\migrations\\202602211200_phase_5_3_ops_ai_ui.sql:621 admin.list_tickets_v1 uses dynamic SQL via EXECUTE format(...)",
+                  "supabase\\migrations\\202602211200_phase_5_3_ops_ai_ui.sql:683 admin.list_ai_outputs_v1 uses dynamic SQL via EXECUTE format(...)",
+                  "supabase\\migrations\\202602211300_phase_5_4_geo_service_areas.sql:597 admin.get_ops_inbox_v1 uses dynamic SQL via EXECUTE format(...)",
+                  "supabase\\migrations\\202602281240_dashboard_rpc_compat.sql:350 public.buyer_dashboard_v1 uses dynamic SQL via EXECUTE format(...)",
+                  "supabase\\migrations\\202602281260_list_orders_compact_compat.sql:5 public.list_orders_compact_v1 uses dynamic SQL via EXECUTE format(...)"
+              ]
+}

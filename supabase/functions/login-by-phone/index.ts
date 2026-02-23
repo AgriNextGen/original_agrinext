@@ -36,6 +36,34 @@ function jsonHeaders() {
   return { ...corsHeaders, "Content-Type": "application/json" };
 }
 
+function secondsUntil(date: Date): number {
+  return Math.max(1, Math.ceil((date.getTime() - Date.now()) / 1000));
+}
+
+function temporaryBlockResponse(reqId: string, blockedUntilRaw: string) {
+  const blockedUntil = new Date(blockedUntilRaw);
+  const retryAfterSeconds = Number.isFinite(blockedUntil.getTime())
+    ? secondsUntil(blockedUntil)
+    : 300;
+
+  return makeResponseWithRequestId(
+    JSON.stringify({
+      error: "temporarily_blocked",
+      message: `Too many attempts. Try again at ${blockedUntilRaw}`,
+      retry_at: blockedUntilRaw,
+      retry_after_seconds: retryAfterSeconds,
+    }),
+    reqId,
+    {
+      status: 429,
+      headers: {
+        ...jsonHeaders(),
+        "Retry-After": String(retryAfterSeconds),
+      },
+    },
+  );
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   try {
@@ -103,14 +131,7 @@ Deno.serve(async (req: Request) => {
       }
 
       if (accountStatus === "restricted" && isBlockedNow) {
-        return makeResponseWithRequestId(
-          JSON.stringify({
-            error: "temporarily_blocked",
-            message: `Too many attempts. Try again at ${profile.blocked_until}`,
-          }),
-          reqId,
-          { status: 429, headers: jsonHeaders() },
-        );
+        return temporaryBlockResponse(reqId, String(profile.blocked_until));
       }
 
       if (accountStatus === "restricted" && !isBlockedNow) {
@@ -122,14 +143,7 @@ Deno.serve(async (req: Request) => {
       }
 
       if (isBlockedNow) {
-        return makeResponseWithRequestId(
-          JSON.stringify({
-            error: "temporarily_blocked",
-            message: `Too many attempts. Try again at ${profile.blocked_until}`,
-          }),
-          reqId,
-          { status: 429, headers: jsonHeaders() },
-        );
+        return temporaryBlockResponse(reqId, String(profile.blocked_until));
       }
     }
 
@@ -146,13 +160,28 @@ Deno.serve(async (req: Request) => {
 
     if (!tokenRes.ok) {
       try {
-        await supabaseAdmin.rpc("security.record_failed_login_v1", {
+        const rpcRes = await supabaseAdmin.rpc("record_failed_login_v1", {
           p_phone: normalizedPhone,
           p_ip: req.headers.get("x-forwarded-for") || null,
           p_device_id: req.headers.get("user-agent") || null,
         });
+        if (rpcRes.error) {
+          logStructured({
+            request_id: reqId,
+            endpoint: "login-by-phone",
+            status: "failed_login_counter_error",
+            phone: normalizedPhone,
+            error: rpcRes.error.message,
+          });
+        }
       } catch {
-        // best-effort
+        logStructured({
+          request_id: reqId,
+          endpoint: "login-by-phone",
+          status: "failed_login_counter_error",
+          phone: normalizedPhone,
+          error: "rpc_exception",
+        });
       }
       logStructured({
         request_id: reqId,

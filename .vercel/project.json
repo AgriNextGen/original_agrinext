@@ -1,0 +1,16 @@
+{
+  "projectId": "prj_AYfhxTzLbHxcC3d4gMBTlNivXuhC",
+  "orgId": "team_gubS7MMi3VG6j0WVEaqi9fSe",
+  "projectName": "original-agrinext",
+  "settings": {
+    "createdAt": 1771658921795,
+    "framework": "vite",
+    "devCommand": null,
+    "installCommand": null,
+    "buildCommand": null,
+    "outputDirectory": null,
+    "rootDirectory": null,
+    "directoryListing": false,
+    "nodeVersion": "24.x"
+  }
+}

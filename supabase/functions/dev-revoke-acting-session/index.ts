@@ -3,11 +3,21 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const DEV_TOOLS_ENABLED = Deno.env.get("DEV_TOOLS_ENABLED") || "false";
+const DEV_TOOLS_SECRET = Deno.env.get("DEV_TOOLS_SECRET") || "";
 
-const corsHeaders = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, content-type" };
+const corsHeaders = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, content-type, x-dev-secret" };
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  if (req.method !== "POST") return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  if (DEV_TOOLS_ENABLED !== "true") {
+    return new Response(JSON.stringify({ error: "Not found" }), { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
+  const maybeSecret = req.headers.get("x-dev-secret") || "";
+  if (DEV_TOOLS_SECRET && maybeSecret !== DEV_TOOLS_SECRET) {
+    return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
   try {
     const authHeader = req.headers.get("Authorization") || "";
     const token = authHeader.replace("Bearer ", "");
@@ -30,9 +40,12 @@ Deno.serve(async (req: Request) => {
 
     const { data: ur, error: urErr } = await supabaseAdmin.from("user_roles").select("role").eq("user_id", caller.id).maybeSingle();
     if (urErr) return new Response(JSON.stringify({ error: "role_check_failed" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    const isAdmin = ur && ur.role === "admin";
+    const { data: allowRow, error: allowErr } = await supabaseAdmin.from("dev_allowlist").select("user_id").eq("user_id", caller.id).maybeSingle();
+    if (allowErr) return new Response(JSON.stringify({ error: "allowlist_check_failed" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    const isAdmin = !!ur && ur.role === "admin";
+    const isAllowlisted = !!allowRow;
     const isOwner = sessionRow.developer_user_id === caller.id;
-    if (!isAdmin && !isOwner) return new Response(JSON.stringify({ error: "forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (!isAdmin && !isAllowlisted && !isOwner) return new Response(JSON.stringify({ error: "forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
     const { error: updErr } = await supabaseAdmin.from("dev_acting_sessions").update({ revoked_at: new Date().toISOString() }).eq("id", acting_session_id);
     if (updErr) return new Response(JSON.stringify({ error: updErr.message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -43,4 +56,3 @@ Deno.serve(async (req: Request) => {
     return new Response(JSON.stringify({ error: err instanceof Error ? err.message : String(err) }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 });
-
