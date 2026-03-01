@@ -1,0 +1,41 @@
+{
+  "timestamp": "2026-02-23T11:31:27.589Z",
+  "origin": "http://127.0.0.1:4174",
+  "roles": [
+    {
+      "role": "farmer",
+      "route": "/farmer/dashboard",
+      "ok": true,
+      "findings": [],
+      "screenshot": "output/playwright/roles/farmer-kannada-dashboard-live.png",
+      "checks": {
+        "hasKannadaScript": true,
+        "hasBrowseMarketplaceEnglish": false,
+        "hasAiStockAdvisorEnglish": false,
+        "bodyPreview": "AgriNext Gen\nನನ್ನ ದಿನ\nಡ್ಯಾಶ್‌ಬೋರ್ಡ್\nನನ್ನ ಬೆಳೆಗಳು\nಕೃಷಿಭೂಮಿಗಳು\nಸಾರಿಗೆ\nಪಟ್ಟಿಗಳು\nಆರ್ಡರ್‌ಗಳು\nಆದಾಯ\nಅಧಿಸೂಚನೆಗಳು\n3\nಸೆಟ್ಟಿಂಗ್‌ಗಳು\nಸೈನ್ ಔಟ್\nಡ್ಯಾಶ್‌ಬೋರ್ಡ್\nOnline\n3\nBG\nಸ್ವಾಗತ\n\nತ್ವರಿತ ಕ್ರಿಯೆಗಳು\n\nWelcome, Basavaraju Gowda! 🌾\nHunsuru, Mysuru\n\n11.7 acres\n\nTotal Land\n\n6\n\nActive Crops\n\n0\n\nReady to Harvest\n\n3\n\nPending Transport\n\nQuick Actions\nAdd Crop\nAdd Farmland\nRequest Transport\nCreate Listing\nCall Agent\nWeather Today\n\n31°C\n\nPartly cloudy\n\nMore\nMandi Prices\n\n0 crops • No price data available\n\nNo price data ava",
+        "farmerChat": {
+          "bodyHasKannadaScript": true,
+          "apiResponses": [
+            {
+              "status": 200,
+              "replyPreview": "Sorry, the assistant is temporarily slow. Please resend your crop, village, and issue in one line. Do you need help with irrigation, pests, or harvest planning?",
+              "responseLanguage": "en",
+              "detectedInputLanguage": "en",
+              "hasKannadaReply": false
+            },
+            {
+              "status": 200,
+              "replyPreview": "ಕ್ಷಮಿಸಿ, ಈಗ ಸೇವೆ ನಿಧಾನವಾಗಿದೆ. ನಿಮ್ಮ ಬೆಳೆ, ಹಳ್ಳಿ, ಮತ್ತು ಸಮಸ್ಯೆಯನ್ನು ಒಂದು ಸಾಲಿನಲ್ಲಿ ಮತ್ತೆ ಕಳುಹಿಸಿ. ಮೊದಲಿಗೆ ಯಾವ ವಿಷಯ ಬೇಕು: ನೀರಾವರಿ, ಕೀಟ, ಅಥವಾ ಮಾರುಕಟ್ಟೆ?",
+              "responseLanguage": "kn",
+              "detectedInputLanguage": "kn",
+              "hasKannadaReply": true
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "errors": [
+    "fetch failed"
+  ]
+}

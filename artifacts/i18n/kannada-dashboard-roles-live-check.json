@@ -1,0 +1,66 @@
+{
+  "timestamp": "2026-02-23T11:37:02.724Z",
+  "origin": "http://127.0.0.1:4175",
+  "roles": [
+    {
+      "role": "agent",
+      "route": "/agent/dashboard",
+      "ok": true,
+      "findings": [],
+      "screenshot": "output/playwright/roles/agent-kannada-dashboard-live.png",
+      "checks": {
+        "hasKannadaScript": true,
+        "hasBrowseMarketplaceEnglish": false,
+        "hasAiStockAdvisorEnglish": false,
+        "hasWelcomeNull": false,
+        "bodyPreview": "AgriNext Gen Agent\nಕ್ಷೇತ್ರ ಕಾರ್ಯಾಚರಣೆಗಳು\nಇಂದು\nಡ್ಯಾಶ್‌ಬೋರ್ಡ್\nನನ್ನ ಕಾರ್ಯಗಳು\nನನ್ನ ರೈತರು\nರೈತರು ಮತ್ತು ಬೆಳೆಗಳು\nಸಾರಿಗೆ\nಸೇವಾ ಪ್ರದೇಶ\nಪ್ರೊಫೈಲ್\nಸೈನ್ ಔಟ್\nಏಜೆಂಟ್ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್\nOnline\n3\nSK\nಏಜೆಂಟ್ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್\n\nನಿಯೋಜಿತ ರೈತರು\n\nFarmers Assigned\n\nActive Crops\n\nTasks Today\n\nundefined/undefined\n\nReady to Harvest\n\nPending Transport\n\nToday's Tasks\nView All\n\nNo tasks scheduled for today\n\nCrops Near Harvest\nAI Insights\nPowered by AI\nPrioritize Today's Visits\nGenerate Cluster Summary\nRecent AI Insights\nPending Transport"
+      },
+      "attempts": 1
+    },
+    {
+      "role": "logistics",
+      "route": "/logistics/dashboard",
+      "ok": true,
+      "findings": [],
+      "screenshot": "output/playwright/roles/logistics-kannada-dashboard-live.png",
+      "checks": {
+        "hasKannadaScript": true,
+        "hasBrowseMarketplaceEnglish": false,
+        "hasAiStockAdvisorEnglish": false,
+        "hasWelcomeNull": false,
+        "bodyPreview": "AgriNext Gen Transport\nಲಾಜಿಸ್ಟಿಕ್ಸ್ ಪಾಲುದಾರ\nಡ್ಯಾಶ್‌ಬೋರ್ಡ್\nಲಭ್ಯ ಲೋಡ್‌ಗಳು\nಸಕ್ರಿಯ ಪ್ರಯಾಣಗಳು\nಪೂರ್ಣಗೊಂಡವು\nನನ್ನ ವಾಹನಗಳು\nಸೇವಾ ಪ್ರದೇಶ\nಪ್ರೊಫೈಲ್\nಸೈನ್ ಔಟ್\nಡ್ಯಾಶ್‌ಬೋರ್ಡ್\nOnline\n3\nMN\nTransporter Dashboard\n\nWelcome back, Manjunath N - Channapatna\n\nಪ್ರೊಫೈಲ್\n\nAVAILABLE LOADS\n\n3\n\nACCEPTED TRIPS\n\n0\n\nIN PROGRESS\n\n0\n\nCOMPLETED TRIPS\n\n0\n\nToday's Active Trips\nಎಲ್ಲಾ ನೋಡಿ\nNo active trips\nNew Load Requests\nಎಲ್ಲಾ ನೋಡಿ\nUnknown Farmer\nಹೊಂದಿಕೊಳ್ಳಬಲ್ಲ\nCrop\n-\n1200 kg\n-\nHunsuru\nUnknown Farmer\nಹೊಂದಿಕೊಳ್ಳಬಲ್ಲ\nCrop\n-\n1200 kg\n-\nMysuru Rural\nUnknown Farmer\nಹೊಂದಿಕೊಳ್ಳಬಲ್ಲ\nCrop\n-\n1200 kg\n-\nMysuru Rural\nAI-Powered Suggestions\n\nOptim"
+      },
+      "attempts": 1
+    },
+    {
+      "role": "buyer",
+      "route": "/marketplace/dashboard",
+      "ok": true,
+      "findings": [],
+      "screenshot": "output/playwright/roles/buyer-kannada-dashboard-live.png",
+      "checks": {
+        "hasKannadaScript": true,
+        "hasBrowseMarketplaceEnglish": false,
+        "hasAiStockAdvisorEnglish": false,
+        "hasWelcomeNull": false,
+        "bodyPreview": "AgriNext Gen Market\nಮಾರುಕಟ್ಟೆ ಖರೀದಿದಾರ\nಡ್ಯಾಶ್‌ಬೋರ್ಡ್\nಉತ್ಪನ್ನಗಳನ್ನು ವೀಕ್ಷಿಸಿ\nನನ್ನ ಆರ್ಡರ್‌ಗಳು\nಪ್ರೊಫೈಲ್\nಸೈನ್ ಔಟ್\nಡ್ಯಾಶ್‌ಬೋರ್ಡ್\nOnline\n3\nAF\nಮಾರುಕಟ್ಟೆ ವೀಕ್ಷಿಸಿ\n\nಸ್ವಾಗತ, Ayesha Fathima\n\nಉತ್ಪನ್ನಗಳನ್ನು ವೀಕ್ಷಿಸಿ\n\nಲಭ್ಯ\n\n6\n\nತಾಜಾ ಕೊಯ್ಲು\n\n3\n\nಶೀಘ್ರದಲ್ಲೇ\n\n0\n\nಸಕ್ರಿಯ ಆರ್ಡರ್‌ಗಳು\n\n3\n\nತಾಜಾ ಕೊಯ್ಲು ಲಭ್ಯ\nಎಲ್ಲಾ ನೋಡಿ\nಉತ್ಪನ್ನಗಳು ಸಿಗಲಿಲ್ಲ\n\nಬೇರೆ ಹುಡುಕಾಟ ಪದಗಳು ಅಥವಾ ಫಿಲ್ಟರ್‌ಗಳನ್ನು ಪ್ರಯತ್ನಿಸಿ\n\nನಿಮ್ಮ ಸಕ್ರಿಯ ಆರ್ಡರ್‌ಗಳು\nಎಲ್ಲಾ ನೋಡಿ\nನಿಮಗೆ ಇನ್ನೂ ಯಾವುದೇ ಆರ್ಡರ್‌ಗಳು ಬಂದಿಲ್ಲ.\n\nಉತ್ಪನ್ನಗಳನ್ನು ವೀಕ್ಷಿಸಿ\n\nಉತ್ಪನ್ನಗಳನ್ನು ವೀಕ್ಷಿಸಿ\nAI ಸ್ಟಾಕ್ ಸಲಹೆಗಾರ\n\nನಿಮ್ಮ ಮಾರುಕಟ್ಟೆ ಪ್ರೊಫೈಲ್ ಮತ್ತು ತಾಜಾ ಇನ್‌ವೆಂಟರಿ ಆಧರಿಸಿ ಈ ವಾರ ಯಾವ ಸ್ಟಾಕ್ ಇಡಬೇಕು ಎಂಬ ಸಲಹೆ ಪಡೆಯಿರ"
+      },
+      "attempts": 1
+    },
+    {
+      "role": "admin",
+      "route": "/admin/dashboard",
+      "ok": true,
+      "findings": [],
+      "screenshot": "output/playwright/roles/admin-kannada-dashboard-live.png",
+      "checks": {
+        "hasKannadaScript": true,
+        "hasBrowseMarketplaceEnglish": false,
+        "hasAiStockAdvisorEnglish": false,
+        "hasWelcomeNull": false,
+        "bodyPreview": "AgriNext Gen Admin\nನಿಯಂತ್ರಣ ಕೇಂದ್ರ\nಡ್ಯಾಶ್‌ಬೋರ್ಡ್\nOps Inbox\nಟಿಕೆಟ್‌ಗಳು\nರೈತರು\nಏಜೆಂಟ್‌ಗಳು\nಸಾರಿಗೆದಾರರು\nಖರೀದಿದಾರರು\nಎಲ್ಲಾ ಬೆಳೆಗಳು\nಸಾರಿಗೆ\nಆರ್ಡರ್‌ಗಳು\nಬಾಕಿ ನವೀಕರಣಗಳು\nAI Review\nJobs\nFinance\nAI ಕನ್‌ಸೋಲ್\nSeed Data\nಮೈಸೂರು ಡೆಮೋ\nಡೇಟಾ ಆರೋಗ್ಯ\nಸೈನ್ ಔಟ್\nನಿರ್ವಾಹಕ ಕಮಾಂಡ್ ಸೆಂಟರ್\nOnline\n3\nRS\nನಿರ್ವಾಹಕ ಕಮಾಂಡ್ ಸೆಂಟರ್\n\nಸಂಪೂರ್ಣ ಪರಿಸರ ವ್ಯವಸ್ಥೆ ಗೋಚರತೆ ಮತ್ತು ನಿಯಂತ್ರಣ\n\nಲೈವ್\nರಿಫ್ರೆಶ್\n\nಒಟ್ಟು ರೈತರು\n\n1\n\nಸಕ್ರಿಯ ಖರೀದಿದಾರರು\n\n1\n\nಸಾರಿಗೆದಾರರು\n\n1\n\nಸಕ್ರಿಯ ಬೆಳೆಗಳು\n\n0\n\nಕೊಯ್ಲಿಗೆ ಸಿದ್ಧ\n\n0\n\nಬಾಕಿ ಸಾರಿಗೆ\n\n0\n\nಇಂದಿನ ಹೊಸ ಆರ್ಡರ್‌ಗಳು\n\n0\n\nಬಾಕಿ ಆರ್ಡರ್‌ಗಳು\n\n0\n\nಇತ್ತೀಚಿನ ಚಟುವಟಿಕೆ\norder\nNew order placed (placed)\nabout 18 hours ago\ntransport\nTransport req"
+      },
+      "attempts": 1
+    }
+  ]
+}

@@ -71,7 +71,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
         toast.success(t('toast.languageChanged', lang));
       } catch (error) {
         console.error('Failed to save language preference:', error);
-        toast.error('Failed to save language preference');
+        toast.error(t('errors.languagePreferenceSaveFailed', lang));
       }
     }
 
