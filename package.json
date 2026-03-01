@@ -15,6 +15,7 @@
     "security:check-edge": "node scripts/security/check-edge-functions.mjs",
     "security:check-sql": "node scripts/security/check-sql-security.mjs",
     "i18n:audit-dashboard": "node scripts/i18n/audit-dashboard-keys.mjs",
+    "i18n:audit-kannada-encoding": "node scripts/i18n/audit-kannada-encoding.mjs",
     "staging:verify-baseline": "node scripts/staging/verify-baseline.mjs",
     "staging:provision-dummy-users": "node scripts/staging/provision-dummy-users.mjs",
     "staging:seed-dummy-data": "node scripts/staging/seed-dummy-data.mjs",

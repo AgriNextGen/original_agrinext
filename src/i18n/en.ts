@@ -21,6 +21,8 @@ export const en = {
     submit: 'Submit',
     confirm: 'Confirm',
     close: 'Close',
+    play: 'Play',
+    stop: 'Stop',
     yes: 'Yes',
     no: 'No',
     error: 'Error',
@@ -87,6 +89,10 @@ export const en = {
     showAll: 'Show all',
     noMoreItems: 'No more items',
     done: 'Done',
+    welcome: 'Welcome',
+    english: 'English',
+    hindi: 'Hindi',
+    kannada: 'Kannada',
     searchPlaceholderDetailed: 'Search by name, ID, village, or location…',
   },
 
@@ -386,6 +392,30 @@ export const en = {
      forecast: 'Price Forecast',
      lastUpdated: 'Last updated',
    },
+    assistant: {
+      title: 'Krishi Mitra',
+      subtitle: 'Your Farming Assistant',
+      open: 'Open assistant',
+      changeLanguage: 'Change language',
+      voiceReply: 'Voice Reply',
+      welcome: 'Namaste!',
+      intro: 'Ask me about crops, weather, market prices, pests, irrigation, or daily farm decisions.',
+      playVoice: 'Play voice reply',
+      startListening: 'Start voice input',
+      stopListening: 'Stop voice input',
+      listening: 'Listening...',
+      typeOrSpeak: 'Type or speak...',
+      send: 'Send message',
+      speakNow: 'Speak now in',
+      quickPrompts: {
+        seasonCropsLabel: 'Season crops',
+        seasonCropsMessage: 'What crops should I plant this season in Karnataka?',
+        pestControlLabel: 'Pest control',
+        pestControlMessage: 'My crop has pest attack symptoms. What should I check first?',
+        irrigationLabel: 'Irrigation',
+        irrigationMessage: 'How should I plan irrigation this week for my crop?',
+      },
+    },
   },
 
   // Farmlands
@@ -638,6 +668,11 @@ export const en = {
     setNow: 'Set Location Now',
   },
 
+  badges: {
+    personalized: 'Personalized',
+    webVerified: 'Web verified',
+  },
+
   // Validation
   validation: {
     required: 'This field is required',
@@ -647,6 +682,25 @@ export const en = {
     invalidEmail: 'Please enter a valid email',
     invalid_email: 'Please enter a valid email',
     minLength: 'Must be at least {min} characters',
+  },
+
+  errors: {
+    ai: {
+      assistantUnavailable: 'Could not get a response right now. Please try again.',
+      recommendationsFailed: 'Failed to get recommendations',
+    },
+    audio: {
+      playFailed: 'Could not play audio',
+      voiceUnavailable: 'Voice unavailable for this message',
+      textOnlyFallback: 'Voice reply unavailable. Showing text response only.',
+    },
+    voice: {
+      unsupportedBrowser: 'Voice input is not supported in your browser. Please use Chrome or Edge.',
+      couldNotAccessMicrophone: 'Could not access microphone. Please check permissions.',
+      microphoneDenied: 'Microphone access denied. Please enable it in your browser settings.',
+      inputFailed: 'Voice input error. Please try again or type your message.',
+    },
+    languagePreferenceSaveFailed: 'Failed to save language preference',
   },
 
   // Notifications
@@ -676,6 +730,7 @@ export const en = {
     loadAccepted: 'Load accepted successfully',
     tripUpdated: 'Trip status updated',
     messageSent: 'Message sent successfully',
+    aiRecommendationsReady: 'AI recommendations ready!',
   },
 
   // Marketplace

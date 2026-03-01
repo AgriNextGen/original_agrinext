@@ -1,0 +1,62 @@
+{
+  "generated_at": "2026-02-23T08:13:53.772Z",
+  "mode": "dist static server + remote auth + local kn + mocked farmer-ai",
+  "results": [
+    {
+      "role": "farmer",
+      "route": "/farmer/dashboard",
+      "url": "http://127.0.0.1:4177/farmer/dashboard",
+      "screenshot": "output/playwright/roles/farmer-kannada-dashboard.png",
+      "suspicious": [],
+      "checks": {
+        "loaded": true,
+        "assistantNoMojibake": true,
+        "assistantInputVisible": true,
+        "chatRespondedKannada": true,
+        "chatSuggestionsVisible": true
+      },
+      "error": null,
+      "chatScreenshot": "output/playwright/roles/farmer-kannada-chatbot.png"
+    },
+    {
+      "role": "agent",
+      "route": "/agent/dashboard",
+      "url": "http://127.0.0.1:4177/agent/dashboard",
+      "screenshot": "output/playwright/roles/agent-kannada-dashboard.png",
+      "suspicious": [],
+      "checks": {
+        "loaded": true
+      },
+      "error": null
+    },
+    {
+      "role": "logistics",
+      "route": "/logistics/dashboard",
+      "url": "http://127.0.0.1:4177/logistics/dashboard",
+      "screenshot": "output/playwright/roles/logistics-kannada-dashboard.png",
+      "suspicious": [],
+      "checks": {
+        "loaded": true
+      },
+      "error": null
+    },
+    {
+      "role": "buyer",
+      "route": "/marketplace/dashboard",
+      "url": null,
+      "screenshot": null,
+      "suspicious": [],
+      "checks": {},
+      "error": "login buyer failed 546 {\"code\":\"WORKER_LIMIT\",\"message\":\"Function failed due to not having enough compute resources (please check logs)\"}"
+    },
+    {
+      "role": "admin",
+      "route": "/admin/dashboard",
+      "url": null,
+      "screenshot": null,
+      "suspicious": [],
+      "checks": {},
+      "error": "login admin failed 504 {}"
+    }
+  ]
+}

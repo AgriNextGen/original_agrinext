@@ -1,0 +1,174 @@
+{
+  "timestamp": "2026-02-23T11:40:55.455Z",
+  "base": "https://rmtkkzfzdmpjlqexrbme.supabase.co",
+  "steps": [
+    {
+      "name": "gemini_chat_unauthorized",
+      "ok": true,
+      "latency_ms": 725,
+      "status": 401,
+      "body": {
+        "error": {
+          "code": "unauthorized",
+          "message": "Unauthorized",
+          "request_id": "85f646d4-33cb-41a7-a2d9-687be48e9990"
+        }
+      }
+    },
+    {
+      "name": "login_by_phone_attempt_1",
+      "ok": true,
+      "status": 200,
+      "body": {
+        "access_token": "[redacted]",
+        "refresh_token": "[redacted]",
+        "expires_in": 3600
+      }
+    },
+    {
+      "name": "ai_gateway_unknown_route",
+      "ok": true,
+      "latency_ms": 561,
+      "status": 404,
+      "body": {
+        "error": {
+          "code": "not_found",
+          "message": "Unknown route: /not-a-route",
+          "request_id": "2015142a-b47c-4e19-b939-c7e18ed5bd1e"
+        }
+      }
+    },
+    {
+      "name": "gemini_chat_auth",
+      "ok": true,
+      "latency_ms": 4422,
+      "status": 500,
+      "has_reply": false,
+      "reply_preview": "",
+      "body": {
+        "error": {
+          "code": "internal_error",
+          "message": "API key not valid. Please pass a valid API key.",
+          "request_id": "bafa9d75-88ce-4c91-8fd9-11b320ecb6f5"
+        }
+      }
+    },
+    {
+      "name": "farmer_assistant_en",
+      "ok": true,
+      "latency_ms": 1753,
+      "status": 200,
+      "has_reply": true,
+      "reply_preview": "Sorry, the assistant is temporarily slow. Please resend your crop, village, and issue in one line. Do you need help with irrigation, pests, or harvest planning?",
+      "metadata": {
+        "personalized": true,
+        "webVerified": false,
+        "detectedInputLanguage": "en",
+        "responseLanguage": "en",
+        "model": "gemini-2.0-flash",
+        "sources": {
+          "profile": true,
+          "weather": true,
+          "market": false,
+          "crops": true,
+          "web": false
+        },
+        "request_id": "b5322a4a-6668-49ef-8be0-b94d4f14624a"
+      },
+      "suggestions": [
+        "Irrigation",
+        "Pest issue"
+      ]
+    },
+    {
+      "name": "farmer_assistant_kn",
+      "ok": true,
+      "latency_ms": 1356,
+      "status": 200,
+      "has_reply": true,
+      "reply_preview": "Sorry, the assistant is temporarily slow. Please resend your crop, village, and issue in one line. Do you need help with irrigation, pests, or harvest planning?",
+      "has_kannada_script": true,
+      "metadata": {
+        "personalized": true,
+        "webVerified": false,
+        "detectedInputLanguage": "en",
+        "responseLanguage": "en",
+        "model": "gemini-2.0-flash",
+        "sources": {
+          "profile": true,
+          "weather": true,
+          "market": false,
+          "crops": true,
+          "web": false
+        },
+        "request_id": "d6695ec2-0cdb-4855-a5f7-b7e580d3ff41"
+      },
+      "suggestions": [
+        "Irrigation",
+        "Pest issue"
+      ]
+    },
+    {
+      "name": "agent_ai",
+      "ok": true,
+      "latency_ms": 1080,
+      "status": 200,
+      "has_result": true,
+      "result_preview": "Agent AI fallback summary (visit_prioritization)\nProvider response unavailable, so this is a temporary local summary.\nInput snapshot: {\"type\":\"visit_prioritization\",\"context\":{\"tasks\":[{\"id\":\"1\",\"farmer\":\"Basavaraju\",\"vi"
+    },
+    {
+      "name": "transport_ai",
+      "ok": true,
+      "latency_ms": 902,
+      "status": 200,
+      "has_result": true,
+      "result_preview": "Transport AI fallback summary (route_optimization)\nProvider response unavailable, so this is a temporary local summary.\nInput snapshot: {\"type\":\"route_optimization\",\"currentLocation\":\"Mysuru\",\"loads\":[{\"farmer_name\":\"Bas"
+    },
+    {
+      "name": "marketplace_ai",
+      "ok": true,
+      "latency_ms": 1669,
+      "status": 200,
+      "has_result": true,
+      "result_preview": "Marketplace AI fallback summary (stock_recommendation)\nProvider response unavailable, so this is a temporary local summary.\nInput snapshot: {\"type\":\"stock_recommendation\",\"buyerProfile\":{\"buyer_type\":\"retail\",\"district\":"
+    },
+    {
+      "name": "tts_elevenlabs_direct",
+      "ok": true,
+      "latency_ms": 952,
+      "status": 502,
+      "has_audio_base64": false,
+      "mime_type": null,
+      "error": {
+        "code": "provider_error",
+        "message": "ElevenLabs TTS failed: 401 {\"detail\":{\"status\":\"invalid_api_key\",\"message\":\"Invalid API key\"}}",
+        "request_id": "3f34fa1b-e594-4aa7-abaf-02fae73748b7"
+      },
+      "audio_base64_length": 0
+    },
+    {
+      "name": "ai_gateway_elevenlabs_tts",
+      "ok": true,
+      "latency_ms": 4322,
+      "status": 502,
+      "has_audio_base64": false,
+      "mime_type": null,
+      "error": {
+        "code": "provider_error",
+        "message": "ElevenLabs TTS failed: 401 {\"detail\":{\"status\":\"invalid_api_key\",\"message\":\"Invalid API key\"}}",
+        "request_id": "3d39bf9c-124d-4faa-bdd1-03a890e108d1"
+      }
+    },
+    {
+      "name": "ai_gateway_firecrawl_fetch",
+      "ok": true,
+      "latency_ms": 3079,
+      "status": 401,
+      "body_preview": "{\"success\":false,\"error\":\"Unauthorized: Invalid token\"}",
+      "body": {
+        "success": false,
+        "error": "Unauthorized: Invalid token"
+      }
+    }
+  ]
+}

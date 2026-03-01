@@ -87,10 +87,10 @@ const MarketplaceDashboard = () => {
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error?.message || 'Function error');
       setStockAdvice(data.result);
-      toast.success('AI recommendations ready!');
+      toast.success(t('toast.aiRecommendationsReady'));
     } catch (error) {
       console.error('AI error:', error);
-      toast.error('Failed to get recommendations');
+      toast.error(t('errors.ai.recommendationsFailed'));
     } finally {
       setAiLoading(false);
     }
@@ -136,12 +136,16 @@ const MarketplaceDashboard = () => {
 
   const freshProducts = products?.filter((p) => p.status === 'ready').slice(0, 4) || [];
   const activeOrders = orders?.filter((o) => !['delivered', 'cancelled'].includes(o.status)).slice(0, 3) || [];
+  const subtitleParts = [
+    profile.name ? `${t('common.welcome')}, ${profile.name}` : t('common.welcome'),
+    profile.company_name || profile.buyer_type || '',
+  ].filter(Boolean);
 
   return (
     <DashboardLayout title={t('nav.dashboard')}>
       <PageHeader
         title={t('marketplace.browseMarketplace')}
-        subtitle={`Welcome, ${profile.name} - ${profile.company_name || profile.buyer_type}`}
+        subtitle={subtitleParts.join(' - ')}
         actions={
           <Button aria-label="Browse marketplace" onClick={() => navigate('/marketplace/browse')}>
             <ShoppingCart className="mr-2 h-4 w-4" />
