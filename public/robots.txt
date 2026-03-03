@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /farmer/
+Disallow: /agent/
+Disallow: /logistics/
+Disallow: /admin/
+Disallow: /marketplace/dashboard
+Disallow: /marketplace/orders
+Disallow: /marketplace/profile
+
+Sitemap: https://original-agrinext.vercel.app/sitemap.xml

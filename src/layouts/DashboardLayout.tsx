@@ -78,7 +78,7 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
       {/* Main content */}
       <div className="md:pl-64">
         <DashboardHeader title={title} onMenuClick={openSidebar} />
-        <main className="p-4 md:p-6">
+        <main id="main-content" className="p-4 md:p-6">
           {children}
         </main>
       </div>

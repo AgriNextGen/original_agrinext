@@ -73,8 +73,8 @@ const Footer = () => {
             © 2025 AgriNext Gen. All rights reserved.
           </p>
           <div className="flex items-center gap-4 md:gap-6 text-sm text-sidebar-foreground/60">
-            <Link to="/about" className="hover:text-sidebar-primary transition-colors">Privacy Policy</Link>
-            <Link to="/about" className="hover:text-sidebar-primary transition-colors">Terms of Service</Link>
+            <Link to="/privacy" className="hover:text-sidebar-primary transition-colors">Privacy Policy</Link>
+            <Link to="/terms" className="hover:text-sidebar-primary transition-colors">Terms of Service</Link>
           </div>
         </div>
       </div>

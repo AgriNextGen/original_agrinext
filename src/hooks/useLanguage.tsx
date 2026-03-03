@@ -80,6 +80,11 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   const translate = useCallback((key: string) => t(key, language), [language]);
 
+  useEffect(() => {
+    document.documentElement.lang = language === 'kn' ? 'kn' : 'en';
+    document.documentElement.dir = 'ltr';
+  }, [language]);
+
   return (
     <LanguageContext.Provider value={{ 
       language, 

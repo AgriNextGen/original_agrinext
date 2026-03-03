@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - run: npm ci
+      - name: TypeScript type check
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint
+      - name: Run tests
+        run: npm run test
+      - name: Build
+        run: npm run build
+      - name: Check bundle size
+        run: |
+          BUILD_SIZE=$(du -sk dist/ | cut -f1)
+          echo "Bundle size: ${BUILD_SIZE}KB"
+          if [ "$BUILD_SIZE" -gt 5120 ]; then
+            echo "::warning::Bundle size exceeds 5MB threshold"
+          fi
+      - name: Security audit (i18n encoding)
+        run: npm run i18n:audit-kannada-encoding
+      - name: Security audit (edge functions)
+        run: npm run security:check-edge

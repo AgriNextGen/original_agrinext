@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,76 +7,81 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { LanguageProvider } from "@/hooks/useLanguage";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { PageLoader } from "@/components/shared/PageLoader";
+import { OfflineBanner } from "@/components/shared/OfflineBanner";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
-import About from "./pages/About";
-import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
-import FarmerDashboard from "./pages/farmer/Dashboard";
-import FarmerListings from "./pages/farmer/Listings";
-import FarmerOrders from "./pages/farmer/Orders";
-import FarmerEarnings from "./pages/farmer/Earnings";
-import FarmerCrops from "./pages/farmer/Crops";
-import FarmerCropDiary from "./pages/farmer/CropDiary";
-import FarmerFarmlands from "./pages/farmer/Farmlands";
-import FarmerTransport from "./pages/farmer/Transport";
-import FarmerNotifications from "./pages/farmer/Notifications";
-import FarmerSettings from "./pages/farmer/Settings";
-import AgentDashboard from "./pages/agent/Dashboard";
-import AgentTasks from "./pages/agent/Tasks";
-import AgentFarmers from "./pages/agent/Farmers";
-import AgentMyFarmers from "./pages/agent/MyFarmers";
-import AgentFarmerDetail from "./pages/agent/FarmerDetail";
-import AgentTransport from "./pages/agent/Transport";
-import AgentProfile from "./pages/agent/Profile";
-import AgentServiceArea from "./pages/agent/ServiceArea";
-import LogisticsDashboard from "./pages/logistics/Dashboard";
-import LogisticsAvailableLoads from "./pages/logistics/AvailableLoads";
-import LogisticsActiveTrips from "./pages/logistics/ActiveTrips";
-import LogisticsCompletedTrips from "./pages/logistics/CompletedTrips";
-import LogisticsVehicles from "./pages/logistics/Vehicles";
-import LogisticsTripDetail from "./pages/logistics/TripDetail";
-import LogisticsProfile from "./pages/logistics/Profile";
-import LogisticsServiceArea from "./pages/logistics/ServiceArea";
-import MarketplaceDashboard from "./pages/marketplace/Dashboard";
-import BrowseProducts from "./pages/marketplace/Browse";
-import ProductDetail from "./pages/marketplace/ProductDetail";
-import MarketplaceOrders from "./pages/marketplace/Orders";
-import MarketplaceProfile from "./pages/marketplace/Profile";
-import AdminDashboard from "./pages/admin/Dashboard";
-import AdminFarmers from "./pages/admin/Farmers";
-import AdminAgents from "./pages/admin/Agents";
-import AdminTransporters from "./pages/admin/Transporters";
-import AdminBuyers from "./pages/admin/Buyers";
-import AdminCrops from "./pages/admin/Crops";
-import AdminTransport from "./pages/admin/Transport";
-import AdminOrders from "./pages/admin/Orders";
-import AIConsole from "./pages/admin/AIConsole";
-import SeedData from "./pages/admin/SeedData";
-import MysuruDemoSeed from "./pages/admin/MysruDemoSeed";
-import DataHealth from "./pages/admin/DataHealth";
-import PendingUpdates from "./pages/admin/PendingUpdates";
-import AdminOpsInbox from "./pages/admin/OpsInbox";
-import AdminEntity360 from "./pages/admin/Entity360";
-import AdminTickets from "./pages/admin/Tickets";
-import AdminAiReview from "./pages/admin/AiReview";
-import AdminJobs from "./pages/admin/Jobs";
-import AdminFinance from "./pages/admin/Finance";
-import FinanceOps from "./pages/admin/FinanceOps";
-import Refunds from "./pages/admin/Refunds";
-import Payouts from "./pages/admin/Payouts";
-import AdminDisputes from "./pages/admin/Disputes";
-import SystemHealthPage from "./pages/admin/SystemHealth";
-import AgentToday from "./pages/agent/Today";
-import FarmerMyDay from "./pages/farmer/MyDay";
-import PendingSync from "./pages/common/PendingSync";
-import UploadsManager from "./pages/common/UploadsManager";
 import CallbackHandler from "./pages/Auth/CallbackHandler";
 import AccountSwitcher from "./pages/AccountSwitcher";
-import DevConsole from "./components/DevConsole/DevConsole";
 import RoleSelect from "./pages/Onboard/RoleSelect";
- import ListingTrace from "./pages/trace/ListingTrace";
+
+const About = lazy(() => import("./pages/About"));
+const Contact = lazy(() => import("./pages/Contact"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const TermsOfService = lazy(() => import("./pages/TermsOfService"));
+const FarmerDashboard = lazy(() => import("./pages/farmer/Dashboard"));
+const FarmerListings = lazy(() => import("./pages/farmer/Listings"));
+const FarmerOrders = lazy(() => import("./pages/farmer/Orders"));
+const FarmerEarnings = lazy(() => import("./pages/farmer/Earnings"));
+const FarmerCrops = lazy(() => import("./pages/farmer/Crops"));
+const FarmerCropDiary = lazy(() => import("./pages/farmer/CropDiary"));
+const FarmerFarmlands = lazy(() => import("./pages/farmer/Farmlands"));
+const FarmerTransport = lazy(() => import("./pages/farmer/Transport"));
+const FarmerNotifications = lazy(() => import("./pages/farmer/Notifications"));
+const FarmerSettings = lazy(() => import("./pages/farmer/Settings"));
+const FarmerMyDay = lazy(() => import("./pages/farmer/MyDay"));
+const AgentDashboard = lazy(() => import("./pages/agent/Dashboard"));
+const AgentTasks = lazy(() => import("./pages/agent/Tasks"));
+const AgentFarmers = lazy(() => import("./pages/agent/Farmers"));
+const AgentMyFarmers = lazy(() => import("./pages/agent/MyFarmers"));
+const AgentFarmerDetail = lazy(() => import("./pages/agent/FarmerDetail"));
+const AgentTransport = lazy(() => import("./pages/agent/Transport"));
+const AgentProfile = lazy(() => import("./pages/agent/Profile"));
+const AgentServiceArea = lazy(() => import("./pages/agent/ServiceArea"));
+const AgentToday = lazy(() => import("./pages/agent/Today"));
+const LogisticsDashboard = lazy(() => import("./pages/logistics/Dashboard"));
+const LogisticsAvailableLoads = lazy(() => import("./pages/logistics/AvailableLoads"));
+const LogisticsActiveTrips = lazy(() => import("./pages/logistics/ActiveTrips"));
+const LogisticsCompletedTrips = lazy(() => import("./pages/logistics/CompletedTrips"));
+const LogisticsVehicles = lazy(() => import("./pages/logistics/Vehicles"));
+const LogisticsTripDetail = lazy(() => import("./pages/logistics/TripDetail"));
+const LogisticsProfile = lazy(() => import("./pages/logistics/Profile"));
+const LogisticsServiceArea = lazy(() => import("./pages/logistics/ServiceArea"));
+const MarketplaceDashboard = lazy(() => import("./pages/marketplace/Dashboard"));
+const BrowseProducts = lazy(() => import("./pages/marketplace/Browse"));
+const ProductDetail = lazy(() => import("./pages/marketplace/ProductDetail"));
+const MarketplaceOrders = lazy(() => import("./pages/marketplace/Orders"));
+const MarketplaceProfile = lazy(() => import("./pages/marketplace/Profile"));
+const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
+const AdminFarmers = lazy(() => import("./pages/admin/Farmers"));
+const AdminAgents = lazy(() => import("./pages/admin/Agents"));
+const AdminTransporters = lazy(() => import("./pages/admin/Transporters"));
+const AdminBuyers = lazy(() => import("./pages/admin/Buyers"));
+const AdminCrops = lazy(() => import("./pages/admin/Crops"));
+const AdminTransport = lazy(() => import("./pages/admin/Transport"));
+const AdminOrders = lazy(() => import("./pages/admin/Orders"));
+const AIConsole = lazy(() => import("./pages/admin/AIConsole"));
+const SeedData = lazy(() => import("./pages/admin/SeedData"));
+const MysuruDemoSeed = lazy(() => import("./pages/admin/MysruDemoSeed"));
+const DataHealth = lazy(() => import("./pages/admin/DataHealth"));
+const PendingUpdates = lazy(() => import("./pages/admin/PendingUpdates"));
+const AdminOpsInbox = lazy(() => import("./pages/admin/OpsInbox"));
+const AdminEntity360 = lazy(() => import("./pages/admin/Entity360"));
+const AdminTickets = lazy(() => import("./pages/admin/Tickets"));
+const AdminAiReview = lazy(() => import("./pages/admin/AiReview"));
+const AdminJobs = lazy(() => import("./pages/admin/Jobs"));
+const AdminFinance = lazy(() => import("./pages/admin/Finance"));
+const FinanceOps = lazy(() => import("./pages/admin/FinanceOps"));
+const Refunds = lazy(() => import("./pages/admin/Refunds"));
+const Payouts = lazy(() => import("./pages/admin/Payouts"));
+const AdminDisputes = lazy(() => import("./pages/admin/Disputes"));
+const SystemHealthPage = lazy(() => import("./pages/admin/SystemHealth"));
+const PendingSync = lazy(() => import("./pages/common/PendingSync"));
+const UploadsManager = lazy(() => import("./pages/common/UploadsManager"));
+const DevConsole = lazy(() => import("./components/DevConsole/DevConsole"));
+const ListingTrace = lazy(() => import("./pages/trace/ListingTrace"));
 const queryClient = new QueryClient();
 // Restore persisted simple query cache on startup (best-effort)
 import persister from '@/offline/queryPersister';
@@ -91,7 +97,6 @@ import persister from '@/offline/queryPersister';
 })();
 
 // Persist on change (debounced)
-import { getQueryCache } from '@tanstack/react-query';
 let persistTimer: any = null;
 queryClient.getQueryCache().subscribe(() => {
   clearTimeout(persistTimer);
@@ -109,10 +114,21 @@ const App = () => (
           <Toaster />
           <Sonner />
         <BrowserRouter>
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:p-4 focus:bg-primary focus:text-primary-foreground focus:rounded-md focus:m-2 focus:top-0 focus:left-0"
+          >
+            Skip to main content
+          </a>
+          <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<TermsOfService />} />
             <Route path="/auth/callback" element={<CallbackHandler />} />
             <Route path="/account/switch" element={<AccountSwitcher />} />
             {enableDevConsoleRoute ? (
@@ -125,8 +141,6 @@ const App = () => (
                 }
               />
             ) : null}
-            <Route path="/about" element={<About />} />
-            <Route path="/contact" element={<Contact />} />
             
              {/* Public trace routes - no auth required */}
              <Route path="/trace/listing/:traceCode" element={<ListingTrace />} />
@@ -626,6 +640,8 @@ const App = () => (
             
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </Suspense>
+          <OfflineBanner />
         </BrowserRouter>
         </TooltipProvider>
       </LanguageProvider>

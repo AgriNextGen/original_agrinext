@@ -1,8 +1,8 @@
 const stats = [
-  { value: "50K+", label: "Active Farmers" },
-  { value: "1M+", label: "Tons Traded" },
-  { value: "500+", label: "Districts Covered" },
-  { value: "₹100Cr+", label: "Transactions" },
+  { value: "5", label: "Roles Supported" },
+  { value: "30+", label: "Districts in Karnataka" },
+  { value: "2", label: "Languages" },
+  { value: "100%", label: "Open Source" },
 ];
 
 const StatsSection = () => {
@@ -17,7 +17,7 @@ const StatsSection = () => {
 
       <div className="container mx-auto px-4 relative z-10">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-5xl mx-auto">
-          {stats.map((stat, index) => (
+          {stats.map((stat) => (
             <div key={stat.label} className="text-center">
               <div className="text-4xl sm:text-5xl md:text-6xl font-display font-bold text-primary-foreground mb-2">
                 {stat.value}
