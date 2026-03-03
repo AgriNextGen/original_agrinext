@@ -104,7 +104,7 @@ const TermsOfService = () => {
             <p className="text-muted-foreground leading-relaxed">
               The Platform, its design, code, and content are owned by AgriNext Gen and protected under applicable
               intellectual property laws. Users retain ownership of the data they upload but grant AgriNext Gen a
-              licence to use it to provide the Service.
+              license to use it to provide the Service.
             </p>
           </section>
 
