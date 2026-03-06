@@ -45,7 +45,7 @@ Deno.serve(async (req: Request) => {
       ? Math.min(Math.max(Math.floor(lookbackRaw), 1), 60 * 24 * 30)
       : 1440;
     const idempotency = `reconcile_manual:${Date.now()}`;
-    const rpc = await supabase.rpc("public.enqueue_job_v1", {
+    const rpc = await supabase.rpc("enqueue_job_v1", {
       p_job_type: "payments_reconcile_recent_v1",
       p_payload: JSON.stringify({ lookback_minutes: lookback }),
       p_run_at: new Date().toISOString(),

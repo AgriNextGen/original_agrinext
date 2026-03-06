@@ -40,11 +40,11 @@ Deno.serve(async (req: Request) => {
     // Rate limit per user for signed URLs (window: 1 hour, limit 200)
     const rlKey = `storage-sign:${user.id}`;
     try {
-      const { data: allowed, error: rlErr } = await supabaseAdmin.rpc('public.consume_rate_limit', { p_key: rlKey, p_limit: 200, p_window_seconds: 3600 });
+      const { data: allowed, error: rlErr } = await supabaseAdmin.rpc('consume_rate_limit', { p_key: rlKey, p_limit: 200, p_window_seconds: 3600 });
       if (rlErr) console.warn('rate limit rpc error', rlErr);
       if (!allowed) {
         // log security event
-        await supabaseAdmin.rpc('audit.log_security_event_v1', {
+        await supabaseAdmin.schema('audit').rpc('log_security_event_v1', {
           p_request_id: reqId,
           p_event_type: 'upload_abuse',
           p_severity: 'medium',
@@ -108,7 +108,7 @@ Deno.serve(async (req: Request) => {
 
     // Log workflow event for file signed
     try {
-      await supabaseAdmin.rpc('audit.log_workflow_event_v1', {
+      await supabaseAdmin.schema('audit').rpc('log_workflow_event_v1', {
         p_request_id: reqId, p_entity_type: 'file', p_entity_id: file_id, p_event_type: 'FILE_SIGNED',
         p_actor_user_id: user.id, p_actor_role: null, p_geo_lat: null, p_geo_long: null, p_device_id: null, p_file_id: null,
         p_ip_address: req.headers.get('x-forwarded-for') || null, p_user_agent: req.headers.get('user-agent') || null, p_metadata: { bucket: bucketName, object_path }

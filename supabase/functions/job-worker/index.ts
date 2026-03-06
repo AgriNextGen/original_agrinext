@@ -66,7 +66,7 @@ Deno.serve(async (req: Request) => {
         });
 
         if (newAttempts >= 3) {
-          await supabase.rpc("audit.log_security_event_v1", {
+          await supabase.schema("audit").rpc("log_security_event_v1", {
             p_request_id: null,
             p_event_type: 'JOB_HANDLER_FAILURE',
             p_severity: 'medium',
@@ -107,8 +107,8 @@ async function handleJob(job: any, supabase: any) {
     case "system_metrics_rollup_v1":
       {
         try {
-          await supabase.rpc("admin.system_metrics_rollup_v1").catch((e:any)=>{ throw e; });
-          await supabase.rpc("audit.log_workflow_event_v1", {
+          await supabase.schema("admin").rpc("system_metrics_rollup_v1").catch((e:any)=>{ throw e; });
+          await supabase.schema("audit").rpc("log_workflow_event_v1", {
             p_request_id: null, p_entity_type: 'system', p_entity_id: null, p_event_type: 'SYSTEM_METRICS_ROLLED_UP',
             p_actor_user_id: null, p_actor_role: null, p_geo_lat: null, p_geo_long: null, p_device_id: null, p_file_id: null,
             p_ip_address: null, p_user_agent: null, p_metadata: { job_id: job.id }
@@ -120,8 +120,8 @@ async function handleJob(job: any, supabase: any) {
     case "alerts_check_v1":
       {
         try {
-          await supabase.rpc("admin.alerts_check_v1").catch((e:any)=>{ throw e; });
-          await supabase.rpc("audit.log_workflow_event_v1", {
+          await supabase.schema("admin").rpc("alerts_check_v1").catch((e:any)=>{ throw e; });
+          await supabase.schema("audit").rpc("log_workflow_event_v1", {
             p_request_id: null, p_entity_type: 'system', p_entity_id: null, p_event_type: 'ALERTS_CHECKED',
             p_actor_user_id: null, p_actor_role: null, p_geo_lat: null, p_geo_long: null, p_device_id: null, p_file_id: null,
             p_ip_address: null, p_user_agent: null, p_metadata: { job_id: job.id }
@@ -133,8 +133,8 @@ async function handleJob(job: any, supabase: any) {
       {
         // Rollup recent system metrics (last hour) into analytics.system_metrics_hourly
         try {
-          await supabase.rpc("admin.system_metrics_rollup_v1").catch((e:any)=>{ throw e; });
-          await supabase.rpc("audit.log_workflow_event_v1", {
+          await supabase.schema("admin").rpc("system_metrics_rollup_v1").catch((e:any)=>{ throw e; });
+          await supabase.schema("audit").rpc("log_workflow_event_v1", {
             p_request_id: null, p_entity_type: 'system', p_entity_id: null, p_event_type: 'SYSTEM_METRICS_ROLLED_UP',
             p_actor_user_id: null, p_actor_role: null, p_geo_lat: null, p_geo_long: null, p_device_id: null, p_file_id: null,
             p_ip_address: null, p_user_agent: null, p_metadata: { job_id: job.id }
@@ -146,8 +146,8 @@ async function handleJob(job: any, supabase: any) {
     case "alerts_check_v1":
       {
         try {
-          await supabase.rpc("admin.alerts_check_v1").catch((e:any)=>{ throw e; });
-          await supabase.rpc("audit.log_workflow_event_v1", {
+          await supabase.schema("admin").rpc("alerts_check_v1").catch((e:any)=>{ throw e; });
+          await supabase.schema("audit").rpc("log_workflow_event_v1", {
             p_request_id: null, p_entity_type: 'system', p_entity_id: null, p_event_type: 'ALERTS_CHECKED',
             p_actor_user_id: null, p_actor_role: null, p_geo_lat: null, p_geo_long: null, p_device_id: null, p_file_id: null,
             p_ip_address: null, p_user_agent: null, p_metadata: { job_id: job.id }
@@ -158,7 +158,7 @@ async function handleJob(job: any, supabase: any) {
     case "notify_deliver_v1":
       if (!payload.notification_id) throw new Error("missing notification_id");
       await supabase.from("notifications").update({ delivered_at: new Date().toISOString() }).eq("id", payload.notification_id);
-      await supabase.rpc("audit.log_workflow_event_v1", {
+      await supabase.schema("audit").rpc("log_workflow_event_v1", {
         p_request_id: null,
         p_entity_type: 'notification',
         p_entity_id: payload.notification_id,
@@ -177,9 +177,9 @@ async function handleJob(job: any, supabase: any) {
 
     case "analytics_rollup_daily_v1":
       if (!payload.day) throw new Error("missing day");
-      await supabase.rpc("analytics.rollup_daily_v1", { p_day: payload.day });
-      await supabase.rpc("analytics.rollup_finance_daily_v1", { p_day: payload.day }).catch(() => {});
-      await supabase.rpc("audit.log_workflow_event_v1", {
+      await supabase.schema("analytics").rpc("rollup_daily_v1", { p_day: payload.day });
+      await supabase.schema("analytics").rpc("rollup_finance_daily_v1", { p_day: payload.day }).catch(() => {});
+      await supabase.schema("audit").rpc("log_workflow_event_v1", {
         p_request_id: null,
         p_entity_type: 'analytics',
         p_entity_id: null,
@@ -201,7 +201,7 @@ async function handleJob(job: any, supabase: any) {
         const thresh = Number(payload.threshold_minutes || 60);
         const cutoff = new Date(Date.now() - thresh * 60 * 1000).toISOString();
         await supabase.from("market_orders").update({ payment_status: 'failed' }).lt("updated_at", cutoff).eq("payment_status", "initiated");
-        await supabase.rpc("audit.log_workflow_event_v1", {
+        await supabase.schema("audit").rpc("log_workflow_event_v1", {
           p_request_id: null,
           p_entity_type: 'payments',
           p_entity_id: null,
@@ -235,8 +235,7 @@ async function handleJob(job: any, supabase: any) {
           try {
             // Best-effort: call gateway via external API adapter (omitted) or check secure.payment_events for provider truth
             // If provider reported captured event already, apply via rpc
-            const { data: pe } = await supabase
-              .from("secure.payment_events")
+            const { data: pe } = await supabase.schema("secure").from("payment_events")
               .select("*")
               .eq("order_id", o.id)
               .order("created_at", { ascending: false })
@@ -244,7 +243,7 @@ async function handleJob(job: any, supabase: any) {
               .maybeSingle();
 
             if (pe && pe.status && pe.status.toLowerCase() === "captured") {
-              await supabase.rpc("secure.apply_gateway_state_v1", {
+              await supabase.schema("secure").rpc("apply_gateway_state_v1", {
                 p_provider: pe.provider,
                 p_event_id: String(pe.id),
                 p_event_type: pe.event_type,
@@ -257,7 +256,7 @@ async function handleJob(job: any, supabase: any) {
               });
             } else {
               // No provider event found; mark as stale and surface ops item
-              await supabase.rpc("admin.build_ops_inbox_item_v1", {
+              await supabase.schema("admin").rpc("build_ops_inbox_item_v1", {
                 p_item_type: "stale_payment", p_entity_type: "order", p_entity_id: o.id,
                 p_severity: "medium", p_summary: `Stale payment for order ${o.id}`, p_metadata: { payment_status: o.payment_status, updated_at: o.updated_at }
               }).catch(() => {});
@@ -273,7 +272,8 @@ async function handleJob(job: any, supabase: any) {
       {
         const limit = Number(payload.limit || 50);
         const { data: events } = await supabase
-          .from("secure.webhook_events")
+          .schema("secure")
+          .from("webhook_events")
           .select("*")
           .eq("processing_status", "failed")
           .lte("next_retry_at", new Date().toISOString())
@@ -284,7 +284,7 @@ async function handleJob(job: any, supabase: any) {
           try {
             const attempts = (ev.attempts || 0) + 1;
             // Try to re-process by calling secure.apply_gateway_state_v1 with stored payload
-            await supabase.rpc("secure.apply_gateway_state_v1", {
+            await supabase.schema("secure").rpc("apply_gateway_state_v1", {
               p_provider: ev.provider,
               p_event_id: ev.event_id,
               p_event_type: ev.event_type,
@@ -296,18 +296,18 @@ async function handleJob(job: any, supabase: any) {
               p_payload: ev.payload || {}
             });
 
-            await supabase.from("secure.webhook_events").update({ processing_status: "processed", attempts: attempts, last_error: null, next_retry_at: null, processed_at: new Date().toISOString() }).eq("id", ev.id);
+            await supabase.schema("secure").from("webhook_events").update({ processing_status: "processed", attempts: attempts, last_error: null, next_retry_at: null, processed_at: new Date().toISOString() }).eq("id", ev.id);
           } catch (err) {
             const attempts = (ev.attempts || 0) + 1;
             const nextSec = computeBackoff(attempts);
             const nextRunAt = nextSec > 0 ? new Date(Date.now() + nextSec * 1000).toISOString() : null;
-            await supabase.from("secure.webhook_events").update({ processing_status: "failed", attempts: attempts, last_error: String(err?.message || err), next_retry_at: nextRunAt }).eq("id", ev.id);
+            await supabase.schema("secure").from("webhook_events").update({ processing_status: "failed", attempts: attempts, last_error: String(err?.message || err), next_retry_at: nextRunAt }).eq("id", ev.id);
             if (attempts >= 5) {
-              await supabase.rpc("admin.build_ops_inbox_item_v1", {
+              await supabase.schema("admin").rpc("build_ops_inbox_item_v1", {
                 p_item_type: "webhook_failed", p_entity_type: "webhook_event", p_entity_id: ev.id,
                 p_severity: "high", p_summary: `Webhook ${ev.provider}/${ev.event_type} failed after ${attempts} attempts`, p_metadata: { event_id: ev.event_id, last_error: String(err?.message || err) }
               }).catch(() => {});
-              await supabase.rpc("audit.log_security_event_v1", {
+              await supabase.schema("audit").rpc("log_security_event_v1", {
                 p_request_id: null,
                 p_event_type: 'WEBHOOK_RETRY_FAILED',
                 p_severity: 'high',
@@ -330,17 +330,17 @@ async function handleJob(job: any, supabase: any) {
       {
         const refundId = payload.refund_id;
         if (!refundId) throw new Error("missing refund_id");
-        const { data: refund } = await supabase.from("secure.refund_requests").select("*").eq("id", refundId).maybeSingle();
+        const { data: refund } = await supabase.schema("secure").from("refund_requests").select("*").eq("id", refundId).maybeSingle();
         if (!refund) throw new Error("refund not found");
         if (refund.status !== "approved") throw new Error("refund not approved");
 
         try {
           // Call provider refund API here (omitted). For now mark initiated and set provider_refund_id placeholder.
-          await supabase.from("secure.refund_requests").update({ status: "initiated", provider_refund_id: 'manual:' || refundId, updated_at: new Date().toISOString() }).eq("id", refundId);
+          await supabase.schema("secure").from("refund_requests").update({ status: "initiated", provider_refund_id: `manual:${refundId}`, updated_at: new Date().toISOString() }).eq("id", refundId);
           // enqueue reconciliation if webhook may arrive later
         } catch (err) {
-          await supabase.from("secure.refund_requests").update({ status: "failed", updated_at: new Date().toISOString() }).eq("id", refundId);
-          await supabase.rpc("admin.build_ops_inbox_item_v1", {
+          await supabase.schema("secure").from("refund_requests").update({ status: "failed", updated_at: new Date().toISOString() }).eq("id", refundId);
+          await supabase.schema("admin").rpc("build_ops_inbox_item_v1", {
             p_item_type: "refund_pending_review", p_entity_type: "refund", p_entity_id: refundId,
             p_severity: "high", p_summary: `Refund initiate failed for ${refundId}`, p_metadata: { error: String(err?.message || err) }
           }).catch(() => {});
@@ -353,9 +353,9 @@ async function handleJob(job: any, supabase: any) {
       {
         const hours = Number(payload.threshold_hours || 48);
         const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
-        const { data: jobs } = await supabase.from("secure.payout_jobs").select("*").eq("status", "queued").lt("created_at", cutoff).limit(200);
+        const { data: jobs } = await supabase.schema("secure").from("payout_jobs").select("*").eq("status", "queued").lt("created_at", cutoff).limit(200);
         for (const j of (jobs || [])) {
-          await supabase.rpc("admin.build_ops_inbox_item_v1", {
+          await supabase.schema("admin").rpc("build_ops_inbox_item_v1", {
             p_item_type: "payout_pending", p_entity_type: "order", p_entity_id: j.order_id,
             p_severity: "medium", p_summary: `Payout queued for ${j.order_id} for ${hours}h`, p_metadata: { payout_job_id: j.id, created_at: j.created_at }
           }).catch(() => {});
@@ -385,8 +385,8 @@ async function handleJob(job: any, supabase: any) {
     case "risk_evaluate_recent_v1":
       {
         const lookback = Number(payload.lookback_hours || 24);
-        await supabase.rpc("admin.risk_evaluate_recent_v1", { p_lookback_hours: lookback }).catch((e:any) => { throw e; });
-        await supabase.rpc("audit.log_workflow_event_v1", {
+        await supabase.schema("admin").rpc("risk_evaluate_recent_v1", { p_lookback_hours: lookback }).catch((e:any) => { throw e; });
+        await supabase.schema("audit").rpc("log_workflow_event_v1", {
           p_request_id: null, p_entity_type: 'system', p_entity_id: null, p_event_type: 'RISK_EVALUATION_HANDLED',
           p_actor_user_id: null, p_actor_role: null, p_geo_lat: null, p_geo_long: null, p_device_id: null, p_file_id: null,
           p_ip_address: null, p_user_agent: null, p_metadata: { lookback_hours: lookback, job_id: job.id }
@@ -397,8 +397,8 @@ async function handleJob(job: any, supabase: any) {
     case "risk_decay_v1":
       {
         const days = Number(payload.days_without_incident || 7);
-        await supabase.rpc("admin.risk_decay_v1", { p_days_without_incident: days }).catch((e:any) => { throw e; });
-        await supabase.rpc("audit.log_workflow_event_v1", {
+        await supabase.schema("admin").rpc("risk_decay_v1", { p_days_without_incident: days }).catch((e:any) => { throw e; });
+        await supabase.schema("audit").rpc("log_workflow_event_v1", {
           p_request_id: null, p_entity_type: 'system', p_entity_id: null, p_event_type: 'RISK_DECAY_HANDLED',
           p_actor_user_id: null, p_actor_role: null, p_geo_lat: null, p_geo_long: null, p_device_id: null, p_file_id: null,
           p_ip_address: null, p_user_agent: null, p_metadata: { days_without_incident: days, job_id: job.id }
@@ -409,8 +409,8 @@ async function handleJob(job: any, supabase: any) {
     case "dispute_sla_watch_v1":
       {
         const maxHours = Number(payload.max_hours_open || 48);
-        await supabase.rpc("admin.dispute_sla_watch_v1", { p_max_hours_open: maxHours }).catch((e:any) => { throw e; });
-        await supabase.rpc("audit.log_workflow_event_v1", {
+        await supabase.schema("admin").rpc("dispute_sla_watch_v1", { p_max_hours_open: maxHours }).catch((e:any) => { throw e; });
+        await supabase.schema("audit").rpc("log_workflow_event_v1", {
           p_request_id: null, p_entity_type: 'system', p_entity_id: null, p_event_type: 'DISPUTE_SLA_WATCH_HANDLED',
           p_actor_user_id: null, p_actor_role: null, p_geo_lat: null, p_geo_long: null, p_device_id: null, p_file_id: null,
           p_ip_address: null, p_user_agent: null, p_metadata: { max_hours_open: maxHours, job_id: job.id }

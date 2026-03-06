@@ -34,7 +34,7 @@ cp .env.example .env
 npm run dev
 ```
 
-App runs at `http://localhost:8080`.
+App runs at `http://localhost:5173`.
 
 ### Environment Variables
 
@@ -102,12 +102,41 @@ npm run build
 
 | Script | Description |
 |--------|-------------|
-| `npm run dev` | Start dev server (port 8080) |
+| `npm run dev` | Start dev server (port 5173) |
 | `npm run build` | Production build |
 | `npm run preview` | Preview production build |
 | `npm run lint` | Run ESLint |
+
+## Troubleshooting (Windows)
+
+### `npm.ps1 cannot be loaded` (PowerShell execution policy)
+
+Run once in PowerShell:
+
+```powershell
+Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
+```
+
+Verify:
+
+```powershell
+Get-ExecutionPolicy -List
+npm -v
+```
+
+### `Port 5173 is already in use`
+
+`npm run dev` now runs a preflight script that frees `5173` automatically on Windows.
+
+Manual recovery commands:
+
+```powershell
+netstat -ano | findstr LISTENING | findstr ":5173"
+Stop-Process -Id <PID> -Force
+```
 
 ## Documentation
 
 - [Auth Setup (Google, Phone OTP)](docs/AUTH_SETUP.md)
 - [Deployment Guide](docs/DEPLOYMENT.md)
+- [Staging dummy users (all roles)](docs/STAGING_DUMMY_USERS.md) — create farmer, agent, logistics, buyer, admin test accounts and log in to test features.

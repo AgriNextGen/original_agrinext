@@ -19,18 +19,18 @@ Deno.serve(async (req: Request) => {
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
   try {
     // enqueue reconciliation and retries
-    await supabase.rpc("public.enqueue_job_v1", { p_job_type: "payments_reconcile_recent_v1", p_payload: JSON.stringify({ lookback_minutes: 1440 }), p_run_at: new Date().toISOString(), p_idempotency_key: `reconcile:${Date.now()}` });
-    await supabase.rpc("public.enqueue_job_v1", { p_job_type: "webhook_retry_failed_v1", p_payload: JSON.stringify({ limit: 200 }), p_run_at: new Date().toISOString(), p_idempotency_key: `webhookretry:${Date.now()}` });
-    await supabase.rpc("public.enqueue_job_v1", { p_job_type: "payouts_reminder_queue_v1", p_payload: JSON.stringify({ threshold_hours: 48 }), p_run_at: new Date().toISOString(), p_idempotency_key: `payoutsreminder:${Date.now()}` });
+    await supabase.rpc("enqueue_job_v1", { p_job_type: "payments_reconcile_recent_v1", p_payload: JSON.stringify({ lookback_minutes: 1440 }), p_run_at: new Date().toISOString(), p_idempotency_key: `reconcile:${Date.now()}` });
+    await supabase.rpc("enqueue_job_v1", { p_job_type: "webhook_retry_failed_v1", p_payload: JSON.stringify({ limit: 200 }), p_run_at: new Date().toISOString(), p_idempotency_key: `webhookretry:${Date.now()}` });
+    await supabase.rpc("enqueue_job_v1", { p_job_type: "payouts_reminder_queue_v1", p_payload: JSON.stringify({ threshold_hours: 48 }), p_run_at: new Date().toISOString(), p_idempotency_key: `payoutsreminder:${Date.now()}` });
     // Enqueue trust & safety jobs
-    await supabase.rpc("public.enqueue_job_v1", { p_job_type: "risk_evaluate_recent_v1", p_payload: JSON.stringify({ lookback_hours: 24 }), p_run_at: new Date().toISOString(), p_idempotency_key: `risk_eval:${Date.now()}` });
-    await supabase.rpc("public.enqueue_job_v1", { p_job_type: "risk_decay_v1", p_payload: JSON.stringify({ days_without_incident: 7 }), p_run_at: new Date().toISOString(), p_idempotency_key: `risk_decay:${Date.now()}` });
-    await supabase.rpc("public.enqueue_job_v1", { p_job_type: "dispute_sla_watch_v1", p_payload: JSON.stringify({ max_hours_open: 48 }), p_run_at: new Date().toISOString(), p_idempotency_key: `dispute_sla:${Date.now()}` });
+    await supabase.rpc("enqueue_job_v1", { p_job_type: "risk_evaluate_recent_v1", p_payload: JSON.stringify({ lookback_hours: 24 }), p_run_at: new Date().toISOString(), p_idempotency_key: `risk_eval:${Date.now()}` });
+    await supabase.rpc("enqueue_job_v1", { p_job_type: "risk_decay_v1", p_payload: JSON.stringify({ days_without_incident: 7 }), p_run_at: new Date().toISOString(), p_idempotency_key: `risk_decay:${Date.now()}` });
+    await supabase.rpc("enqueue_job_v1", { p_job_type: "dispute_sla_watch_v1", p_payload: JSON.stringify({ max_hours_open: 48 }), p_run_at: new Date().toISOString(), p_idempotency_key: `dispute_sla:${Date.now()}` });
     // Enqueue observability jobs
-    await supabase.rpc("public.enqueue_job_v1", { p_job_type: "system_metrics_rollup_v1", p_payload: JSON.stringify({}), p_run_at: new Date().toISOString(), p_idempotency_key: `sysmetrics_rollup:${Date.now()}` }).catch(()=>{});
-    await supabase.rpc("public.enqueue_job_v1", { p_job_type: "alerts_check_v1", p_payload: JSON.stringify({}), p_run_at: new Date().toISOString(), p_idempotency_key: `alerts_check:${Date.now()}` }).catch(()=>{});
+    await supabase.rpc("enqueue_job_v1", { p_job_type: "system_metrics_rollup_v1", p_payload: JSON.stringify({}), p_run_at: new Date().toISOString(), p_idempotency_key: `sysmetrics_rollup:${Date.now()}` }).catch(()=>{});
+    await supabase.rpc("enqueue_job_v1", { p_job_type: "alerts_check_v1", p_payload: JSON.stringify({}), p_run_at: new Date().toISOString(), p_idempotency_key: `alerts_check:${Date.now()}` }).catch(()=>{});
     // Enqueue trust analytics rollup daily
-    await supabase.rpc("public.enqueue_job_v1", { p_job_type: "analytics_rollup_daily_v1", p_payload: JSON.stringify({ day: (new Date()).toISOString().slice(0,10) }), p_run_at: new Date().toISOString(), p_idempotency_key: `analytics_trust:${Date.now()}` }).catch(()=>{});
+    await supabase.rpc("enqueue_job_v1", { p_job_type: "analytics_rollup_daily_v1", p_payload: JSON.stringify({ day: (new Date()).toISOString().slice(0,10) }), p_run_at: new Date().toISOString(), p_idempotency_key: `analytics_trust:${Date.now()}` }).catch(()=>{});
     return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (err) {
     console.error("finance-cron error", err);
