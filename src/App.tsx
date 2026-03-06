@@ -412,7 +412,14 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
-            <Route path="/onboard/role-select" element={<RoleSelect />} />
+            <Route
+              path="/onboard/role-select"
+              element={
+                <ProtectedRoute>
+                  <RoleSelect />
+                </ProtectedRoute>
+              }
+            />
             
             {/* Protected Admin Routes */}
             <Route

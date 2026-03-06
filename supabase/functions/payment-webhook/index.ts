@@ -54,7 +54,7 @@ Deno.serve(async (req: Request) => {
     const p_status = (json?.payload?.payment?.entity?.status) ?? (json?.payload?.order?.entity?.status) ?? null;
 
     // insert webhook event record idempotently
-    const insertRes = await supabase.from("secure.webhook_events").insert([{
+    const insertRes = await supabase.schema("secure").from("webhook_events").insert([{
       provider: 'razorpay',
       event_id: eventId,
       event_type: eventType,
@@ -63,7 +63,7 @@ Deno.serve(async (req: Request) => {
     }], { upsert: false }).select("id").maybeSingle();
 
     // call RPC using service role key; set app.webhook context by calling with service role (secure.apply_gateway_state_v1 checks app.webhook or admin)
-    const rpc = await supabase.rpc('secure.apply_gateway_state_v1', {
+    const rpc = await supabase.schema('secure').rpc('apply_gateway_state_v1', {
       p_provider: 'razorpay',
       p_event_id: eventId,
       p_event_type: eventType,
@@ -79,7 +79,7 @@ Deno.serve(async (req: Request) => {
       console.error('rpc webhook error', rpc.error);
       // update webhook_events to failed and schedule retry
       try {
-        const up = await supabase.from("secure.webhook_events").update({
+        const up = await supabase.schema("secure").from("webhook_events").update({
           processing_status: 'failed',
           last_error: rpc.error.message,
           attempts: (insertRes?.data?.attempts || 0) + 1,
@@ -87,7 +87,7 @@ Deno.serve(async (req: Request) => {
         }).eq("provider", "razorpay").eq("event_id", eventId);
 
         // enqueue retry job
-        await supabase.rpc("public.enqueue_job_v1", { p_job_type: "webhook_retry_failed_v1", p_payload: JSON.stringify({ event_id: eventId }), p_run_at: new Date().toISOString(), p_idempotency_key: eventId });
+        await supabase.rpc("enqueue_job_v1", { p_job_type: "webhook_retry_failed_v1", p_payload: JSON.stringify({ event_id: eventId }), p_run_at: new Date().toISOString(), p_idempotency_key: eventId });
       } catch (uerr) {
         console.error('failed to mark webhook event failed', uerr);
       }
@@ -97,12 +97,12 @@ Deno.serve(async (req: Request) => {
 
     // success
     try {
-      await supabase.from("secure.webhook_events").update({ processing_status: 'processed', processed_at: new Date().toISOString(), attempts: 0, last_error: null, next_retry_at: null }).eq("provider", "razorpay").eq("event_id", eventId);
+      await supabase.schema("secure").from("webhook_events").update({ processing_status: 'processed', processed_at: new Date().toISOString(), attempts: 0, last_error: null, next_retry_at: null }).eq("provider", "razorpay").eq("event_id", eventId);
       // If webhook indicates a payment failure, record security event for downstream jobs
       try {
         const st = (p_status || '').toString().toLowerCase();
         if (st === 'failed' || st === 'failed_to_capture' || st === 'error') {
-          await supabase.rpc("audit.log_security_event_v1", {
+          await supabase.schema("audit").rpc("log_security_event_v1", {
             p_request_id: reqId,
             p_event_type: 'payment_failure',
             p_severity: 'high',
