@@ -37,6 +37,7 @@ import {
   useAllCrops,
   AgentTask 
 } from '@/hooks/useAgentDashboard';
+import { useAgentTasksInfinite } from '@/hooks/useAgentTasksInfinite';
 import { Skeleton } from '@/components/ui/skeleton';
 import { 
   ClipboardList, 
@@ -367,10 +368,14 @@ const AgentTasks = () => {
                         </TableCell>
                         <TableCell>{taskTypeLabels[task.task_type]}</TableCell>
                         <TableCell>
-                          <span className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
-                            {format(parseISO(task.due_date), 'MMM d, yyyy')}
-                          </span>
+                          {task.due_date ? (
+                            <span className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              {format(parseISO(task.due_date), 'MMM d, yyyy')}
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
                         </TableCell>
                         <TableCell>
                           <Badge className={statusColors[task.task_status]}>

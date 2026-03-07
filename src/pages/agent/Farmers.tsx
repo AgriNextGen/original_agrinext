@@ -20,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { useAllFarmers, useAllCrops, useUpdateCropStatus } from '@/hooks/useAgentDashboard';
+import { useAllFarmers, useAllCrops } from '@/hooks/useAgentDashboard';
 import { useAssignFarmerToAgent } from '@/hooks/useAgentAssignments';
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/hooks/useLanguage';

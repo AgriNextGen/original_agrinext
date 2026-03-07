@@ -91,7 +91,8 @@ export const useFarmerTransactions = (limit: number = 20) => {
           status,
           price_offered,
           created_at,
-          crop_id
+          crop_id,
+          buyer_id
         `)
         .eq('farmer_id', user.id)
         .order('created_at', { ascending: false })
@@ -112,6 +113,15 @@ export const useFarmerTransactions = (limit: number = 20) => {
               .eq('id', order.crop_id)
               .maybeSingle();
             cropName = crop?.crop_name || null;
+          }
+
+          if (order.buyer_id) {
+            const { data: buyer } = await supabase
+              .from('buyers')
+              .select('name')
+              .eq('id', order.buyer_id)
+              .maybeSingle();
+            buyerName = buyer?.name || null;
           }
 
           const completedStatuses = ['delivered', 'completed'];

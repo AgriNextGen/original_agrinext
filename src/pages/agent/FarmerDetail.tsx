@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import FarmerQuickUpdateTab from '@/components/agent/FarmerQuickUpdateTab';
 import FarmerTasksTab from '@/components/agent/FarmerTasksTab';
+import AgentSoilReportUploadDialog from '@/components/agent/AgentSoilReportUploadDialog';
 import {
   Table,
   TableBody,
@@ -29,6 +30,7 @@ import {
   MessageCircle,
   Edit,
   ClipboardList,
+  FlaskConical,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useStartVisit, useActiveVisit } from '@/hooks/useAgentAssignments';
@@ -45,6 +47,7 @@ export default function AgentFarmerDetail() {
   const startVisit = useStartVisit();
   const { data: activeVisit } = useActiveVisit();
   const [activeTab, setActiveTab] = useState('overview');
+  const [soilReportOpen, setSoilReportOpen] = useState(false);
 
   // Fetch farmer profile
   const { data: farmer, isLoading: farmerLoading } = useQuery({
@@ -217,6 +220,15 @@ export default function AgentFarmerDetail() {
             >
               <Play className="h-4 w-4 mr-1" />
               {language === 'kn' ? 'ಭೇಟಿ ಪ್ರಾರಂಭಿಸಿ' : 'Start Visit'}
+            </Button>
+            <Button
+              aria-label="Upload soil report"
+              size="sm"
+              variant="outline"
+              onClick={() => setSoilReportOpen(true)}
+            >
+              <FlaskConical className="h-4 w-4 mr-1" />
+              {language === 'kn' ? 'ಮಣ್ಣಿನ ವರದಿ' : 'Soil Report'}
             </Button>
           </div>
         </div>
@@ -475,6 +487,15 @@ export default function AgentFarmerDetail() {
         </Tabs>
       </div>
     </PageHeader>
+
+    {farmer && (
+      <AgentSoilReportUploadDialog
+        open={soilReportOpen}
+        onOpenChange={setSoilReportOpen}
+        farmers={[{ id: farmer.id, full_name: farmer.full_name }]}
+        preselectedFarmerId={farmer.id}
+      />
+    )}
     </DashboardLayout>
   );
 }

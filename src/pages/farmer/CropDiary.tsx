@@ -84,7 +84,7 @@ const CropDiaryPage = () => {
     );
   }
 
-  const healthConfig = healthStatusConfig[crop.health_status];
+  const healthConfig = healthStatusConfig[crop.health_status as keyof typeof healthStatusConfig] ?? healthStatusConfig.normal;
   const HealthIcon = healthConfig.icon;
 
   return (
@@ -149,7 +149,7 @@ const CropDiaryPage = () => {
                     Growth Stage
                   </label>
                   <Select
-                    value={crop.growth_stage}
+                    value={crop.growth_stage ?? 'seedling'}
                     onValueChange={(v) =>
                       updateGrowthMutation.mutate({
                         cropId: crop.id,

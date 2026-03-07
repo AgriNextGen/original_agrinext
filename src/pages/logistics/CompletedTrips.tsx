@@ -11,11 +11,11 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { CheckCircle2, MapPin, Calendar, Package } from 'lucide-react';
-import { useCompletedTrips } from '@/hooks/useLogisticsDashboard';
+import { useTrips } from '@/hooks/useTrips';
 import { format, parseISO } from 'date-fns';
 
 const CompletedTrips = () => {
-  const { data: trips, isLoading } = useCompletedTrips();
+  const { data: trips, isLoading } = useTrips(['delivered']);
 
   if (isLoading) {
     return (
@@ -73,7 +73,7 @@ const CompletedTrips = () => {
                       <TableCell>
                         <p className="font-medium">{trip.farmer?.full_name || 'Unknown'}</p>
                         <p className="text-xs text-muted-foreground">
-                          {trip.farmer?.village}, {trip.farmer?.district}
+                          {[trip.farmer?.village, trip.farmer?.district].filter(Boolean).join(', ')}
                         </p>
                       </TableCell>
                       <TableCell>
@@ -84,28 +84,28 @@ const CompletedTrips = () => {
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline">
-                          {trip.quantity} {trip.quantity_unit || 'quintals'}
+                          {trip.transport_request?.quantity ?? '—'} {trip.transport_request?.quantity_unit || 'quintals'}
                         </Badge>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
                           <MapPin className="h-3 w-3 text-muted-foreground" />
-                          <span>{trip.pickup_village || trip.pickup_location}</span>
+                          <span>{trip.transport_request?.pickup_village || trip.transport_request?.pickup_location || '—'}</span>
                         </div>
                       </TableCell>
                       <TableCell>
-                        {trip.completed_at ? (
+                        {trip.delivered_at ? (
                           <div className="flex items-center gap-1">
                             <Calendar className="h-3 w-3 text-muted-foreground" />
-                            <span>{format(parseISO(trip.completed_at), 'MMM d, yyyy')}</span>
+                            <span>{format(parseISO(trip.delivered_at), 'MMM d, yyyy')}</span>
                           </div>
                         ) : (
                           <span className="text-muted-foreground">-</span>
                         )}
                       </TableCell>
                       <TableCell>
-                        {trip.distance_km ? (
-                          <span>{trip.distance_km} km</span>
+                        {(trip as any).distance_km ? (
+                          <span>{(trip as any).distance_km} km</span>
                         ) : (
                           <span className="text-muted-foreground">-</span>
                         )}
@@ -131,7 +131,7 @@ const CompletedTrips = () => {
           <Card>
             <CardContent className="p-4 text-center">
               <p className="text-2xl font-bold text-primary">
-                {trips.reduce((acc, t) => acc + (t.quantity || 0), 0)}
+                {trips.reduce((acc, t) => acc + (t.transport_request?.quantity || 0), 0)}
               </p>
               <p className="text-sm text-muted-foreground">Total Quintals</p>
             </CardContent>
@@ -139,7 +139,7 @@ const CompletedTrips = () => {
           <Card>
             <CardContent className="p-4 text-center">
               <p className="text-2xl font-bold text-blue-600">
-                {trips.reduce((acc, t) => acc + (t.distance_km || 0), 0)}
+                {trips.reduce((acc, t) => acc + ((t as any).distance_km || 0), 0)}
               </p>
               <p className="text-sm text-muted-foreground">Total Distance (km)</p>
             </CardContent>
@@ -147,7 +147,7 @@ const CompletedTrips = () => {
           <Card>
             <CardContent className="p-4 text-center">
               <p className="text-2xl font-bold text-amber-600">
-                {new Set(trips.map(t => t.farmer_id)).size}
+                {new Set(trips.map(t => t.transport_request?.farmer_id).filter(Boolean)).size}
               </p>
               <p className="text-sm text-muted-foreground">Farmers Served</p>
             </CardContent>

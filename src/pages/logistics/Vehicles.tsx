@@ -40,12 +40,23 @@ const Vehicles = () => {
   const queryClient = useQueryClient();
   
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingVehicle, setEditingVehicle] = useState<{ id: string } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     vehicle_type: 'truck',
     capacity: '',
     number_plate: '',
   });
+
+  const handleEditClick = (vehicle: any) => {
+    setEditingVehicle({ id: vehicle.id });
+    setFormData({
+      vehicle_type: vehicle.vehicle_type,
+      capacity: String(vehicle.capacity),
+      number_plate: vehicle.number_plate,
+    });
+    setIsDialogOpen(true);
+  };
 
   const handleSubmit = async () => {
     if (!transporter?.id) {
@@ -60,21 +71,31 @@ const Vehicles = () => {
 
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.from('vehicles').insert({
-        transporter_id: transporter.id,
-        vehicle_type: formData.vehicle_type,
-        capacity: parseFloat(formData.capacity),
-        number_plate: formData.number_plate.toUpperCase(),
-      });
+      if (editingVehicle) {
+        const { error } = await supabase.from('vehicles').update({
+          vehicle_type: formData.vehicle_type,
+          capacity: parseFloat(formData.capacity),
+          number_plate: formData.number_plate.toUpperCase(),
+        }).eq('id', editingVehicle.id);
+        if (error) throw error;
+        toast.success('Vehicle updated successfully!');
+      } else {
+        const { error } = await supabase.from('vehicles').insert({
+          transporter_id: transporter.id,
+          vehicle_type: formData.vehicle_type,
+          capacity: parseFloat(formData.capacity),
+          number_plate: formData.number_plate.toUpperCase(),
+        });
+        if (error) throw error;
+        toast.success('Vehicle added successfully!');
+      }
 
-      if (error) throw error;
-
-      toast.success('Vehicle added successfully!');
       queryClient.invalidateQueries({ queryKey: ['vehicles'] });
       setIsDialogOpen(false);
+      setEditingVehicle(null);
       setFormData({ vehicle_type: 'truck', capacity: '', number_plate: '' });
     } catch (error: any) {
-      toast.error('Failed to add vehicle: ' + error.message);
+      toast.error((editingVehicle ? 'Failed to update vehicle: ' : 'Failed to add vehicle: ') + error.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -118,7 +139,7 @@ const Vehicles = () => {
             Manage your fleet of vehicles
           </p>
         </div>
-        <Button onClick={() => setIsDialogOpen(true)}>
+        <Button onClick={() => { setEditingVehicle(null); setFormData({ vehicle_type: 'truck', capacity: '', number_plate: '' }); setIsDialogOpen(true); }}>
           <Plus className="h-4 w-4 mr-2" />
           Add Vehicle
         </Button>
@@ -132,7 +153,7 @@ const Vehicles = () => {
               <Truck className="h-16 w-16 mx-auto mb-4 opacity-50" />
               <p className="text-lg">No vehicles added yet</p>
               <p className="text-sm mb-4">Add your first vehicle to start accepting loads</p>
-              <Button onClick={() => setIsDialogOpen(true)}>
+              <Button onClick={() => { setEditingVehicle(null); setFormData({ vehicle_type: 'truck', capacity: '', number_plate: '' }); setIsDialogOpen(true); }}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Vehicle
               </Button>
@@ -166,7 +187,7 @@ const Vehicles = () => {
                   </div>
                 </div>
                 <div className="flex gap-2 mt-4">
-                  <Button variant="outline" size="sm" className="flex-1">
+                  <Button variant="outline" size="sm" className="flex-1" onClick={() => handleEditClick(vehicle)}>
                     <Edit className="h-4 w-4 mr-1" />
                     Edit
                   </Button>
@@ -186,10 +207,10 @@ const Vehicles = () => {
       )}
 
       {/* Add Vehicle Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <Dialog open={isDialogOpen} onOpenChange={(open) => { if (!open) { setEditingVehicle(null); setFormData({ vehicle_type: 'truck', capacity: '', number_plate: '' }); } setIsDialogOpen(open); }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add New Vehicle</DialogTitle>
+            <DialogTitle>{editingVehicle ? 'Edit Vehicle' : 'Add New Vehicle'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
@@ -237,7 +258,7 @@ const Vehicles = () => {
               Cancel
             </Button>
             <Button onClick={handleSubmit} disabled={isSubmitting}>
-              {isSubmitting ? 'Adding...' : 'Add Vehicle'}
+              {isSubmitting ? (editingVehicle ? 'Saving...' : 'Adding...') : (editingVehicle ? 'Save Changes' : 'Add Vehicle')}
             </Button>
           </DialogFooter>
         </DialogContent>

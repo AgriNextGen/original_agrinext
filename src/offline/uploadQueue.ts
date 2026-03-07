@@ -34,7 +34,7 @@ async function processUpload(u: OfflineUpload) {
     uploadEvents.dispatchEvent(new CustomEvent('succeeded', { detail: u }));
   } catch (err:any) {
     const retryCount = (u.retryCount || 0) + 1;
-    if (retryCount > (u.retryCount || DEFAULT_MAX_RETRIES)) {
+    if (retryCount > DEFAULT_MAX_RETRIES) {
       await offlineDB.uploads.update(u.id, { status: 'dead', retryCount, lastError: String(err?.message || err) });
       uploadEvents.dispatchEvent(new CustomEvent('dead', { detail: u }));
       return;
@@ -95,4 +95,3 @@ export async function enqueueUpload(upload: Omit<OfflineUpload,'createdAt'|'retr
 subscribe((online) => { if (online) processUploadsOnce().catch(()=>{}); });
 
 export default { enqueueUpload, processUploadsOnce, uploadEvents };
-

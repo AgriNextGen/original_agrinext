@@ -1,39 +1,65 @@
 // src/lib/marketplaceApi.ts
-// Simple wrapper to call Edge functions for marketplace actions.
-type ApiResponse<T> = { success: boolean; request_id?: string; order_id?: string; data?: T; error?: string };
+// Wrapper for marketplace actions. Uses Supabase client directly — no Netlify functions needed.
+import { supabase } from '@/integrations/supabase/client';
 
-async function callFn(fn: string, body: any): Promise<any> {
-  const res = await fetch(`/.netlify/functions/${fn}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-    credentials: 'include'
-  });
+type ApiResponse<T = unknown> = { success: boolean; request_id?: string; order_id?: string; data?: T; error?: string };
+
+export async function placeOrder(
+  listingId: string,
+  qty: number,
+  notes?: string | null,
+  priceOffered?: number,
+  deliveryAddress?: string
+): Promise<ApiResponse> {
+  const { data, error } = await supabase.rpc('place_order_v1', {
+    p_listing_id: listingId,
+    p_quantity: qty,
+    p_notes: notes ?? null,
+    p_price_offered: priceOffered ?? null,
+    p_delivery_address: deliveryAddress ?? null,
+  } as any);
+  if (error) return { success: false, error: error.message };
+  const result = data as any;
+  return { success: true, order_id: result?.order_id, data: result };
+}
+
+export async function confirmOrder(orderId: string): Promise<ApiResponse> {
+  const { data, error } = await supabase.rpc('confirm_order_v1', { p_order_id: orderId } as any);
+  if (error) return { success: false, error: error.message };
+  return { success: true, data: data as any };
+}
+
+export async function rejectOrder(orderId: string, reason: string): Promise<ApiResponse> {
+  const { data, error } = await supabase.rpc('reject_order_v1', { p_order_id: orderId, p_reason: reason } as any);
+  if (error) return { success: false, error: error.message };
+  return { success: true, data: data as any };
+}
+
+export async function updateOrderStatus(orderId: string, newStatus: string, proofFileId?: string): Promise<ApiResponse> {
+  const { data, error } = await supabase.rpc('update_order_status_v1', {
+    p_order_id: orderId,
+    p_new_status: newStatus,
+    p_proof_file_id: proofFileId ?? null,
+  } as any);
+  if (error) return { success: false, error: error.message };
+  return { success: true, data: data as any };
+}
+
+export async function createPaymentOrder(orderId: string, provider?: string): Promise<any> {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('Not authenticated');
+
+  const res = await fetch(
+    `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-payment-order`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${session.access_token}`,
+        apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({ order_id: orderId, provider: provider || 'razorpay' }),
+    }
+  );
   return await res.json();
 }
-
-export async function placeOrder(listingId: string, qty: number, notes?: string) {
-  return await callFn('place-order', { listing_id: listingId, qty, notes });
-}
-
-export async function confirmOrder(orderId: string) {
-  return await callFn('confirm-order', { order_id: orderId });
-}
-
-export async function rejectOrder(orderId: string, reason: string) {
-  return await callFn('reject-order', { order_id: orderId, reason });
-}
-
-export async function updateOrderStatus(orderId: string, newStatus: string, proofFileId?: string) {
-  return await callFn('update-order-status', { order_id: orderId, new_status: newStatus, proof_file_id: proofFileId || null });
-}
-
-export async function getOrderDetail(orderId: string) {
-  // call RPC or REST endpoint; to keep simple, call RPC via Supabase client on frontend when needed
-  return await fetch(`/.netlify/functions/get-order-detail?order_id=${encodeURIComponent(orderId)}`).then(r => r.json());
-}
-
-export async function createPaymentOrder(orderId: string, provider?: string) {
-  return await callFn('create-payment-order', { order_id: orderId, provider: provider || 'razorpay' });
-}
-

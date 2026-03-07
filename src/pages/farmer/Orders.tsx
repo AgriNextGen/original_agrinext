@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -50,6 +51,7 @@ const statusConfig: Record<OrderStatus, { label: string; icon: typeof Clock; col
 
 const FarmerOrders = () => {
   const { t } = useLanguage();
+  const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedOrder, setSelectedOrder] = useState<ReturnType<typeof useFarmerOrders>['data'] extends (infer T)[] | undefined ? T : never | null>(null);
@@ -114,7 +116,7 @@ const FarmerOrders = () => {
       window.open(json.signed_url, '_blank');
     } catch (err) {
       console.error('viewProof error', err);
-      toast.error('Unable to open proof file');
+      toast({ title: 'Error', description: 'Unable to open proof file', variant: 'destructive' });
     }
   };
 
@@ -380,9 +382,19 @@ const FarmerOrders = () => {
                       <div className="ml-2">{e.event_type}</div>
                     </div>
                     <div className="mt-1 text-sm">
-                      <div className="text-xs text-muted-foreground mb-1">{JSON.stringify(e.payload)}</div>
-                      {/* If payload contains proof_file_id show view button */}
-                      {((e.payload && (e.payload.proof_file_id || e.payload.proof || e.payload.file_id)) || (e.payload && e.payload.file_id)) && (
+                      {e.payload && (() => {
+                        const p = e.payload as Record<string, unknown>;
+                        const parts: string[] = [];
+                        if (p.status) parts.push(`Status: ${p.status}`);
+                        if (p.quantity) parts.push(`Qty: ${p.quantity}`);
+                        if (p.note) parts.push(String(p.note));
+                        if (p.reason) parts.push(String(p.reason));
+                        if (p.message) parts.push(String(p.message));
+                        return parts.length > 0 ? (
+                          <p className="text-xs text-muted-foreground">{parts.join(' · ')}</p>
+                        ) : null;
+                      })()}
+                      {e.payload && (e.payload.proof_file_id || e.payload.file_id || e.payload.proof) && (
                         <div className="mt-2">
                           <Button size="sm" variant="outline" onClick={() => viewProof(e.payload.proof_file_id || e.payload.file_id || e.payload.proof)}>
                             View proof

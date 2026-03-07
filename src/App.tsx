@@ -91,7 +91,6 @@ import persister from '@/offline/queryPersister';
 })();
 
 // Persist on change (debounced)
-import { getQueryCache } from '@tanstack/react-query';
 let persistTimer: any = null;
 queryClient.getQueryCache().subscribe(() => {
   clearTimeout(persistTimer);

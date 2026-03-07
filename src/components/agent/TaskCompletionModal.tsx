@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { CheckCircle, Camera, Mic, Loader2 } from 'lucide-react';
+import { CheckCircle, Loader2 } from 'lucide-react';
 import { useUpdateTaskStatus } from '@/hooks/useAgentDashboard';
 import { enqueueAction } from '@/lib/offlineQueue';
 import { useToast } from '@/components/ui/use-toast';
@@ -75,14 +75,9 @@ export default function TaskCompletionModal({ open, onClose, taskId, farmerName,
                 rows={4}
               />
             </div>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" disabled>
-                <Camera className="h-4 w-4 mr-1" /> Photo (optional)
-              </Button>
-              <Button variant="outline" size="sm" disabled>
-                <Mic className="h-4 w-4 mr-1" /> Voice note (optional)
-              </Button>
-            </div>
+            <p className="text-xs text-muted-foreground">
+              Photo &amp; voice note — available in the mobile app
+            </p>
           </div>
         )}
 

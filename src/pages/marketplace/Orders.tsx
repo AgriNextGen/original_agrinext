@@ -1,3 +1,4 @@
+import { useLanguage } from '@/hooks/useLanguage';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -18,6 +19,7 @@ import { useOrdersInfinite } from '@/hooks/useOrders';
 import { createPaymentOrder } from '@/lib/marketplaceApi';
 import { format, parseISO } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 const statusConfig: Record<string, { label: string; color: string; icon: LucideIcon }> = {
   requested: { label: 'Requested', color: 'bg-amber-100 text-amber-800', icon: Clock },
@@ -149,7 +151,7 @@ const Orders = () => {
                                 // Create payment order on server (Edge)
                                 const res: any = await createPaymentOrder(order.id);
                                 if (!res || res.error) {
-                                  alert('Payment initiation failed: ' + (res?.error || 'unknown'));
+                                  toast.error('Payment initiation failed: ' + (res?.error || 'unknown'));
                                   return;
                                 }
                                 const { key_id, payment_order_id, amount, currency } = res;
@@ -162,9 +164,8 @@ const Orders = () => {
                                   name: 'AgriNext',
                                   description: 'Order payment',
                                   notes: { order_id: order.id },
-                                  handler: function (response: any) {
-                                    // After checkout, UI will poll for payment_status change — do not mark paid from client
-                                    alert('Payment complete. Processing, please wait a few seconds and refresh the order.');
+                                  handler: function (_response: any) {
+                                    toast.success('Payment complete. Processing — refresh the order in a few seconds.');
                                   },
                                   prefill: {}
                                 };
@@ -172,12 +173,11 @@ const Orders = () => {
                                   const rzp = new (window as any).Razorpay(options);
                                   rzp.open();
                                 } else {
-                                  // Fallback: open provider checkout page if available (not implemented)
-                                  alert('Razorpay checkout not loaded. Please ensure checkout script is included on page.');
+                                  toast.error('Payment provider not loaded. Please refresh the page and try again.');
                                 }
                               } catch (err) {
                                 console.error('pay now error', err);
-                                alert('Payment initiation failed');
+                                toast.error('Payment initiation failed. Please try again.');
                               }
                             }}
                           >

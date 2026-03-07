@@ -357,6 +357,25 @@ const AgentTransport = () => {
                               Start
                             </Button>
                           )}
+                          {req.status === 'en_route' && (
+                            <div className="flex gap-1">
+                              <Button
+                                size="sm"
+                                variant="default"
+                                onClick={() => handleUpdateStatus(req.id, 'delivered')}
+                              >
+                                Delivered
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="text-destructive border-destructive/40"
+                                onClick={() => handleUpdateStatus(req.id, 'cancelled')}
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))

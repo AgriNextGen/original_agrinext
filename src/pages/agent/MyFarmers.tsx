@@ -75,7 +75,7 @@ export default function AgentMyFarmers() {
                   {language === 'kn' ? 'ಸಕ್ರಿಯ ಭೇಟಿ' : 'Active Visit'}
                 </span>
               </div>
-              <Button size="sm" variant="outline" onClick={() => navigate(`/agent/visit/${activeVisit.id}`)}>
+              <Button size="sm" variant="outline" onClick={() => navigate(`/agent/farmer/${activeVisit.farmer_id}`)}>
                 {language === 'kn' ? 'ನೋಡಿ' : 'View'}
               </Button>
             </CardContent>

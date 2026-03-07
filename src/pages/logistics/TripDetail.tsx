@@ -343,6 +343,38 @@ const TripDetail = () => {
           </div>
         </div>
 
+        {/* Trip History */}
+        {events && events.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <CheckCircle2 className="h-5 w-5 text-muted-foreground" />
+                Trip History
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ol className="relative border-l border-muted ml-2 space-y-4">
+                {events.map((event) => (
+                  <li key={event.id} className="ml-4">
+                    <div className="absolute -left-1.5 mt-1 h-3 w-3 rounded-full bg-primary/60" />
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium capitalize text-sm">
+                        {event.new_status.replace(/_/g, ' ')}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {format(parseISO(event.created_at), 'MMM d, h:mm a')}
+                      </span>
+                    </div>
+                    {event.note && (
+                      <p className="text-xs text-muted-foreground mt-0.5">{event.note}</p>
+                    )}
+                  </li>
+                ))}
+              </ol>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Dialogs */}
         <ProofCaptureDialog
           open={proofDialogOpen}

@@ -137,13 +137,10 @@ const BuyerProfile = () => {
             <div className="space-y-2">
               <Label htmlFor="district">District</Label>
               <GeoDistrictSelect
-                value=""
+                value={formData.district || ''}
                 onValueChange={(id) => setFormData(prev => ({ ...prev, district: id }))}
-                placeholder={formData.district || 'Select district'}
+                placeholder="Select district"
               />
-              {formData.district && (
-                <p className="text-xs text-muted-foreground">Current: {formData.district}</p>
-              )}
             </div>
           </CardContent>
         </Card>
