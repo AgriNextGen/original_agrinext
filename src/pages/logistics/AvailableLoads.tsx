@@ -20,7 +20,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Package, MapPin, Calendar, Search, Check, X, User, Loader2 } from 'lucide-react';
-import { useAvailableLoads, useVehicles } from '@/hooks/useLogisticsDashboard';
+import { useVehicles } from '@/hooks/useLogisticsDashboard';
 import { useTransportRequestsInfinite } from '@/hooks/useTransportRequests';
 import { useAcceptLoadSecure } from '@/hooks/useTrips';
 import { format, parseISO } from 'date-fns';
@@ -38,12 +38,11 @@ import PageShell from '@/components/layout/PageShell';
 import DataState from '@/components/ui/DataState';
 
 const AvailableLoads = () => {
-  const { data: loads, isLoading } = useAvailableLoads();
   const { t } = useLanguage();
   const { data: vehicles } = useVehicles();
   const acceptLoad = useAcceptLoadSecure();
-  const { data: pages, isLoading: infiniteLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useTransportRequestsInfinite();
-  const allLoads = pages ? pages.pages.flatMap((p: any) => p.items || []) : (loads || []);
+  const { data: pages, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useTransportRequestsInfinite();
+  const allLoads = pages ? pages.pages.flatMap((p: any) => p.items || []) : [];
   
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLoad, setSelectedLoad] = useState<string | null>(null);

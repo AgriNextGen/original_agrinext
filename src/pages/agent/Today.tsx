@@ -77,7 +77,7 @@ export default function AgentToday() {
   };
 
   return (
-    <DashboardLayout>
+    <DashboardLayout title="Today">
       <PageHeader title={`Today's Plan`} >
       <div className="space-y-4">
         <div className="flex items-center justify-between">

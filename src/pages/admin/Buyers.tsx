@@ -31,6 +31,7 @@ const AdminBuyers = () => {
       case 'wholesale': return 'Wholesale';
       case 'restaurant': return 'Restaurant';
       case 'export': return 'Export';
+      case 'processor': return 'Food Processor';
       default: return type;
     }
   };

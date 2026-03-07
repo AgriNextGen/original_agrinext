@@ -19,7 +19,9 @@ import DataState from '@/components/ui/DataState';
 const statusColors: Record<string, string> = {
   assigned: 'bg-blue-100 text-blue-800',
   en_route: 'bg-purple-100 text-purple-800',
+  arrived: 'bg-orange-100 text-orange-800',
   picked_up: 'bg-indigo-100 text-indigo-800',
+  in_transit: 'bg-cyan-100 text-cyan-800',
 };
 
 const ActiveTrips = () => {

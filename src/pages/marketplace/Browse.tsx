@@ -174,7 +174,7 @@ const BrowseMarketplace = () => {
                     )}
                   </div>
                   
-                  <Button className="w-full mt-4" variant="outline">
+                  <Button className="w-full mt-4" variant="outline" onClick={(e) => { e.stopPropagation(); navigate(`/marketplace/product/${product.id}`); }}>
                     View Details
                   </Button>
                 </div>

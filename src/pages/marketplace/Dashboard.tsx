@@ -6,7 +6,6 @@ import { Badge } from '@/components/ui/badge';
 import {
   ShoppingCart,
   Leaf,
-  TrendingUp,
   Package,
   Sparkles,
   ArrowRight,
@@ -76,7 +75,7 @@ const MarketplaceDashboard = () => {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${session.access_token}`,
-          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
         },
         body: JSON.stringify({
           type: 'stock_recommendation',
@@ -156,7 +155,6 @@ const MarketplaceDashboard = () => {
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           <KpiCard label={t('marketplace.available')} value={stats.totalProducts} icon={Package} priority="primary" onClick={() => navigate('/marketplace/browse')} />
           <KpiCard label={t('marketplace.freshHarvest')} value={stats.freshHarvest} icon={Leaf} priority="success" />
-          <KpiCard label={t('marketplace.comingSoon')} value={stats.oneWeekAway} icon={TrendingUp} priority="warning" />
           <KpiCard label={t('marketplace.activeOrdersLabel')} value={stats.activeOrders} icon={ShoppingCart} priority="info" onClick={() => navigate('/marketplace/orders')} />
         </div>
 

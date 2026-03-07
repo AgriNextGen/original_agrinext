@@ -154,15 +154,12 @@ const Profile = () => {
             <div className="space-y-2">
               <Label htmlFor="operating_district">Operating District</Label>
               <GeoDistrictSelect
-                value=""
+                value={formData.operating_district || ''}
                 onValueChange={(id) => {
                   setFormData(prev => ({ ...prev, operating_district: id }));
                 }}
-                placeholder={formData.operating_district || 'Select district'}
+                placeholder="Select district"
               />
-              {formData.operating_district && (
-                <p className="text-xs text-muted-foreground">Current: {formData.operating_district}</p>
-              )}
             </div>
 
             <Link to="/logistics/service-area" className="block mt-2">

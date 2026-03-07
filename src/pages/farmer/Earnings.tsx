@@ -218,12 +218,16 @@ const FarmerEarnings = () => {
           </CardContent>
         </Card>
 
-        {/* Info about future features */}
+        {/* Payout info — factual, no false promises */}
         {earnings && (earnings.totalSales > 0 || earnings.pendingPayments > 0) && (
-          <Card className="bg-muted/30 border-dashed">
-            <CardContent className="p-4">
-              <p className="text-sm text-muted-foreground text-center">
-                💡 More detailed analytics, withdrawal options, and payment history are coming soon!
+          <Card className="bg-muted/30 border-border">
+            <CardContent className="p-4 flex items-start gap-3">
+              <div className="p-2 rounded-lg bg-primary/10 shrink-0">
+                <IndianRupee className="h-4 w-4 text-primary" />
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Payout details are managed through your bank account registered with your agent.
+                Contact your agent for withdrawal queries.
               </p>
             </CardContent>
           </Card>

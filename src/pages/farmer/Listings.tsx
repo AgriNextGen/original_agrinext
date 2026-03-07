@@ -81,6 +81,9 @@ const FarmerListings = () => {
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
+  const [filterCategory, setFilterCategory] = useState<string>('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingListing, setEditingListing] = useState<Listing | null>(null);
@@ -259,10 +262,18 @@ const FarmerListings = () => {
     setListings(prev => prev.map(l => l.id === listingId ? { ...l, trace_status: newStatus } : l));
   };
 
-  const filteredListings = listings.filter(listing =>
-    listing.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    listing.category.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredListings = listings.filter(listing => {
+    const matchesSearch =
+      listing.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      listing.category.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus =
+      filterStatus === 'all' ||
+      (filterStatus === 'active' && listing.is_active) ||
+      (filterStatus === 'inactive' && !listing.is_active);
+    const matchesCategory =
+      filterCategory === 'all' || listing.category === filterCategory;
+    return matchesSearch && matchesStatus && matchesCategory;
+  });
 
   return (
     <DashboardLayout title={t('farmer.listings.title')}>
@@ -280,7 +291,11 @@ const FarmerListings = () => {
             />
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" className="gap-2">
+            <Button
+              variant={filterOpen ? 'default' : 'outline'}
+              className="gap-2"
+              onClick={() => setFilterOpen(v => !v)}
+            >
               <Filter className="h-4 w-4" />
               {t('common.filter')}
             </Button>
@@ -433,6 +448,52 @@ const FarmerListings = () => {
             </Dialog>
           </div>
         </div>
+
+        {/* Inline filter bar */}
+        {filterOpen && (
+          <div className="flex flex-wrap gap-3 items-center p-3 bg-muted/30 rounded-lg border border-border">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-medium text-muted-foreground">Status:</span>
+              <div className="flex gap-1">
+                {(['all', 'active', 'inactive'] as const).map(s => (
+                  <Button
+                    key={s}
+                    size="sm"
+                    variant={filterStatus === s ? 'default' : 'outline'}
+                    className="h-7 text-xs capitalize"
+                    onClick={() => setFilterStatus(s)}
+                  >
+                    {s === 'all' ? 'All' : s.charAt(0).toUpperCase() + s.slice(1)}
+                  </Button>
+                ))}
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-medium text-muted-foreground">Category:</span>
+              <Select value={filterCategory} onValueChange={setFilterCategory}>
+                <SelectTrigger className="h-7 text-xs w-36">
+                  <SelectValue placeholder="All" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {categories.map(cat => (
+                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {(filterStatus !== 'all' || filterCategory !== 'all') && (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-7 text-xs text-destructive"
+                onClick={() => { setFilterStatus('all'); setFilterCategory('all'); }}
+              >
+                Clear
+              </Button>
+            )}
+          </div>
+        )}
 
         {/* Evidence upload dialog for newly created listing */}
         {showEvidenceForListing && (

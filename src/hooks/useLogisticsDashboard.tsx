@@ -300,7 +300,7 @@ export const useLogisticsDashboardStats = () => {
       return {
         stats: {
           availableLoads: Number(data?.available_loads_count || 0),
-          acceptedTrips: 0,
+          acceptedTrips: Number((data?.trips_by_status && data.trips_by_status['assigned']) || 0),
           tripsInProgress: Number((data?.trips_by_status && data.trips_by_status['en_route']) || 0),
           completedTrips: Number((data?.trips_by_status && data.trips_by_status['delivered']) || 0),
         },

@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -183,9 +183,9 @@ export const useBuyerOrders = () => {
     queryKey: ['buyer-orders', buyer?.id],
     queryFn: async () => {
       if (!buyer?.id) return [];
-      // use compact orders RPC (cursorless first page)
-      const { data } = await (await import('@/lib/readApi')).rpcJson('list_orders_compact_v1', { p_limit: 50, p_cursor: null });
-      return data?.items || [];
+      // rpcJson returns the value directly (not wrapped in { data })
+      const result = await (await import('@/lib/readApi')).rpcJson('list_orders_compact_v1', { p_limit: 50, p_cursor: null });
+      return result?.items || [];
     },
     enabled: !!buyer?.id,
   });
@@ -209,7 +209,7 @@ export const useCreateOrder = () => {
       if (!buyer?.id) throw new Error('Buyer profile not found');
       // Use Edge function / RPC via marketplaceApi
       const { placeOrder } = await import('@/lib/marketplaceApi');
-      const res = await placeOrder(data.crop_id, data.quantity, data.notes || null);
+      const res = await placeOrder(data.crop_id, data.quantity, data.notes || null, data.price_offered, data.delivery_address);
       if (!res || !res.success) throw new Error(res?.error || 'Order failed');
       // Invalidate buyer orders to refresh UI
       return res;

@@ -445,7 +445,7 @@ export const useAgentDashboardStats = () => {
         farmersAssigned: Number(data?.assigned_farmers_count || 0),
         activeCrops: Number(data?.active_crops || 0),
         tasksToday: Number(data?.pending_tasks_count || 0),
-        tasksCompleted: 0,
+        tasksCompleted: Number(data?.tasks_completed_today || 0),
         cropsReadyToHarvest: Number((data?.tasks_top10 || []).length || 0),
         pendingTransportRequests: Number(data?.pending_tasks_count || 0),
       };

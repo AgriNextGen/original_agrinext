@@ -89,7 +89,82 @@ const CropsSection = () => {
             {t('farmer.crops.addCrop')}
           </Button>
         </CardHeader>
-        
+        <CardContent>
+          {activeCrops.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-10 text-center">
+              <Sprout className="h-10 w-10 text-muted-foreground/40 mb-3" />
+              <p className="text-sm text-muted-foreground">{t('farmer.crops.noCropsYet')}</p>
+              <Button size="sm" variant="outline" className="mt-4" onClick={() => navigate('/farmer/crops')}>
+                <Plus className="h-4 w-4 mr-1" />
+                {t('farmer.crops.addCrop')}
+              </Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {activeCrops.map(crop => {
+                const cfg = statusConfig[crop.status as keyof typeof statusConfig] || statusConfig.growing;
+                return (
+                  <div key={crop.id} className="rounded-xl border border-border bg-background p-4 flex flex-col gap-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="font-semibold text-foreground truncate">{crop.crop_name}</p>
+                        {crop.variety && (
+                          <p className="text-xs text-muted-foreground truncate">{crop.variety}</p>
+                        )}
+                      </div>
+                      <span className={`shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${cfg.color}`}>
+                        <span className={`h-1.5 w-1.5 rounded-full ${cfg.dotColor}`} />
+                        {cfg.label}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                      {crop.farmland?.name && (
+                        <span className="flex items-center gap-1 truncate col-span-2">
+                          <MapPin className="h-3 w-3 shrink-0" />
+                          {crop.farmland.name}
+                        </span>
+                      )}
+                      {crop.harvest_estimate && (
+                        <span className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3 shrink-0" />
+                          {format(new Date(crop.harvest_estimate), 'dd MMM yyyy')}
+                        </span>
+                      )}
+                      {crop.estimated_quantity != null && (
+                        <span className="flex items-center gap-1">
+                          <Scale className="h-3 w-3 shrink-0" />
+                          {crop.estimated_quantity} {crop.quantity_unit || 'kg'}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex gap-2 mt-auto pt-1">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="flex-1 gap-1 h-8 text-xs"
+                        onClick={() => handleEdit(crop)}
+                      >
+                        <Edit className="h-3 w-3" />
+                        {t('common.edit')}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="flex-1 gap-1 h-8 text-xs"
+                        onClick={() => handleTransport(crop)}
+                      >
+                        <Truck className="h-3 w-3" />
+                        {t('farmer.transport.requestTransport')}
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
       </Card>
 
       <EditCropDialog crop={editingCrop} open={editDialogOpen} onOpenChange={setEditDialogOpen} />

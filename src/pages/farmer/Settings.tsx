@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
@@ -253,7 +254,16 @@ const SettingsPage = () => {
                   <p className="text-sm text-muted-foreground">{t('settings.push_notifications_desc')}</p>
                 </div>
               </div>
-              <Button variant="outline" size="sm">{t('settings.configure')}</Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span>
+                      <Button variant="outline" size="sm" disabled>{t('settings.configure')}</Button>
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>Push notifications — coming soon</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
             
             {/* Language Toggle */}
@@ -297,7 +307,16 @@ const SettingsPage = () => {
                   <p className="text-sm text-muted-foreground">{t('settings.account_security_desc')}</p>
                 </div>
               </div>
-              <Button variant="outline" size="sm">{t('settings.manage')}</Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span>
+                      <Button variant="outline" size="sm" disabled>{t('settings.manage')}</Button>
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>Account security settings — coming soon</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </CardContent>
         </Card>
