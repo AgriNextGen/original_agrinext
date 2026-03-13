@@ -1,11 +1,7 @@
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseConfig, createAdminClient } from './common.mjs';
 
-const SUPABASE_URL = 'https://rmtkkzfzdmpjlqexrbme.supabase.co';
-const SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtdGtremZ6ZG1wamxxZXhyYm1lIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MTE3MTM0MywiZXhwIjoyMDg2NzQ3MzQzfQ.boHbegytdSBXEhCT_dkg8Bl98W5lyQupb2bGo0nSqR4';
-
-const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
-  auth: { persistSession: false }
-});
+const { url: SUPABASE_URL, serviceRoleKey: SERVICE_ROLE_KEY } = getSupabaseConfig();
+const supabase = createAdminClient();
 
 async function sql(query) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/exec_sql`, {
@@ -26,7 +22,8 @@ async function sql(query) {
 
 // Use the supabase management API instead
 async function execSQL(query) {
-  const res = await fetch(`https://api.supabase.com/v1/projects/rmtkkzfzdmpjlqexrbme/database/query`, {
+  const projectRef = new URL(SUPABASE_URL).hostname.split('.')[0];
+  const res = await fetch(`https://api.supabase.com/v1/projects/${projectRef}/database/query`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
@@ -51,7 +48,8 @@ async function execViaRPC(query) {
 // Try direct DB via pg if available
 async function tryPg(query) {
   const { default: pg } = await import('pg');
-  const poolerUrl = 'postgresql://postgres.rmtkkzfzdmpjlqexrbme:' + process.env.DB_PASSWORD + '@aws-1-ap-south-1.pooler.supabase.com:5432/postgres';
+  const projectRef = new URL(SUPABASE_URL).hostname.split('.')[0];
+  const poolerUrl = `postgresql://postgres.${projectRef}:${process.env.DB_PASSWORD}@aws-1-ap-south-1.pooler.supabase.com:5432/postgres`;
   const client = new pg.Client({ connectionString: poolerUrl });
   await client.connect();
   const result = await client.query(query);

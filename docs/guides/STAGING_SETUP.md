@@ -1,4 +1,4 @@
-# Staging dummy users (all roles)
+# Staging Dummy Users (All Roles)
 
 Use these credentials to log in and test every role: farmer, agent, logistics, buyer, admin.
 
@@ -11,13 +11,12 @@ The script `scripts/staging/provision-dummy-users.mjs` creates one auth user per
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `SUPABASE_URL` | Yes | Project URL (e.g. `https://xxx.supabase.co`). Fallback: `VITE_SUPABASE_URL` |
-| `SUPABASE_SERVICE_ROLE_KEY` | Yes | Service role key from Supabase Dashboard → Settings → API. **Never use in frontend.** |
-| `ALLOW_NON_STAGING` | For local/dev | Set to `true` to run against a project that is not in the default allowed staging refs. |
+| `SUPABASE_SERVICE_ROLE_KEY` | Yes | Service role key from Supabase Dashboard > Settings > API. **Never use in frontend.** |
+| `ALLOW_NON_STAGING` | For local/dev | Set to `true` to run against a project not in the default allowed staging refs. |
 
 ### Run command
 
 ```sh
-# Replace YYYYMMDD_HHMM with a timestamp, e.g. 20260305_1200
 npm run staging:provision-dummy-users -- --demo-tag dummy_20260305_1200
 ```
 
@@ -33,8 +32,7 @@ Example with custom password and non-staging project:
 ALLOW_NON_STAGING=true npm run staging:provision-dummy-users -- --demo-tag dummy_20260305_1200 --password 'Dummy@12345'
 ```
 
-After a successful run, credentials are written to `artifacts/staging/demo-users-<demo-tag>.json`.  
-If `SUPABASE_SERVICE_ROLE_KEY` is not set, run with `--dry-run` to generate a placeholder artifact; to create real users in the database, set the key in `.env` and run without `--dry-run`.
+After a successful run, credentials are written to `artifacts/staging/demo-users-<demo-tag>.json`.
 
 ## Login credentials (default password: Dummy@12345)
 
@@ -54,9 +52,9 @@ If `SUPABASE_SERVICE_ROLE_KEY` is not set, run with `--dry-run` to generate a pl
 2. Enter **phone**: e.g. `9900000101` or `+919900000101` (for farmer).
 3. Enter **password**: `Dummy@12345` (or the one you used with `--password`).
 4. Select the **role** (Farmer / Agent / Logistics / Buyer / Admin).
-5. Click Sign in. You should be redirected to that role’s dashboard.
-6. Repeat with the other phones (102–105) and corresponding roles to test all five.
+5. Click Sign in. You should be redirected to that role's dashboard.
+6. Repeat with the other phones (102-105) and corresponding roles to test all five.
 
 ## Demo tag format
 
-The `--demo-tag` value must match: `dummy_YYYYMMDD_HHMM` (e.g. `dummy_20260305_1200`). The script will refuse other formats.
+The `--demo-tag` value must match: `dummy_YYYYMMDD_HHMM` (e.g. `dummy_20260305_1200`).

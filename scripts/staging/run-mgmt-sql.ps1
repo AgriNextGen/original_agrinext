@@ -1,8 +1,12 @@
 param()
 Set-StrictMode -Off
 
-$PAT = "sbp_9ae4e5657d4827a0940c2e501ce756958b752572"
-$PROJECT = "rmtkkzfzdmpjlqexrbme"
+if (-not $env:SUPABASE_PAT) { throw "Missing env var: SUPABASE_PAT" }
+if (-not $env:SUPABASE_URL -and -not $env:VITE_SUPABASE_URL) { throw "Missing env var: SUPABASE_URL" }
+
+$PAT = $env:SUPABASE_PAT
+$SB_URL = if ($env:SUPABASE_URL) { $env:SUPABASE_URL } else { $env:VITE_SUPABASE_URL }
+$PROJECT = ([System.Uri]$SB_URL).Host.Split('.')[0]
 $BASE = "https://api.supabase.com/v1/projects/$PROJECT"
 
 function Exec-SQL {

@@ -1,4 +1,4 @@
-# UI Refresh — Lightweight Guidelines
+# UI Refresh -- Lightweight Guidelines
 
 Purpose
 - Provide minimal, practical UI rules for polishing pages across Farmer / Agent / Admin dashboards without redesigning layouts or navigation.
@@ -34,5 +34,4 @@ F) Accessibility
 
 Implementation notes
 - Use existing shadcn/ui components in `src/components/ui`.
-- Add small shared wrappers in `src/components/shared` (PageHeader, EmptyState, StatCard) to make consistent changes low-friction.
-
+- Add small shared wrappers in `src/components/shared` (PageHeader, EmptyState) for consistency.

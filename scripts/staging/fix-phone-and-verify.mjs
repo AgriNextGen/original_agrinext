@@ -4,9 +4,9 @@
  * Since these are two distinct accounts, we cannot set the same phone.
  * Resolution: NULL out the malformed phone on the test account (it's a test/duplicate).
  */
-const PAT = 'sbp_9ae4e5657d4827a0940c2e501ce756958b752572';
-const PROJECT = 'rmtkkzfzdmpjlqexrbme';
-const BASE = `https://api.supabase.com/v1/projects/${PROJECT}`;
+import { getMgmtApiConfig } from './common.mjs';
+
+const { pat: PAT, projectRef: PROJECT, base: BASE } = getMgmtApiConfig();
 
 async function q(label, sql) {
   const controller = new AbortController();
