@@ -1,9 +1,11 @@
 import DashboardLayout from '@/layouts/DashboardLayout';
+import PageShell from '@/components/layout/PageShell';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ShoppingBag, Search, MapPin, Building, Package } from 'lucide-react';
+import { Search, MapPin, Building, Package, Inbox } from 'lucide-react';
+import EmptyState from '@/components/shared/EmptyState';
 import { useAllBuyers } from '@/hooks/useAdminDashboard';
 import { useState } from 'react';
 import {
@@ -38,15 +40,10 @@ const AdminBuyers = () => {
 
   return (
     <DashboardLayout title="Buyer Management">
-      <div className="space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-              <ShoppingBag className="w-6 h-6 text-orange-600" />
-              Buyer Management
-            </h1>
-            <p className="text-muted-foreground">View and manage marketplace buyers</p>
-          </div>
+      <PageShell
+        title="Buyer Management"
+        subtitle="View and manage marketplace buyers"
+        actions={
           <div className="relative w-full md:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
@@ -56,8 +53,8 @@ const AdminBuyers = () => {
               className="pl-9"
             />
           </div>
-        </div>
-
+        }
+      >
         <Card>
           <CardHeader>
             <CardTitle>All Buyers ({filteredBuyers.length})</CardTitle>
@@ -69,6 +66,8 @@ const AdminBuyers = () => {
                   <Skeleton key={i} className="h-16 w-full" />
                 ))}
               </div>
+            ) : filteredBuyers.length === 0 ? (
+              <EmptyState icon={Inbox} title="No buyers found" />
             ) : (
               <div className="overflow-x-auto">
                 <Table>
@@ -120,20 +119,13 @@ const AdminBuyers = () => {
                         </TableCell>
                       </TableRow>
                     ))}
-                    {filteredBuyers.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                          No buyers found
-                        </TableCell>
-                      </TableRow>
-                    )}
                   </TableBody>
                 </Table>
               </div>
             )}
           </CardContent>
         </Card>
-      </div>
+      </PageShell>
     </DashboardLayout>
   );
 };

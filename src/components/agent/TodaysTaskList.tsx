@@ -5,12 +5,14 @@ import { useTodaysTasks, useUpdateTaskStatus, AgentTask } from '@/hooks/useAgent
 import { Skeleton } from '@/components/ui/skeleton';
 import { ClipboardList, MapPin, ChevronRight, CheckCircle, Clock, Play } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '@/hooks/useLanguage';
+import { ROUTES } from '@/lib/routes';
 
-const taskTypeLabels: Record<string, string> = {
-  visit: 'Farm Visit',
-  verify_crop: 'Verify Crop',
-  harvest_check: 'Harvest Check',
-  transport_assist: 'Transport Assist',
+const taskTypeKeys: Record<string, string> = {
+  visit: 'enum.task_type.visit',
+  verify_crop: 'enum.task_type.verify_crop',
+  harvest_check: 'enum.task_type.harvest_check',
+  transport_assist: 'enum.task_type.transport_assist',
 };
 
 const statusColors: Record<string, string> = {
@@ -20,6 +22,7 @@ const statusColors: Record<string, string> = {
 };
 
 const TodaysTaskList = () => {
+  const { t } = useLanguage();
   const { data: tasks, isLoading } = useTodaysTasks();
   const updateStatus = useUpdateTaskStatus();
   const navigate = useNavigate();
@@ -42,7 +45,7 @@ const TodaysTaskList = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <ClipboardList className="h-5 w-5" />
-            Today's Tasks
+            {t('agent.todaysTasks.title')}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -60,10 +63,10 @@ const TodaysTaskList = () => {
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-lg">
             <ClipboardList className="h-5 w-5 text-primary" />
-            Today's Tasks
+            {t('agent.todaysTasks.title')}
           </CardTitle>
-          <Button variant="ghost" size="sm" onClick={() => navigate('/agent/tasks')}>
-            View All <ChevronRight className="h-4 w-4 ml-1" />
+          <Button variant="ghost" size="sm" onClick={() => navigate(ROUTES.AGENT.TASKS)}>
+            {t('agent.todaysTasks.viewAll')} <ChevronRight className="h-4 w-4 ml-1" />
           </Button>
         </div>
       </CardHeader>
@@ -71,7 +74,7 @@ const TodaysTaskList = () => {
         {!tasks || tasks.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <ClipboardList className="h-12 w-12 mx-auto mb-3 opacity-50" />
-            <p>No tasks scheduled for today</p>
+            <p>{t('agent.todaysTasks.noTasks')}</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -83,16 +86,16 @@ const TodaysTaskList = () => {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="font-medium truncate">
-                      {task.farmer?.full_name || 'Unknown Farmer'}
+                      {task.farmer?.full_name || t('agent.todaysTasks.unknownFarmer')}
                     </span>
                     <Badge variant="outline" className="text-xs">
-                      {taskTypeLabels[task.task_type]}
+                      {t(taskTypeKeys[task.task_type] || 'common.unknown')}
                     </Badge>
                   </div>
                   <div className="flex items-center gap-3 text-sm text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <MapPin className="h-3 w-3" />
-                      {task.farmer?.village || 'Unknown'}
+                      {task.farmer?.village || t('agent.todaysTasks.unknown')}
                     </span>
                     {task.crop && (
                       <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded">
@@ -115,7 +118,7 @@ const TodaysTaskList = () => {
                       onClick={() => handleStatusChange(task)}
                       disabled={updateStatus.isPending}
                     >
-                      {task.task_status === 'pending' ? 'Start' : 'Complete'}
+                      {task.task_status === 'pending' ? t('agent.todaysTasks.start') : t('agent.todaysTasks.complete')}
                     </Button>
                   )}
                 </div>

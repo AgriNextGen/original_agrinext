@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import DashboardLayout from '@/layouts/DashboardLayout';
+import PageShell from '@/components/layout/PageShell';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { 
   RefreshCw, 
   Database, 
@@ -18,110 +18,21 @@ import {
   Globe,
   Play
 } from 'lucide-react';
-import { formatDistanceToNow, format } from 'date-fns';
+import KpiCard from '@/components/dashboard/KpiCard';
+import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
-
-// Types
-interface TrustedSource {
-  id: string;
-  name: string;
-  url: string;
-  category: string;
-  state: string;
-  district: string | null;
-  active: boolean;
-  last_crawled_at: string | null;
-  crawl_frequency_hours: number;
-}
-
-interface FarmerSegment {
-  segment_key: string;
-  district: string;
-  crop_canonical: string;
-  active_farmer_count: number;
-  last_crawled_at: string | null;
-  crawl_frequency_hours: number;
-}
-
-interface WebFetchLog {
-  id: string;
-  endpoint: string;
-  query: string | null;
-  success: boolean;
-  latency_ms: number | null;
-  http_status: number | null;
-  error: string | null;
-  fetched_at: string;
-}
-
-interface PriceConfidenceStats {
-  high: number;
-  medium: number;
-  low: number;
-}
+import { useLanguage } from '@/hooks/useLanguage';
+import { useTrustedSources, useFarmerSegments, useWebFetchLogs, usePriceConfidence } from '@/hooks/useAdminDataHealth';
+import { supabase } from '@/integrations/supabase/client';
 
 const DataHealthPage = () => {
+  const { t } = useLanguage();
   const [isRunningCrawl, setIsRunningCrawl] = useState(false);
 
-  // Fetch trusted sources
-  const { data: sources, isLoading: sourcesLoading, refetch: refetchSources } = useQuery({
-    queryKey: ['admin-trusted-sources'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('trusted_sources')
-        .select('*')
-        .order('last_crawled_at', { ascending: true, nullsFirst: true });
-      if (error) throw error;
-      return data as TrustedSource[];
-    },
-  });
-
-  // Fetch farmer segments
-  const { data: segments, isLoading: segmentsLoading, refetch: refetchSegments } = useQuery({
-    queryKey: ['admin-farmer-segments'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('farmer_segments')
-        .select('*')
-        .gt('active_farmer_count', 0)
-        .order('last_crawled_at', { ascending: true, nullsFirst: true });
-      if (error) throw error;
-      return data as FarmerSegment[];
-    },
-  });
-
-  // Fetch recent logs
-  const { data: recentLogs, isLoading: logsLoading, refetch: refetchLogs } = useQuery({
-    queryKey: ['admin-web-fetch-logs'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('web_fetch_logs')
-        .select('*')
-        .order('fetched_at', { ascending: false })
-        .limit(20);
-      if (error) throw error;
-      return data as WebFetchLog[];
-    },
-  });
-
-  // Fetch price confidence distribution
-  const { data: confidenceStats } = useQuery({
-    queryKey: ['admin-price-confidence'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('market_prices_agg')
-        .select('confidence');
-      if (error) throw error;
-      
-      const stats: PriceConfidenceStats = { high: 0, medium: 0, low: 0 };
-      data?.forEach((row: { confidence: string | null }) => {
-        if (row.confidence === 'high') stats.high++;
-        else if (row.confidence === 'medium') stats.medium++;
-        else stats.low++;
-      });
-      return stats;
-    },
-  });
+  const { data: sources, isLoading: sourcesLoading, refetch: refetchSources } = useTrustedSources();
+  const { data: segments, isLoading: segmentsLoading, refetch: refetchSegments } = useFarmerSegments();
+  const { data: recentLogs, isLoading: logsLoading, refetch: refetchLogs } = useWebFetchLogs();
+  const { data: confidenceStats } = usePriceConfidence();
 
   // Calculate stale sources (not crawled within their TTL)
   const staleSources = sources?.filter((s) => {
@@ -186,78 +97,74 @@ const DataHealthPage = () => {
   };
 
   return (
-    <DashboardLayout title="Data Health Monitor">
-      <div className="space-y-6">
-        {/* Header Actions */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold">Firecrawl Data Health</h2>
-            <p className="text-muted-foreground">Monitor web ingestion, crawl status, and data quality</p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={rebuildSegments}>
-              <Database className="h-4 w-4 mr-2" />
-              Rebuild Segments
-            </Button>
-            <Button variant="outline" onClick={() => runMandiSync(false)} disabled={isRunningCrawl}>
-              <RefreshCw className={`h-4 w-4 mr-2 ${isRunningCrawl ? 'animate-spin' : ''}`} />
-              Sync Now
-            </Button>
-            <Button onClick={() => runMandiSync(true)} disabled={isRunningCrawl}>
-              {isRunningCrawl ? (
-                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Play className="h-4 w-4 mr-2" />
-              )}
-              Force Sync
-            </Button>
-          </div>
-        </div>
-
+    <DashboardLayout title={t('admin.dataHealth.title')}>
+      <PageShell
+        title={t('admin.dataHealth.title')}
+        subtitle={t('admin.dataHealth.subtitle')}
+        actions={
+          <TooltipProvider>
+            <div className="flex gap-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    <Button variant="outline" disabled>
+                      <Database className="h-4 w-4 mr-2" />
+                      {t('admin.dataHealth.rebuildSegments')}
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>{t('admin.dataHealth.edgeFunctionNotDeployed')}</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    <Button variant="outline" disabled>
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      {t('admin.syncNow')}
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>{t('admin.dataHealth.edgeFunctionNotDeployed')}</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    <Button disabled>
+                      <Play className="h-4 w-4 mr-2" />
+                      {t('admin.forceSync')}
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>{t('admin.dataHealth.edgeFunctionNotDeployed')}</TooltipContent>
+              </Tooltip>
+            </div>
+          </TooltipProvider>
+        }
+      >
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Active Sources</p>
-                  <p className="text-2xl font-bold">{sources?.filter(s => s.active).length || 0}</p>
-                </div>
-                <Globe className="h-8 w-8 text-primary/50" />
-              </div>
-              {staleSources && staleSources.length > 0 && (
-                <Badge variant="destructive" className="mt-2">
-                  {staleSources.length} stale
-                </Badge>
-              )}
-            </CardContent>
-          </Card>
+          <KpiCard
+            label={t('admin.dataHealth.activeSources')}
+            value={sources?.filter(s => s.active).length || 0}
+            icon={Globe}
+            priority="primary"
+          />
+          <KpiCard
+            label={t('admin.dataHealth.activeSegments')}
+            value={segments?.length || 0}
+            icon={Activity}
+            priority="info"
+          />
 
+          {/* Price Confidence - keep as-is due to complex badge content */}
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Active Segments</p>
-                  <p className="text-2xl font-bold">{segments?.length || 0}</p>
-                </div>
-                <Activity className="h-8 w-8 text-primary/50" />
-              </div>
-              {staleSegments && staleSegments.length > 0 && (
-                <Badge variant="outline" className="mt-2 text-amber-600">
-                  {staleSegments.length} due for crawl
-                </Badge>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Price Confidence</p>
+                  <p className="text-sm text-muted-foreground">{t('admin.dataHealth.priceConfidence')}</p>
                   <div className="flex gap-2 mt-1">
-                    <Badge variant="default" className="bg-emerald-600">{confidenceStats?.high || 0}</Badge>
-                    <Badge variant="outline" className="text-amber-600">{confidenceStats?.medium || 0}</Badge>
+                    <Badge variant="default" className="bg-success text-primary-foreground">{confidenceStats?.high || 0}</Badge>
+                    <Badge variant="outline" className="text-warning">{confidenceStats?.medium || 0}</Badge>
                     <Badge variant="destructive">{confidenceStats?.low || 0}</Badge>
                   </div>
                 </div>
@@ -266,17 +173,12 @@ const DataHealthPage = () => {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Recent Failures</p>
-                  <p className="text-2xl font-bold text-destructive">{failedLogs?.length || 0}</p>
-                </div>
-                <AlertTriangle className="h-8 w-8 text-destructive/50" />
-              </div>
-            </CardContent>
-          </Card>
+          <KpiCard
+            label={t('admin.dataHealth.recentFailures')}
+            value={failedLogs?.length || 0}
+            icon={AlertTriangle}
+            priority="warning"
+          />
         </div>
 
         {/* Failed Sources Alert */}
@@ -284,7 +186,7 @@ const DataHealthPage = () => {
           <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
-              {failedLogs.length} recent crawl failures detected. Check logs below for details.
+              {failedLogs.length} {t('admin.dataHealth.crawlFailures')}
             </AlertDescription>
           </Alert>
         )}
@@ -296,9 +198,9 @@ const DataHealthPage = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Globe className="h-5 w-5" />
-                Trusted Sources
+                {t('admin.dataHealth.trustedSources')}
               </CardTitle>
-              <CardDescription>Registered crawl targets</CardDescription>
+              <CardDescription>{t('admin.dataHealth.registeredCrawlTargets')}</CardDescription>
             </CardHeader>
             <CardContent>
               {sourcesLoading ? (
@@ -319,14 +221,14 @@ const DataHealthPage = () => {
                         </div>
                         <div className="flex items-center gap-2">
                           <Badge variant={source.active ? 'default' : 'secondary'}>
-                            {source.active ? 'Active' : 'Inactive'}
+                            {source.active ? t('common.active') : t('common.inactive')}
                           </Badge>
                           {source.last_crawled_at ? (
-                            <span className={`text-xs ${isStale ? 'text-amber-600' : 'text-muted-foreground'}`}>
+                            <span className={`text-xs ${isStale ? 'text-warning' : 'text-muted-foreground'}`}>
                               {formatDistanceToNow(new Date(source.last_crawled_at), { addSuffix: true })}
                             </span>
                           ) : (
-                            <span className="text-xs text-destructive">Never crawled</span>
+                            <span className="text-xs text-destructive">{t('admin.dataHealth.neverCrawled')}</span>
                           )}
                         </div>
                       </div>
@@ -342,9 +244,9 @@ const DataHealthPage = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Activity className="h-5 w-5" />
-                Farmer Segments
+                {t('admin.dataHealth.farmerSegments')}
               </CardTitle>
-              <CardDescription>District + Crop combinations with active farmers</CardDescription>
+              <CardDescription>{t('admin.dataHealth.farmerSegmentsDesc')}</CardDescription>
             </CardHeader>
             <CardContent>
               {segmentsLoading ? (
@@ -352,7 +254,7 @@ const DataHealthPage = () => {
                   {[1, 2, 3].map((i) => <Skeleton key={i} className="h-12" />)}
                 </div>
               ) : segments?.length === 0 ? (
-                <p className="text-muted-foreground text-sm">No active segments. Run "Rebuild Segments" first.</p>
+                <p className="text-muted-foreground text-sm">{t('admin.dataHealth.noActiveSegments')}</p>
               ) : (
                 <div className="space-y-2 max-h-80 overflow-y-auto">
                   {segments?.map((segment) => {
@@ -367,16 +269,16 @@ const DataHealthPage = () => {
                         </div>
                         <div className="flex items-center gap-2">
                           {isStale ? (
-                            <Clock className="h-4 w-4 text-amber-600" />
+                            <Clock className="h-4 w-4 text-warning" />
                           ) : (
-                            <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                            <CheckCircle2 className="h-4 w-4 text-success" />
                           )}
                           {segment.last_crawled_at ? (
                             <span className="text-xs text-muted-foreground">
                               {formatDistanceToNow(new Date(segment.last_crawled_at), { addSuffix: true })}
                             </span>
                           ) : (
-                            <span className="text-xs text-amber-600">Pending</span>
+                            <span className="text-xs text-warning">{t('admin.dataHealth.pending')}</span>
                           )}
                         </div>
                       </div>
@@ -393,9 +295,9 @@ const DataHealthPage = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Database className="h-5 w-5" />
-              Recent Crawl Logs
-            </CardTitle>
-            <CardDescription>Last 20 web fetch operations</CardDescription>
+                {t('admin.dataHealth.recentCrawlLogs')}
+              </CardTitle>
+              <CardDescription>{t('admin.dataHealth.recentCrawlLogsDesc')}</CardDescription>
           </CardHeader>
           <CardContent>
             {logsLoading ? (
@@ -413,7 +315,7 @@ const DataHealthPage = () => {
                   >
                     <div className="flex items-center gap-3">
                       {log.success ? (
-                        <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                        <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
                       ) : (
                         <AlertTriangle className="h-4 w-4 text-destructive shrink-0" />
                       )}
@@ -441,7 +343,7 @@ const DataHealthPage = () => {
             )}
           </CardContent>
         </Card>
-      </div>
+      </PageShell>
     </DashboardLayout>
   );
 };

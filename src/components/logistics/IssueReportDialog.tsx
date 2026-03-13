@@ -44,11 +44,11 @@ export default function IssueReportDialog({
     if (!issueCode) return;
 
     try {
+      const noteText = `Issue: ${issueCode}${issueNotes ? ' — ' + issueNotes : ''}`;
       await updateStatus.mutateAsync({
         tripId,
-        newStatus: 'issue',
-        issueCode,
-        issueNotes: issueNotes || undefined,
+        newStatus: 'cancelled',
+        note: noteText,
       });
 
       setIssueCode('');

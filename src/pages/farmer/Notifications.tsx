@@ -22,20 +22,22 @@ import {
   Truck
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { useLanguage } from '@/hooks/useLanguage';
 
-const typeConfig: Record<string, { icon: React.ElementType; color: string; label: string }> = {
-  price: { icon: TrendingUp, color: 'bg-emerald-100 text-emerald-600', label: 'Price Alert' },
-  weather: { icon: Cloud, color: 'bg-blue-100 text-blue-600', label: 'Weather' },
-  crop: { icon: Sprout, color: 'bg-amber-100 text-amber-600', label: 'Crop' },
-  scheme: { icon: Gift, color: 'bg-purple-100 text-purple-600', label: 'Scheme' },
-  pickup: { icon: Truck, color: 'bg-primary/10 text-primary', label: 'Pickup' },
-  info: { icon: AlertCircle, color: 'bg-muted text-muted-foreground', label: 'Info' },
+const typeConfig: Record<string, { icon: React.ElementType; color: string; labelKey: string }> = {
+  price: { icon: TrendingUp, color: 'bg-emerald-100 text-emerald-600', labelKey: 'notificationsPage.types.price' },
+  weather: { icon: Cloud, color: 'bg-blue-100 text-blue-600', labelKey: 'notificationsPage.types.weather' },
+  crop: { icon: Sprout, color: 'bg-amber-100 text-amber-600', labelKey: 'notificationsPage.types.crop' },
+  scheme: { icon: Gift, color: 'bg-purple-100 text-purple-600', labelKey: 'notificationsPage.types.scheme' },
+  pickup: { icon: Truck, color: 'bg-primary/10 text-primary', labelKey: 'notificationsPage.types.pickup' },
+  info: { icon: AlertCircle, color: 'bg-muted text-muted-foreground', labelKey: 'notificationsPage.types.info' },
 };
 
 const NotificationsPage = () => {
   const { data: notifications, isLoading } = useFarmerNotifications();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   const [filter, setFilter] = useState<string>('all');
 
@@ -56,8 +58,8 @@ const NotificationsPage = () => {
       if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ['farmer-notifications', user?.id] });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to update notification';
-      toast({ title: 'Error', description: message, variant: 'destructive' });
+      const message = error instanceof Error ? error.message : t('notificationsPage.updateFailed');
+      toast({ title: t('common.error'), description: message, variant: 'destructive' });
     }
   };
 
@@ -69,52 +71,37 @@ const NotificationsPage = () => {
         .eq('user_id', user?.id)
         .eq('is_read', false);
       if (error) throw error;
-      toast({ title: 'All notifications marked as read' });
+      toast({ title: t('notificationsPage.allMarkedRead') });
       queryClient.invalidateQueries({ queryKey: ['farmer-notifications', user?.id] });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to update notifications';
-      toast({ title: 'Error', description: message, variant: 'destructive' });
+      const message = error instanceof Error ? error.message : t('notificationsPage.updateFailed');
+      toast({ title: t('common.error'), description: message, variant: 'destructive' });
     }
   };
 
   const filterOptions = [
-    { value: 'all', label: 'All' },
-    { value: 'unread', label: 'Unread' },
-    { value: 'price', label: 'Price' },
-    { value: 'weather', label: 'Weather' },
-    { value: 'crop', label: 'Crop' },
-    { value: 'pickup', label: 'Pickup' },
+    { value: 'all', label: t('common.all') },
+    { value: 'unread', label: t('common.unread') },
+    { value: 'price', label: t('notificationsPage.types.price') },
+    { value: 'weather', label: t('notificationsPage.types.weather') },
+    { value: 'crop', label: t('notificationsPage.types.crop') },
+    { value: 'pickup', label: t('notificationsPage.types.pickup') },
   ];
 
   return (
-    <DashboardLayout title="Notifications">
+    <DashboardLayout title={t('notificationsPage.title')}>
       <PageShell
-        title="Notifications"
-        subtitle={unreadCount > 0 ? `${unreadCount} unread notifications` : 'All caught up!'}
+        title={t('notificationsPage.title')}
+        subtitle={unreadCount > 0 ? `${unreadCount} ${t('notificationsPage.unreadNotifications')}` : t('notificationsPage.allCaughtUp')}
         actions={
           unreadCount > 0 ? (
             <Button variant="outline" onClick={markAllAsRead}>
               <CheckCheck className="h-4 w-4 mr-2" />
-              Mark all as read
+              {t('notificationsPage.markAllRead')}
             </Button>
           ) : undefined
         }
       >
-        {/* Header Stats */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-          <div className="flex items-center gap-3">
-            <div className="p-3 rounded-xl bg-primary/10">
-              <Bell className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <h2 className="text-xl font-semibold">Notifications</h2>
-              <p className="text-sm text-muted-foreground">
-                {unreadCount > 0 ? `${unreadCount} unread notifications` : 'All caught up!'}
-              </p>
-            </div>
-          </div>
-        </div>
-
         {/* Filters */}
         <div className="flex gap-2 flex-wrap">
           {filterOptions.map((opt) => (
@@ -135,7 +122,7 @@ const NotificationsPage = () => {
         </div>
 
         {/* Notifications List */}
-        <DataState loading={isLoading} empty={!isLoading && (!filteredNotifications || filteredNotifications.length === 0)} emptyTitle="No notifications found">
+        <DataState loading={isLoading} empty={!isLoading && (!filteredNotifications || filteredNotifications.length === 0)} emptyTitle={t('notificationsPage.noNotifications')}>
           <div className="space-y-3">
             {filteredNotifications?.map((notification) => {
               const config = typeConfig[notification.type] || typeConfig.info;
@@ -160,7 +147,7 @@ const NotificationsPage = () => {
                           </h3>
                           <div className="flex items-center gap-2 shrink-0">
                             <Badge variant="outline" className="text-xs">
-                              {config.label}
+                              {t(config.labelKey)}
                             </Badge>
                             {!notification.is_read && (
                               <Button

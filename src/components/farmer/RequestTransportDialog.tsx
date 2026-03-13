@@ -101,7 +101,7 @@ const RequestTransportDialog = ({ crop, open, onOpenChange }: RequestTransportDi
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
+          <div className="space-y-2">
             <Label>{t('farmer.transport.crop')}</Label>
             <Select value={formData.crop_id} onValueChange={(v) => setFormData({ ...formData, crop_id: v })}>
               <SelectTrigger>
@@ -117,7 +117,7 @@ const RequestTransportDialog = ({ crop, open, onOpenChange }: RequestTransportDi
             </Select>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <div>
+            <div className="space-y-2">
               <Label>{t('farmer.transport.quantity')} *</Label>
               <Input
                 type="number"
@@ -127,7 +127,7 @@ const RequestTransportDialog = ({ crop, open, onOpenChange }: RequestTransportDi
                 required
               />
             </div>
-            <div>
+            <div className="space-y-2">
               <Label>{t('common.unit')}</Label>
               <Select value={formData.quantity_unit} onValueChange={(v) => setFormData({ ...formData, quantity_unit: v })}>
                 <SelectTrigger>
@@ -141,7 +141,7 @@ const RequestTransportDialog = ({ crop, open, onOpenChange }: RequestTransportDi
               </Select>
             </div>
           </div>
-          <div>
+          <div className="space-y-2">
             <Label>{t('farmer.transport.pickupLocation')} *</Label>
             <Input
               value={formData.pickup_location}
@@ -150,7 +150,7 @@ const RequestTransportDialog = ({ crop, open, onOpenChange }: RequestTransportDi
               required
             />
           </div>
-          <div>
+          <div className="space-y-2">
             <Label>{t('farmer.farmlands.village')}</Label>
             <Input
               value={formData.pickup_village}
@@ -159,7 +159,7 @@ const RequestTransportDialog = ({ crop, open, onOpenChange }: RequestTransportDi
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <div>
+            <div className="space-y-2">
               <Label>{t('farmer.transport.preferredDate')}</Label>
               <Input
                 type="date"
@@ -167,7 +167,7 @@ const RequestTransportDialog = ({ crop, open, onOpenChange }: RequestTransportDi
                 onChange={(e) => setFormData({ ...formData, preferred_date: e.target.value })}
               />
             </div>
-            <div>
+            <div className="space-y-2">
               <Label>{t('farmer.transport.preferredTime')}</Label>
               <Input
                 value={formData.preferred_time}
@@ -176,7 +176,7 @@ const RequestTransportDialog = ({ crop, open, onOpenChange }: RequestTransportDi
               />
             </div>
           </div>
-          <div>
+          <div className="space-y-2">
             <Label>{t('farmer.transport.notes')}</Label>
             <Textarea
               value={formData.notes}

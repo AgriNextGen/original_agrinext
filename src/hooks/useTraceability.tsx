@@ -72,7 +72,7 @@ export function useHarvestReadyCrops() {
           farmlands:land_id (district, village, name)
         `)
         .eq('farmer_id', user.id)
-        .in('status', ['growing', 'harvested'])
+        .in('status', ['ready', 'one_week'])
         .order('created_at', { ascending: false });
 
       if (error) throw error;

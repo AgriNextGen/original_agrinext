@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,10 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Users,
-  Sprout,
   Truck,
   ShoppingBag,
-  Package,
   AlertTriangle,
   TrendingUp,
   Activity,
@@ -24,6 +21,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 import { useLanguage } from '@/hooks/useLanguage';
+import { ROUTES } from '@/lib/routes';
 import PageHeader from '@/components/shared/PageHeader';
 import EmptyState from '@/components/shared/EmptyState';
 import KpiCard from '@/components/dashboard/KpiCard';
@@ -35,41 +33,8 @@ const AdminDashboard = () => {
 
   const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useAdminDashboardStats();
   const { data: recentActivity, isLoading: activityLoading } = useRecentActivity();
-  const [aiLoading, setAiLoading] = useState<string | null>(null);
-  const [aiResult, setAiResult] = useState<string | null>(null);
-
-  const handleAIAnalysis = async (type: string) => {
-    setAiLoading(type);
-    setAiResult(null);
-
-    try {
-      const { data, error } = await supabase.functions.invoke('admin-ai', {
-        body: {
-          type,
-          data: {
-            totalFarmers: stats?.totalFarmers || 0,
-            totalBuyers: stats?.totalBuyers || 0,
-            activeTransporters: stats?.activeTransporters || 0,
-            totalCrops: stats?.totalCrops || 0,
-            harvestReady: stats?.harvestReady || 0,
-            oneWeekAway: stats?.oneWeekAway || 0,
-            pendingTransport: stats?.pendingTransport || 0,
-            activeTransport: stats?.activeTransport || 0,
-            pendingOrders: stats?.pendingOrders || 0,
-            totalOrders: stats?.newOrdersToday || 0,
-          },
-        },
-      });
-
-      if (error) throw error;
-      setAiResult(data.analysis);
-      toast.success(t('admin.aiAnalysisGenerated'));
-    } catch (error) {
-      console.error('AI error:', error);
-      toast.error(t('admin.failedToGenerate'));
-    } finally {
-      setAiLoading(null);
-    }
+  const handleAIAnalysis = async (_type: string) => {
+    toast.info('AI analysis is not yet available. This feature is coming soon.');
   };
 
   return (
@@ -79,8 +44,8 @@ const AdminDashboard = () => {
         subtitle={t('admin.completeVisibility')}
         actions={
           <>
-            <div className="hidden items-center gap-2 rounded-full bg-emerald-100 px-3 py-1.5 dark:bg-emerald-900/30 sm:flex">
-              <Radio className="h-4 w-4 animate-pulse text-emerald-600" />
+            <div className="hidden items-center gap-2 rounded-full bg-success/10 px-3 py-1.5 sm:flex">
+              <Radio className="h-4 w-4 animate-pulse text-success" />
               <span className="text-sm font-medium text-emerald-700 dark:text-emerald-400">{t('common.live')}</span>
             </div>
             <Button aria-label="Refresh stats" onClick={() => refetchStats()} variant="outline" size="sm">
@@ -101,14 +66,13 @@ const AdminDashboard = () => {
             ))
           ) : (
             <>
-              <KpiCard label={t('dashboard.totalFarmers')} value={stats?.totalFarmers || 0} icon={Users} priority="success" />
-              <KpiCard label={t('dashboard.activeBuyers')} value={stats?.totalBuyers || 0} icon={ShoppingBag} priority="warning" />
-              <KpiCard label={t('dashboard.activeTransporters')} value={stats?.activeTransporters || 0} icon={Truck} priority="info" />
-              <KpiCard label={t('dashboard.activeCrops')} value={stats?.totalCrops || 0} icon={Sprout} priority="success" />
-              <KpiCard label={t('dashboard.harvestReady')} value={stats?.harvestReady || 0} icon={Package} priority="warning" />
-              <KpiCard label={t('dashboard.pendingTransport')} value={stats?.pendingTransport || 0} icon={Truck} priority="primary" />
-              <KpiCard label={t('dashboard.newOrdersToday')} value={stats?.newOrdersToday || 0} icon={TrendingUp} priority="info" />
-              <KpiCard label={t('dashboard.pendingOrders')} value={stats?.pendingOrders || 0} icon={Activity} priority="neutral" />
+              <KpiCard label={t('dashboard.newSignups')} value={stats?.newSignups || 0} icon={UserPlus} priority="success" />
+              <KpiCard label={t('dashboard.activeUsers')} value={stats?.activeUsers || 0} icon={Users} priority="info" />
+              <KpiCard label={t('dashboard.supportTickets')} value={stats?.supportTicketsOpen || 0} icon={AlertTriangle} priority="warning" />
+              <KpiCard label={t('dashboard.stuckTrips')} value={stats?.stuckTrips || 0} icon={Truck} priority="warning" />
+              <KpiCard label={t('dashboard.paymentFailures')} value={stats?.paymentFailures || 0} icon={Activity} priority="warning" />
+              <KpiCard label={t('dashboard.rateLimitBlocks')} value={stats?.rateLimitBlocks || 0} icon={AlertTriangle} priority="neutral" />
+              <KpiCard label={t('dashboard.kycPendingPayouts')} value={stats?.kycPendingPayouts || 0} icon={ShoppingBag} priority="info" />
             </>
           )}
         </div>
@@ -150,28 +114,21 @@ const AdminDashboard = () => {
               <CardTitle className="flex items-center gap-2"><UserPlus className="h-5 w-5" />{t('dashboard.quickActions')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Button variant="outline" className="w-full justify-start" asChild><a href="/admin/farmers"><Users className="mr-2 h-4 w-4" />{t('admin.manageFarmers')}</a></Button>
-              <Button variant="outline" className="w-full justify-start" asChild><a href="/admin/agents"><Users className="mr-2 h-4 w-4" />{t('admin.manageAgents')}</a></Button>
-              <Button variant="outline" className="w-full justify-start" asChild><a href="/admin/transporters"><Truck className="mr-2 h-4 w-4" />{t('admin.manageTransporters')}</a></Button>
-              <Button variant="outline" className="w-full justify-start" asChild><a href="/admin/ai-console"><Brain className="mr-2 h-4 w-4" />{t('admin.aiConsole')}</a></Button>
+              <Button variant="outline" className="w-full justify-start" asChild><a href={ROUTES.ADMIN.FARMERS}><Users className="mr-2 h-4 w-4" />{t('admin.manageFarmers')}</a></Button>
+              <Button variant="outline" className="w-full justify-start" asChild><a href={ROUTES.ADMIN.AGENTS}><Users className="mr-2 h-4 w-4" />{t('admin.manageAgents')}</a></Button>
+              <Button variant="outline" className="w-full justify-start" asChild><a href={ROUTES.ADMIN.TRANSPORTERS}><Truck className="mr-2 h-4 w-4" />{t('admin.manageTransporters')}</a></Button>
+              <Button variant="outline" className="w-full justify-start" asChild><a href={ROUTES.ADMIN.AI_CONSOLE}><Brain className="mr-2 h-4 w-4" />{t('admin.aiConsole')}</a></Button>
             </CardContent>
           </Card>
         </div>
 
         <ActionPanel title={t('admin.aiConsole')} context={t('admin.completeVisibility')}>
           <div className="mb-6 grid gap-4 md:grid-cols-4">
-            <Button onClick={() => handleAIAnalysis('cluster_health')} disabled={!!aiLoading} className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700">{aiLoading === 'cluster_health' ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : <Activity className="mr-2 h-4 w-4" />}{t('admin.clusterHealth')}</Button>
-            <Button onClick={() => handleAIAnalysis('supply_demand')} disabled={!!aiLoading} className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700">{aiLoading === 'supply_demand' ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : <TrendingUp className="mr-2 h-4 w-4" />}{t('admin.supplyDemand')}</Button>
-            <Button onClick={() => handleAIAnalysis('price_anomaly')} disabled={!!aiLoading} className="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700">{aiLoading === 'price_anomaly' ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : <AlertTriangle className="mr-2 h-4 w-4" />}{t('admin.priceAnomaly')}</Button>
-            <Button onClick={() => handleAIAnalysis('efficiency_advisor')} disabled={!!aiLoading} className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700">{aiLoading === 'efficiency_advisor' ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : <Brain className="mr-2 h-4 w-4" />}{t('admin.efficiency')}</Button>
+            <Button onClick={() => handleAIAnalysis('cluster_health')} className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"><Activity className="mr-2 h-4 w-4" />{t('admin.clusterHealth')}</Button>
+            <Button onClick={() => handleAIAnalysis('supply_demand')} className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700"><TrendingUp className="mr-2 h-4 w-4" />{t('admin.supplyDemand')}</Button>
+            <Button onClick={() => handleAIAnalysis('price_anomaly')} className="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700"><AlertTriangle className="mr-2 h-4 w-4" />{t('admin.priceAnomaly')}</Button>
+            <Button onClick={() => handleAIAnalysis('efficiency_advisor')} className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700"><Brain className="mr-2 h-4 w-4" />{t('admin.efficiency')}</Button>
           </div>
-
-          {aiResult ? (
-            <div className="rounded-lg border bg-muted/50 p-4">
-              <h4 className="mb-3 flex items-center gap-2 font-semibold"><Brain className="h-4 w-4" />{t('admin.aiAnalysis')}</h4>
-              <div className="prose prose-sm max-w-none whitespace-pre-wrap dark:prose-invert">{aiResult}</div>
-            </div>
-          ) : null}
         </ActionPanel>
       </PageHeader>
     </DashboardLayout>

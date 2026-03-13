@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '@/layouts/DashboardLayout';
+import PageShell from '@/components/layout/PageShell';
+import KpiCard from '@/components/dashboard/KpiCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -14,37 +16,37 @@ import { rpcJson } from '@/lib/readApi';
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useCreateSupportTicket } from '@/hooks/useSupportTicket';
-import { useToast } from '@/components/ui/use-toast';
-
-const STATUS_EXPLANATIONS: Record<string, Record<string, string>> = {
-  order: {
-    pending: 'Your order has been placed and is waiting for confirmation.',
-    confirmed: 'The buyer has confirmed the order. Prepare your produce.',
-    ready_for_pickup: 'Your produce is ready. A transporter will pick it up soon.',
-    in_transit: 'Your produce is on its way to the buyer.',
-    delivered: 'The buyer has received your produce. Payment will follow.',
-    cancelled: 'This order was cancelled.',
-  },
-  transport: {
-    requested: 'You have requested transport. Waiting for a transporter to accept.',
-    open: 'Transport request is open and visible to transporters.',
-    accepted: 'A transporter has accepted your request.',
-    in_progress: 'Your produce is being transported.',
-    completed: 'Transport has been completed.',
-    cancelled: 'Transport request was cancelled.',
-  },
-  listing: {
-    draft: 'Your listing is in draft. Publish it to make it visible to buyers.',
-    pending: 'Your listing is pending review by the platform.',
-    approved: 'Your listing is live and visible to buyers.',
-    sold: 'Your listing has been sold out.',
-    expired: 'Your listing has expired. Create a new one to sell.',
-  },
-};
+import { useToast } from '@/hooks/use-toast';
 
 export default function FarmerMyDay() {
   const { user } = useAuth();
   const { t } = useLanguage();
+
+  const STATUS_EXPLANATIONS: Record<string, Record<string, string>> = {
+    order: {
+      pending: t('farmer.myDay.statusExplanation.order.pending'),
+      confirmed: t('farmer.myDay.statusExplanation.order.confirmed'),
+      ready_for_pickup: t('farmer.myDay.statusExplanation.order.ready_for_pickup'),
+      in_transit: t('farmer.myDay.statusExplanation.order.in_transit'),
+      delivered: t('farmer.myDay.statusExplanation.order.delivered'),
+      cancelled: t('farmer.myDay.statusExplanation.order.cancelled'),
+    },
+    transport: {
+      requested: t('farmer.myDay.statusExplanation.transport.requested'),
+      open: t('farmer.myDay.statusExplanation.transport.open'),
+      accepted: t('farmer.myDay.statusExplanation.transport.accepted'),
+      in_progress: t('farmer.myDay.statusExplanation.transport.in_progress'),
+      completed: t('farmer.myDay.statusExplanation.transport.completed'),
+      cancelled: t('farmer.myDay.statusExplanation.transport.cancelled'),
+    },
+    listing: {
+      draft: t('farmer.myDay.statusExplanation.listing.draft'),
+      pending: t('farmer.myDay.statusExplanation.listing.pending'),
+      approved: t('farmer.myDay.statusExplanation.listing.approved'),
+      sold: t('farmer.myDay.statusExplanation.listing.sold'),
+      expired: t('farmer.myDay.statusExplanation.listing.expired'),
+    },
+  };
   const navigate = useNavigate();
   const { toast } = useToast();
   const createTicket = useCreateSupportTicket();
@@ -70,18 +72,18 @@ export default function FarmerMyDay() {
   const pendingActions = [];
 
   if (activeOrders > 0) {
-    pendingActions.push({ icon: Package, label: 'Active orders to manage', count: activeOrders, link: '/farmer/orders', type: 'order' });
+    pendingActions.push({ icon: Package, label: t('farmer.myDay.pendingAction.activeOrders'), count: activeOrders, link: '/farmer/orders', type: 'order' });
   }
   if (openTransport > 0) {
-    pendingActions.push({ icon: Truck, label: 'Open transport requests', count: openTransport, link: '/farmer/transport', type: 'transport' });
+    pendingActions.push({ icon: Truck, label: t('farmer.myDay.pendingAction.openTransport'), count: openTransport, link: '/farmer/transport', type: 'transport' });
   }
   const draftListings = listingsByStatus['draft'] || 0;
   if (draftListings > 0) {
-    pendingActions.push({ icon: ShoppingBag, label: 'Draft listings to publish', count: draftListings, link: '/farmer/listings', type: 'listing' });
+    pendingActions.push({ icon: ShoppingBag, label: t('farmer.myDay.pendingAction.draftListings'), count: draftListings, link: '/farmer/listings', type: 'listing' });
   }
   const harvestReady = cropsbyStatus['harvest_ready'] || cropsbyStatus['ready'] || 0;
   if (harvestReady > 0) {
-    pendingActions.push({ icon: ShoppingBag, label: 'Harvest-ready crops', count: harvestReady, link: '/farmer/crops', type: 'listing' });
+    pendingActions.push({ icon: ShoppingBag, label: t('farmer.myDay.pendingAction.harvestReady'), count: harvestReady, link: '/farmer/crops', type: 'listing' });
   }
 
   const handleCreateTicket = () => {
@@ -93,7 +95,7 @@ export default function FarmerMyDay() {
       message: helpMessage,
     }, {
       onSuccess: () => {
-        toast({ title: 'Help request sent', description: 'Our team will look into this.' });
+        toast({ title: t('farmer.myDay.toast.helpRequestSent'), description: t('farmer.myDay.toast.teamWillHelp') });
         setHelpDialog(null);
         setHelpMessage('');
       },
@@ -102,37 +104,36 @@ export default function FarmerMyDay() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-4">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <CalendarDays className="h-6 w-6" /> My Day
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })}
-          </p>
-        </div>
-
+      <PageShell
+        title={t('farmer.myDay.title')}
+        subtitle={new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })}
+      >
         {/* Quick stats */}
         {isLoading ? (
-          <div className="grid grid-cols-2 gap-3"><Skeleton className="h-20" /><Skeleton className="h-20" /></div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <Skeleton className="h-[88px]" />
+            <Skeleton className="h-[88px]" />
+            <Skeleton className="h-[88px]" />
+            <Skeleton className="h-[88px]" />
+          </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <Card><CardContent className="pt-4 text-center"><p className="text-2xl font-bold">{activeOrders}</p><p className="text-xs text-muted-foreground">Active Orders</p></CardContent></Card>
-            <Card><CardContent className="pt-4 text-center"><p className="text-2xl font-bold">{openTransport}</p><p className="text-xs text-muted-foreground">Transport Requests</p></CardContent></Card>
-            <Card><CardContent className="pt-4 text-center"><p className="text-2xl font-bold">{Object.values(listingsByStatus).reduce((a: number, b: number) => a + b, 0)}</p><p className="text-xs text-muted-foreground">Listings</p></CardContent></Card>
-            <Card><CardContent className="pt-4 text-center"><p className="text-2xl font-bold">{Object.values(cropsbyStatus).reduce((a: number, b: number) => a + b, 0)}</p><p className="text-xs text-muted-foreground">Crops</p></CardContent></Card>
+            <KpiCard label={t('farmer.myDay.stat.activeOrders')} value={activeOrders} icon={Package} priority="primary" />
+            <KpiCard label={t('farmer.myDay.stat.transportRequests')} value={openTransport} icon={Truck} priority="info" />
+            <KpiCard label={t('farmer.myDay.stat.listings')} value={Object.values(listingsByStatus).reduce((a: number, b: number) => a + b, 0)} icon={ShoppingBag} priority="success" />
+            <KpiCard label={t('farmer.myDay.stat.crops')} value={Object.values(cropsbyStatus).reduce((a: number, b: number) => a + b, 0)} icon={CalendarDays} priority="neutral" />
           </div>
         )}
 
         {/* Pending Actions */}
         <Card>
-          <CardHeader className="py-3"><CardTitle className="text-base">Pending Actions</CardTitle></CardHeader>
+          <CardHeader className="py-3"><CardTitle className="text-base">{t('farmer.myDay.pendingActions')}</CardTitle></CardHeader>
           <CardContent className="space-y-2">
             {pendingActions.length === 0 && !isLoading && (
-              <p className="text-sm text-muted-foreground text-center py-4">No pending actions today. You're all caught up!</p>
+              <p className="text-sm text-muted-foreground text-center py-4">{t('farmer.myDay.noPendingActions')}</p>
             )}
             {pendingActions.map((action, i) => (
-              <div key={i} className="flex items-center justify-between p-2 rounded border hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => navigate(action.link)}>
+              <button key={i} className="flex w-full items-center justify-between p-2 rounded border hover:bg-muted/30 transition-colors cursor-pointer text-left" onClick={() => navigate(action.link)}>
                 <div className="flex items-center gap-3">
                   <action.icon className="h-5 w-5 text-muted-foreground" />
                   <div>
@@ -140,8 +141,8 @@ export default function FarmerMyDay() {
                     <Badge variant="secondary" className="text-xs">{action.count}</Badge>
                   </div>
                 </div>
-                <Button size="sm" variant="outline">Go</Button>
-              </div>
+                <span className="inline-flex items-center justify-center rounded-md border px-3 min-h-[44px] text-sm font-medium">{t('farmer.myDay.go')}</span>
+              </button>
             ))}
           </CardContent>
         </Card>
@@ -149,22 +150,22 @@ export default function FarmerMyDay() {
         {/* Recent Orders with status explanation */}
         {recentOrders.length > 0 && (
           <Card>
-            <CardHeader className="py-3"><CardTitle className="text-base">Recent Orders</CardTitle></CardHeader>
+            <CardHeader className="py-3"><CardTitle className="text-base">{t('farmer.myDay.recentOrders')}</CardTitle></CardHeader>
             <CardContent className="space-y-2">
               {recentOrders.slice(0, 5).map((order: any) => (
                 <div key={order.id} className="flex items-center justify-between p-2 rounded border">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-xs">{order.status}</Badge>
+                      <Badge variant="outline" className="text-sm">{order.status}</Badge>
                       <span className="text-sm font-medium">Rs. {order.total_amount}</span>
                     </div>
                   </div>
                   <div className="flex gap-1">
-                    <Button size="sm" variant="ghost" title="Explain status"
+                    <Button variant="ghost" className="min-h-[44px] min-w-[44px]" aria-label="Explain status" title="Explain status"
                       onClick={() => setStatusExplain({ type: 'order', status: order.status })}>
                       <Info className="h-4 w-4" />
                     </Button>
-                    <Button size="sm" variant="ghost" title="Need help?"
+                    <Button variant="ghost" className="min-h-[44px] min-w-[44px]" aria-label="Need help?" title="Need help?"
                       onClick={() => setHelpDialog({ entityType: 'order', entityId: order.id })}>
                       <HelpCircle className="h-4 w-4" />
                     </Button>
@@ -181,10 +182,10 @@ export default function FarmerMyDay() {
             <DialogContent className="sm:max-w-sm">
               <DialogHeader><DialogTitle>Status: {statusExplain.status}</DialogTitle></DialogHeader>
               <p className="text-sm">
-                {STATUS_EXPLANATIONS[statusExplain.type]?.[statusExplain.status] || 'No explanation available for this status.'}
+                {STATUS_EXPLANATIONS[statusExplain.type]?.[statusExplain.status] || t('farmer.myDay.noExplanation')}
               </p>
               <DialogFooter>
-                <Button onClick={() => setStatusExplain(null)}>Got it</Button>
+                <Button onClick={() => setStatusExplain(null)}>{t('farmer.myDay.gotIt')}</Button>
               </DialogFooter>
             </DialogContent>
           )}
@@ -194,39 +195,39 @@ export default function FarmerMyDay() {
         <Dialog open={!!helpDialog} onOpenChange={(o) => !o && setHelpDialog(null)}>
           {helpDialog && (
             <DialogContent className="sm:max-w-md">
-              <DialogHeader><DialogTitle>Need Help?</DialogTitle></DialogHeader>
+              <DialogHeader><DialogTitle>{t('farmer.myDay.needHelp')}</DialogTitle></DialogHeader>
               <p className="text-sm text-muted-foreground">
-                Describe your issue and our team will help you.
+                {t('farmer.myDay.describeIssue')}
                 <br />Entity: {helpDialog.entityType}/{helpDialog.entityId.slice(0, 8)}
               </p>
               <Select value={helpCategory} onValueChange={setHelpCategory}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="order">Order issue</SelectItem>
-                  <SelectItem value="trip">Transport issue</SelectItem>
-                  <SelectItem value="listing">Listing issue</SelectItem>
-                  <SelectItem value="payment">Payment issue</SelectItem>
-                  <SelectItem value="account">Account issue</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
+                  <SelectItem value="order">{t('farmer.myDay.category.order')}</SelectItem>
+                  <SelectItem value="trip">{t('farmer.myDay.category.transport')}</SelectItem>
+                  <SelectItem value="listing">{t('farmer.myDay.category.listing')}</SelectItem>
+                  <SelectItem value="payment">{t('farmer.myDay.category.payment')}</SelectItem>
+                  <SelectItem value="account">{t('farmer.myDay.category.account')}</SelectItem>
+                  <SelectItem value="other">{t('farmer.myDay.category.other')}</SelectItem>
                 </SelectContent>
               </Select>
               <Textarea
                 value={helpMessage}
                 onChange={(e) => setHelpMessage(e.target.value)}
-                placeholder="What do you need help with?"
+                placeholder={t('farmer.myDay.helpPlaceholder')}
                 rows={3}
               />
               <DialogFooter>
-                <Button variant="outline" onClick={() => setHelpDialog(null)}>Cancel</Button>
+                <Button variant="outline" onClick={() => setHelpDialog(null)}>{t('farmer.myDay.cancel')}</Button>
                 <Button onClick={handleCreateTicket} disabled={!helpMessage.trim() || createTicket.isPending}>
                   {createTicket.isPending && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}
-                  Send
+                  {t('farmer.myDay.send')}
                 </Button>
               </DialogFooter>
             </DialogContent>
           )}
         </Dialog>
-      </div>
+      </PageShell>
     </DashboardLayout>
   );
 }

@@ -106,9 +106,11 @@ const SettingsPage = () => {
   if (isLoading) {
     return (
       <DashboardLayout title={t('nav.settings')}>
-        <DataState loading>
-          <></>
-        </DataState>
+        <PageShell title={t('nav.settings')} className="max-w-3xl">
+          <DataState loading>
+            <></>
+          </DataState>
+        </PageShell>
       </DashboardLayout>
     );
   }

@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import DashboardLayout from '@/layouts/DashboardLayout';
+import PageShell from '@/components/layout/PageShell';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -8,7 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { CheckCircle, XCircle, Sparkles, Clock } from 'lucide-react';
 import { useAiOutputs, useAcceptAiSuggestion } from '@/hooks/useAiOutputs';
 import { useLanguage } from '@/hooks/useLanguage';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 const TARGET_TYPES = ['ticket', 'timeline', 'search_intent', 'voice_note'];
 const STATUS_OPTIONS = ['suggested', 'accepted', 'rejected'];
@@ -45,11 +46,7 @@ export default function AiReview() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">AI Outputs Review</h1>
-        </div>
-
+      <PageShell title="AI Outputs Review">
         <div className="flex gap-2 flex-wrap">
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-36"><SelectValue placeholder="Status" /></SelectTrigger>
@@ -140,7 +137,7 @@ export default function AiReview() {
             </Button>
           </div>
         )}
-      </div>
+      </PageShell>
     </DashboardLayout>
   );
 }

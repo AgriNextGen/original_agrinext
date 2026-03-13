@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import DashboardLayout from '@/layouts/DashboardLayout';
+import PageShell from '@/components/layout/PageShell';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,7 +14,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import {
-  Shield,
   CheckCircle,
   XCircle,
   Clock,
@@ -21,6 +21,7 @@ import {
   ArrowRight,
   FileText,
 } from 'lucide-react';
+import EmptyState from '@/components/shared/EmptyState';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -119,17 +120,10 @@ export default function PendingUpdates() {
 
   return (
     <DashboardLayout title="Pending Updates">
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Shield className="h-6 w-6 text-amber-600" />
-            Pending Farmer Updates
-          </h1>
-          <p className="text-muted-foreground">
-            Review and approve agent-submitted profile changes
-          </p>
-        </div>
-
+      <PageShell
+        title="Pending Farmer Updates"
+        subtitle="Review and approve agent-submitted profile changes"
+      >
         {isLoading ? (
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
@@ -137,13 +131,7 @@ export default function PendingUpdates() {
             ))}
           </div>
         ) : !pendingTasks?.length ? (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <CheckCircle className="h-12 w-12 mx-auto text-green-500 mb-3" />
-              <p className="text-lg font-medium">All caught up!</p>
-              <p className="text-muted-foreground">No pending update requests</p>
-            </CardContent>
-          </Card>
+          <EmptyState icon={CheckCircle} title="All caught up!" description="No pending update requests" />
         ) : (
           <div className="space-y-4">
             {pendingTasks.map((task: any) => (
@@ -218,7 +206,7 @@ export default function PendingUpdates() {
             ))}
           </div>
         )}
-      </div>
+      </PageShell>
     </DashboardLayout>
   );
 }

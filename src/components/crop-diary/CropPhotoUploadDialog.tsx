@@ -54,7 +54,7 @@ const CropPhotoUploadDialog = ({ cropId, open, onOpenChange }: CropPhotoUploadDi
           useWebWorker: true,
         });
       } catch (error) {
-        console.error('Compression failed:', error);
+        if (import.meta.env.DEV) console.error('Compression failed:', error);
         toast.error('Failed to compress image. Please try a smaller file.');
         setIsCompressing(false);
         return;
@@ -205,7 +205,7 @@ const CropPhotoUploadDialog = ({ cropId, open, onOpenChange }: CropPhotoUploadDi
             </div>
           )}
 
-          <div>
+          <div className="space-y-2">
             <Label>Caption (Optional)</Label>
             <Input
               value={caption}
@@ -215,7 +215,7 @@ const CropPhotoUploadDialog = ({ cropId, open, onOpenChange }: CropPhotoUploadDi
             />
           </div>
 
-          <div>
+          <div className="space-y-2">
             <Label>Month Tag (Optional)</Label>
             <Select value={monthTag} onValueChange={setMonthTag} disabled={isLoading}>
               <SelectTrigger>

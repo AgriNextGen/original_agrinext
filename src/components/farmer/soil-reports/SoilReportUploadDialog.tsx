@@ -80,9 +80,9 @@ export default function SoilReportUploadDialog({
             useWebWorker: true,
           });
           const compressedSizeMB = processedFile.size / (1024 * 1024);
-          console.log(`Image compressed: ${sizeMB.toFixed(2)}MB → ${compressedSizeMB.toFixed(2)}MB`);
+          if (import.meta.env.DEV) console.log(`Image compressed: ${sizeMB.toFixed(2)}MB → ${compressedSizeMB.toFixed(2)}MB`);
         } catch (error) {
-          console.error('Compression failed:', error);
+          if (import.meta.env.DEV) console.error('Compression failed:', error);
           toast.error('Failed to compress image. Please try a smaller file.');
           setIsCompressing(false);
           return;
@@ -149,7 +149,7 @@ export default function SoilReportUploadDialog({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Report Date */}
-          <div>
+          <div className="space-y-2">
             <Label htmlFor="report_date">Report Date *</Label>
             <Input
               id="report_date"
@@ -162,9 +162,9 @@ export default function SoilReportUploadDialog({
           </div>
 
           {/* File Upload */}
-          <div>
+          <div className="space-y-2">
             <Label>Report File (Image/PDF) *</Label>
-            <div className="mt-1">
+            <div>
               {file ? (
                 <div className="flex items-center gap-2 p-3 border rounded-lg bg-muted/30">
                   {file.type.startsWith('image/') ? (
@@ -209,7 +209,7 @@ export default function SoilReportUploadDialog({
           </div>
 
           {/* Lab Name */}
-          <div>
+          <div className="space-y-2">
             <Label htmlFor="lab_name">Lab Name (optional)</Label>
             <Input
               id="lab_name"
@@ -221,7 +221,7 @@ export default function SoilReportUploadDialog({
           </div>
 
           {/* Notes */}
-          <div>
+          <div className="space-y-2">
             <Label htmlFor="notes">Notes (optional)</Label>
             <Textarea
               id="notes"
@@ -246,7 +246,7 @@ export default function SoilReportUploadDialog({
                 Enter values from your report for trend tracking
               </p>
               <div className="grid grid-cols-2 gap-3">
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="ph" className="text-xs">pH</Label>
                   <Input
                     id="ph"
@@ -260,7 +260,7 @@ export default function SoilReportUploadDialog({
                     disabled={isLoading}
                   />
                 </div>
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="ec" className="text-xs">EC (dS/m)</Label>
                   <Input
                     id="ec"
@@ -273,7 +273,7 @@ export default function SoilReportUploadDialog({
                     disabled={isLoading}
                   />
                 </div>
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="nitrogen" className="text-xs">Nitrogen (kg/ha)</Label>
                   <Input
                     id="nitrogen"
@@ -286,7 +286,7 @@ export default function SoilReportUploadDialog({
                     disabled={isLoading}
                   />
                 </div>
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="phosphorus" className="text-xs">Phosphorus (kg/ha)</Label>
                   <Input
                     id="phosphorus"
@@ -299,7 +299,7 @@ export default function SoilReportUploadDialog({
                     disabled={isLoading}
                   />
                 </div>
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="potassium" className="text-xs">Potassium (kg/ha)</Label>
                   <Input
                     id="potassium"
@@ -312,7 +312,7 @@ export default function SoilReportUploadDialog({
                     disabled={isLoading}
                   />
                 </div>
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="organic_carbon" className="text-xs">Organic Carbon (%)</Label>
                   <Input
                     id="organic_carbon"

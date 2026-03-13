@@ -8,15 +8,11 @@ export async function placeOrder(
   listingId: string,
   qty: number,
   notes?: string | null,
-  priceOffered?: number,
-  deliveryAddress?: string
 ): Promise<ApiResponse> {
   const { data, error } = await supabase.rpc('place_order_v1', {
     p_listing_id: listingId,
-    p_quantity: qty,
+    p_qty: qty,
     p_notes: notes ?? null,
-    p_price_offered: priceOffered ?? null,
-    p_delivery_address: deliveryAddress ?? null,
   } as any);
   if (error) return { success: false, error: error.message };
   const result = data as any;

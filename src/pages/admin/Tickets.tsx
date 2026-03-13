@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import DashboardLayout from '@/layouts/DashboardLayout';
+import PageShell from '@/components/layout/PageShell';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -8,12 +9,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
-import { CheckCircle, XCircle, User, Clock, Sparkles } from 'lucide-react';
+import { CheckCircle, XCircle, User, Clock, Sparkles, Inbox } from 'lucide-react';
+import EmptyState from '@/components/shared/EmptyState';
 import { useAdminTickets, useUpdateTicketStatus, useAssignTicket, type SupportTicket } from '@/hooks/useAdminTickets';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useAiOutputs, useAcceptAiSuggestion, type AiOutput } from '@/hooks/useAiOutputs';
 import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 const STATUS_OPTIONS = ['open', 'in_progress', 'resolved', 'closed'];
 const PRIORITY_OPTIONS = ['low', 'normal', 'high', 'urgent'];
@@ -75,11 +77,7 @@ export default function AdminTickets() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Support Tickets</h1>
-        </div>
-
+      <PageShell title="Support Tickets">
         {/* Filters */}
         <div className="flex gap-2 flex-wrap">
           <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -98,7 +96,7 @@ export default function AdminTickets() {
           ))}
 
           {!isLoading && tickets.length === 0 && (
-            <Card><CardContent className="py-12 text-center text-muted-foreground">No tickets found.</CardContent></Card>
+            <EmptyState icon={Inbox} title="No tickets found" />
           )}
 
           {tickets.map((tk) => {
@@ -226,7 +224,7 @@ export default function AdminTickets() {
             </DialogContent>
           )}
         </Dialog>
-      </div>
+      </PageShell>
     </DashboardLayout>
   );
 }

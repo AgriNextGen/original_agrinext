@@ -70,7 +70,7 @@ export async function signAndUpload(
       await supabase.functions.invoke('storage-confirm-upload-v1', { body: { file_id: result.file_id } });
     } catch (e) {
       // Non-fatal: caller can cleanup via storage-delete-v1 if needed
-      console.warn('storage-confirm-upload-v1 failed:', e);
+      if (import.meta.env.DEV) console.warn('storage-confirm-upload-v1 failed:', e);
     }
   }
 

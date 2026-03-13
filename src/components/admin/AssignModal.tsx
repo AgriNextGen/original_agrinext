@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import AdminAutocomplete from './AdminAutocomplete';
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 export default function AssignModal({ open, onClose, disputeId, onAssigned }: { open: boolean; onClose: () => void; disputeId: string | null; onAssigned?: () => void }) {
   const [selectedAdmin, setSelectedAdmin] = useState<string | null>(null);
@@ -20,7 +20,7 @@ export default function AssignModal({ open, onClose, disputeId, onAssigned }: { 
       onAssigned && onAssigned();
       onClose();
     } catch (e:any) {
-      console.error(e);
+      if (import.meta.env.DEV) console.error(e);
       toast({ title: 'Failed to assign', description: e?.message || String(e) });
     } finally {
       setLoading(false);

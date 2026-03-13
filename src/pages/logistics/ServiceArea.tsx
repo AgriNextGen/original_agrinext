@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import DashboardLayout from '@/layouts/DashboardLayout';
+import PageShell from '@/components/layout/PageShell';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,6 +9,7 @@ import { MapPin, Plus, Trash2, Loader2 } from 'lucide-react';
 import { useMyServiceAreas, useUpsertServiceArea, useDeleteServiceArea } from '@/hooks/useServiceAreas';
 import GeoStateSelect from '@/components/geo/GeoStateSelect';
 import GeoDistrictSelect from '@/components/geo/GeoDistrictSelect';
+import DataState from '@/components/ui/DataState';
 import { toast } from 'sonner';
 
 export default function LogisticsServiceArea() {
@@ -51,17 +53,7 @@ export default function LogisticsServiceArea() {
 
   return (
     <DashboardLayout title="Service Area">
-      <div className="max-w-2xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <MapPin className="h-6 w-6 text-primary" />
-            My Service Areas
-          </h1>
-          <p className="text-muted-foreground">
-            Manage the districts you operate in. Transport requests in these areas will be suggested to you.
-          </p>
-        </div>
-
+      <PageShell title="My Service Areas" subtitle="Manage the districts you operate in. Transport requests in these areas will be suggested to you." className="max-w-2xl mx-auto">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg">Active Areas</CardTitle>
@@ -72,12 +64,7 @@ export default function LogisticsServiceArea() {
             )}
           </CardHeader>
           <CardContent className="space-y-3">
-            {isLoading && <Loader2 className="h-6 w-6 animate-spin mx-auto" />}
-            {!isLoading && (!areas || areas.length === 0) && (
-              <p className="text-sm text-muted-foreground text-center py-4">
-                No service areas configured yet. Add your operating districts.
-              </p>
-            )}
+            <DataState loading={isLoading} empty={!isLoading && (!areas || areas.length === 0)} emptyTitle="No service areas" emptyMessage="No service areas configured yet. Add your operating districts.">
             {(areas ?? []).map((area) => (
               <div
                 key={area.id}
@@ -101,6 +88,7 @@ export default function LogisticsServiceArea() {
                 </Button>
               </div>
             ))}
+            </DataState>
           </CardContent>
         </Card>
 
@@ -137,7 +125,7 @@ export default function LogisticsServiceArea() {
             </CardContent>
           </Card>
         )}
-      </div>
+      </PageShell>
     </DashboardLayout>
   );
 }

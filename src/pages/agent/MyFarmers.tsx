@@ -27,7 +27,9 @@ import {
 import { useAssignedFarmers, useStartVisit, useActiveVisit } from '@/hooks/useAgentAssignments';
 import { useLanguage } from '@/hooks/useLanguage';
 import PageHeader from '@/components/shared/PageHeader';
+import KpiCard from '@/components/dashboard/KpiCard';
 import EmptyState from '@/components/shared/EmptyState';
+import { ROUTES } from '@/lib/routes';
 import { toast } from 'sonner';
 
 export default function AgentMyFarmers() {
@@ -75,7 +77,7 @@ export default function AgentMyFarmers() {
                   {language === 'kn' ? 'ಸಕ್ರಿಯ ಭೇಟಿ' : 'Active Visit'}
                 </span>
               </div>
-              <Button size="sm" variant="outline" onClick={() => navigate(`/agent/farmer/${activeVisit.farmer_id}`)}>
+              <Button size="sm" variant="outline" onClick={() => navigate(ROUTES.AGENT.FARMER_DETAIL(activeVisit.farmer_id))}>
                 {language === 'kn' ? 'ನೋಡಿ' : 'View'}
               </Button>
             </CardContent>
@@ -99,44 +101,10 @@ export default function AgentMyFarmers() {
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="pt-4">
-              <div className="text-2xl font-bold">{farmers?.length || 0}</div>
-              <p className="text-sm text-muted-foreground">
-                {language === 'kn' ? 'ಒಟ್ಟು ರೈತರು' : 'Total Farmers'}
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4">
-              <div className="text-2xl font-bold text-green-600">
-                {farmers?.reduce((sum, f) => sum + (f.ready_crops_count || 0), 0) || 0}
-              </div>
-              <p className="text-sm text-muted-foreground">
-                {language === 'kn' ? 'ಕೊಯ್ಲಿಗೆ ಸಿದ್ಧ' : 'Ready to Harvest'}
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4">
-              <div className="text-2xl font-bold text-blue-600">
-                {farmers?.reduce((sum, f) => sum + (f.crops_count || 0), 0) || 0}
-              </div>
-              <p className="text-sm text-muted-foreground">
-                {language === 'kn' ? 'ಸಕ್ರಿಯ ಬೆಳೆಗಳು' : 'Active Crops'}
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4">
-              <div className="text-2xl font-bold text-amber-600">
-                {farmers?.reduce((sum, f) => sum + (f.pending_transport_count || 0), 0) || 0}
-              </div>
-              <p className="text-sm text-muted-foreground">
-                {language === 'kn' ? 'ಬಾಕಿ ಸಾರಿಗೆ' : 'Pending Transport'}
-              </p>
-            </CardContent>
-          </Card>
+          <KpiCard label={language === 'kn' ? 'ಒಟ್ಟು ರೈತರು' : 'Total Farmers'} value={farmers?.length || 0} icon={Users} priority="primary" />
+          <KpiCard label={language === 'kn' ? 'ಕೊಯ್ಲಿಗೆ ಸಿದ್ಧ' : 'Ready to Harvest'} value={farmers?.reduce((sum, f) => sum + (f.ready_crops_count || 0), 0) || 0} icon={Sprout} priority="success" />
+          <KpiCard label={language === 'kn' ? 'ಸಕ್ರಿಯ ಬೆಳೆಗಳು' : 'Active Crops'} value={farmers?.reduce((sum, f) => sum + (f.crops_count || 0), 0) || 0} icon={Sprout} priority="info" />
+          <KpiCard label={language === 'kn' ? 'ಬಾಕಿ ಸಾರಿಗೆ' : 'Pending Transport'} value={farmers?.reduce((sum, f) => sum + (f.pending_transport_count || 0), 0) || 0} icon={Truck} priority="warning" />
         </div>
 
         {/* Farmers Table */}
@@ -226,7 +194,7 @@ export default function AgentMyFarmers() {
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => navigate(`/agent/farmer/${farmer.id}`)}
+                              onClick={() => navigate(ROUTES.AGENT.FARMER_DETAIL(farmer.id))}
                             >
                               <Eye className="h-3 w-3 mr-1" />
                               {language === 'kn' ? 'ನೋಡಿ' : 'View'}

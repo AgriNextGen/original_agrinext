@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate, useLocation } from "react-router-dom";
 import { Loader2 } from "lucide-react";
+import { ROLE_DASHBOARD_ROUTES } from "@/lib/routes";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -9,14 +10,6 @@ interface ProtectedRouteProps {
 }
 
 const ROLE_SETUP_TIMEOUT_MS = 5000;
-
-const roleRoutes: Record<string, string> = {
-  farmer: "/farmer/dashboard",
-  buyer: "/marketplace/dashboard",
-  agent: "/agent/dashboard",
-  logistics: "/logistics/dashboard",
-  admin: "/admin/dashboard",
-};
 
 const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
   const { user, loading, userRole, refreshRole, activeRole } = useAuth();
@@ -77,7 +70,7 @@ const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
   // If user has a role and it's not in the allowed roles, redirect to their dashboard
   const effectiveRole = activeRole ?? userRole;
   if (allowedRoles && effectiveRole && !allowedRoles.includes(effectiveRole)) {
-    const targetRoute = roleRoutes[effectiveRole] || "/";
+    const targetRoute = ROLE_DASHBOARD_ROUTES[effectiveRole] || "/";
     return <Navigate to={targetRoute} replace />;
   }
 

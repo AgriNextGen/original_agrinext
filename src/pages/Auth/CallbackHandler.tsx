@@ -1,14 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-
-const roleRoutes: Record<string, string> = {
-  farmer: "/farmer/dashboard",
-  buyer: "/marketplace/dashboard",
-  agent: "/agent/dashboard",
-  logistics: "/logistics/dashboard",
-  admin: "/admin/dashboard",
-};
+import { ROLE_DASHBOARD_ROUTES } from "@/lib/routes";
 
 export default function CallbackHandler() {
   const navigate = useNavigate();
@@ -32,7 +25,7 @@ export default function CallbackHandler() {
           .maybeSingle();
 
         if (roleErr) {
-          console.error("role check error", roleErr);
+          if (import.meta.env.DEV) console.error("role check error", roleErr);
         }
 
         if (!roleRow || !roleRow.role) {
@@ -42,9 +35,9 @@ export default function CallbackHandler() {
         }
 
         // Has role — go to appropriate dashboard
-        navigate(roleRoutes[roleRow.role] || "/");
+        navigate(ROLE_DASHBOARD_ROUTES[roleRow.role] || "/");
       } catch (err) {
-        console.error("OAuth callback handling error", err);
+        if (import.meta.env.DEV) console.error("OAuth callback handling error", err);
         navigate("/login");
       }
     })();

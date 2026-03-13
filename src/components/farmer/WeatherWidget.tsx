@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -20,37 +20,8 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { useFarmerProfile } from '@/hooks/useFarmerDashboard';
-import { useIsDistrictValid } from '@/hooks/useKarnatakaDistricts';
-import { supabase } from '@/integrations/supabase/client';
+import { useWeather } from '@/hooks/useWeather';
 import { formatDistanceToNow } from 'date-fns';
-
-interface WeatherData {
-  temp_c: number;
-  humidity: number;
-  wind_kmh: number;
-  description: string;
-  icon: string;
-  forecast_short: string;
-  fetched_at: string;
-  location: string;
-}
-
-interface WeatherResponse {
-  data?: WeatherData | null;
-  cached: boolean;
-  stale?: boolean;
-  cache_age_minutes?: number;
-  message?: string;
-}
-
-const isExpectedWeatherUnavailable = (err: unknown) => {
-  const message = err instanceof Error ? err.message : String(err);
-  const lower = message.toLowerCase();
-  return lower.includes('404') ||
-    lower.includes('not found') ||
-    lower.includes('failed to fetch') ||
-    lower.includes('cors');
-};
 
 const getWeatherIcon = (icon: string, size: 'sm' | 'lg' = 'lg') => {
   const sizeClass = size === 'sm' ? 'h-6 w-6' : 'h-10 w-10';
@@ -73,78 +44,12 @@ const getWeatherIcon = (icon: string, size: 'sm' | 'lg' = 'lg') => {
 };
 
 const WeatherWidget = () => {
-  const { data: profile, isLoading: profileLoading } = useFarmerProfile();
-  const hasValidDistrict = useIsDistrictValid(profile?.district);
-  const hasLocation = !!(profile?.village || profile?.district || profile?.pincode);
-  
-  const [weather, setWeather] = useState<WeatherData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [isCached, setIsCached] = useState(false);
-  const [isStale, setIsStale] = useState(false);
+  const { data: profile } = useFarmerProfile();
+  const {
+    weather, isCached, isStale, isLoading,
+    isRefreshing, error, hasLocation, profileLoading, refetch,
+  } = useWeather();
   const [isExpanded, setIsExpanded] = useState(false);
-
-  const fetchWeather = async (showRefreshSpinner = false) => {
-    // Don't fetch if no location set
-    if (!hasLocation) {
-      setIsLoading(false);
-      return;
-    }
-
-    if (showRefreshSpinner) setIsRefreshing(true);
-    else setIsLoading(true);
-    
-    setError(null);
-
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        throw new Error('Not authenticated');
-      }
-
-      const { data, error: invokeError } = await supabase.functions.invoke<WeatherResponse>('get-weather', {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
-
-      if (invokeError) {
-        throw invokeError;
-      }
-
-      if (data?.data) {
-        setWeather(data.data);
-        setIsCached(data.cached || false);
-        setIsStale(data.stale || false);
-        setError(null);
-      } else {
-        setWeather(null);
-        setError(data?.message || 'Could not load weather');
-      }
-    } catch (err) {
-      if (isExpectedWeatherUnavailable(err)) {
-        console.warn('Weather unavailable:', err instanceof Error ? err.message : String(err));
-      } else {
-        console.error('Weather fetch error:', err);
-      }
-      setError('Could not load weather');
-      // DO NOT use fake fallback data - show error state instead
-      setWeather(null);
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
-    }
-  };
-
-  useEffect(() => {
-    if (!profileLoading && hasLocation) {
-      fetchWeather();
-    } else if (!profileLoading && !hasLocation) {
-      setIsLoading(false);
-    }
-  }, [profileLoading, hasLocation, profile?.village]);
 
   if (isLoading || profileLoading) {
     return (
@@ -165,7 +70,6 @@ const WeatherWidget = () => {
     );
   }
 
-  // No location set - show prompt instead of fake weather
   if (!hasLocation) {
     return (
       <Card className="bg-gradient-to-br from-slate-400 to-slate-500 text-white border-0 overflow-hidden relative">
@@ -185,7 +89,6 @@ const WeatherWidget = () => {
     );
   }
 
-  // Error state with retry
   if (error && !weather) {
     return (
       <Card className="bg-gradient-to-br from-slate-500 to-slate-600 text-white border-0 overflow-hidden relative">
@@ -203,7 +106,7 @@ const WeatherWidget = () => {
               <Button 
                 variant="ghost" 
                 size="sm" 
-                onClick={() => fetchWeather(true)}
+                onClick={() => refetch()}
                 disabled={isRefreshing}
                 className="text-white/70 hover:text-white p-0 h-auto text-xs"
               >
@@ -225,7 +128,6 @@ const WeatherWidget = () => {
 
   return (
     <Card className="bg-gradient-to-br from-sky-500 to-blue-600 text-white border-0 overflow-hidden relative">
-      {/* Background decoration */}
       <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
       
       <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
@@ -242,7 +144,7 @@ const WeatherWidget = () => {
                 className="h-7 w-7 p-0 text-white/70 hover:text-white hover:bg-white/10"
                 onClick={(e) => {
                   e.stopPropagation();
-                  fetchWeather(true);
+                  refetch();
                 }}
                 disabled={isRefreshing}
               >
@@ -253,7 +155,6 @@ const WeatherWidget = () => {
         </CardHeader>
         
         <CardContent className="relative pt-0">
-          {/* Compact View - Always visible */}
           <CollapsibleTrigger asChild>
             <div className="flex items-center justify-between cursor-pointer hover:bg-white/5 rounded-lg p-2 -mx-2 transition-colors">
               <div className="flex items-center gap-3">
@@ -272,7 +173,6 @@ const WeatherWidget = () => {
             </div>
           </CollapsibleTrigger>
 
-          {/* Expanded Details */}
           <CollapsibleContent className="data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up overflow-hidden">
             <div className="pt-3 space-y-3">
               <div className="flex items-center gap-1 text-white/70 text-xs">
@@ -310,7 +210,6 @@ const WeatherWidget = () => {
                 </div>
               </div>
 
-              {/* Last updated indicator */}
               <div className="flex items-center gap-1 pt-2 border-t border-white/10 text-white/50 text-[10px]">
                 <Clock className="h-3 w-3" />
                 <span>Updated {lastUpdated}</span>

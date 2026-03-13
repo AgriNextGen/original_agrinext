@@ -37,7 +37,9 @@ import { useStartVisit, useActiveVisit } from '@/hooks/useAgentAssignments';
 import { useLanguage } from '@/hooks/useLanguage';
 import { toast } from 'sonner';
 import PageHeader from '@/components/shared/PageHeader';
+import KpiCard from '@/components/dashboard/KpiCard';
 import EmptyState from '@/components/shared/EmptyState';
+import { ROUTES } from '@/lib/routes';
 import { format, parseISO } from 'date-fns';
 
 export default function AgentFarmerDetail() {
@@ -179,7 +181,7 @@ export default function AgentFarmerDetail() {
             title={language === 'kn' ? 'ರೈತ ಕಂಡುಬಂದಿಲ್ಲ' : 'Farmer not found'}
             description={language === 'kn' ? 'ರೈತ ವಿವರಗಳನ್ನು ಲೋಡ್ ಮಾಡಲು ವಿಫಲವಾಗಿದೆ' : "This farmer doesn't exist or you don't have access to it."}
             actionLabel={language === 'kn' ? 'ಹಿಂತಿರುಗಿ' : 'Go Back'}
-            onAction={() => navigate('/agent/my-farmers')}
+            onAction={() => navigate(ROUTES.AGENT.MY_FARMERS)}
           />
         </div>
       </DashboardLayout>
@@ -192,7 +194,7 @@ export default function AgentFarmerDetail() {
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <Button variant="ghost" onClick={() => navigate('/agent/my-farmers')} aria-label="Back to farmers">
+          <Button variant="ghost" onClick={() => navigate(ROUTES.AGENT.MY_FARMERS)} aria-label="Back to farmers">
             <ArrowLeft className="h-4 w-4 mr-2" />
             {language === 'kn' ? 'ಹಿಂತಿರುಗಿ' : 'Back'}
           </Button>
@@ -256,8 +258,8 @@ export default function AgentFarmerDetail() {
                 </p>
               </div>
               <div className="text-right">
-                <div className="text-2xl font-bold text-primary">{crops?.length || 0}</div>
-                <p className="text-sm text-muted-foreground">
+                <div className="text-2xl font-display font-semibold text-primary">{crops?.length || 0}</div>
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                   {language === 'kn' ? 'ಸಕ್ರಿಯ ಬೆಳೆಗಳು' : 'Active Crops'}
                 </p>
               </div>
@@ -296,40 +298,24 @@ export default function AgentFarmerDetail() {
 
           <TabsContent value="overview" className="mt-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    {language === 'kn' ? 'ಒಟ್ಟು ಭೂಮಿ' : 'Total Land'}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    {farmer.total_land_area || 0} <span className="text-sm font-normal">acres</span>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    {language === 'kn' ? 'ಜಮೀನುಗಳು' : 'Farmlands'}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{farmlands?.length || 0}</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    {language === 'kn' ? 'ಬಾಕಿ ಸಾರಿಗೆ' : 'Pending Transport'}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-amber-600">
-                    {transport?.filter((t) => t.status === 'requested').length || 0}
-                  </div>
-                </CardContent>
-              </Card>
+              <KpiCard
+                label={language === 'kn' ? 'ಒಟ್ಟು ಭೂಮಿ' : 'Total Land'}
+                value={`${farmer.total_land_area || 0} acres`}
+                icon={FileText}
+                priority="primary"
+              />
+              <KpiCard
+                label={language === 'kn' ? 'ಜಮೀನುಗಳು' : 'Farmlands'}
+                value={farmlands?.length || 0}
+                icon={MapPin}
+                priority="info"
+              />
+              <KpiCard
+                label={language === 'kn' ? 'ಬಾಕಿ ಸಾರಿಗೆ' : 'Pending Transport'}
+                value={transport?.filter((t) => t.status === 'requested').length || 0}
+                icon={Truck}
+                priority="warning"
+              />
             </div>
           </TabsContent>
 

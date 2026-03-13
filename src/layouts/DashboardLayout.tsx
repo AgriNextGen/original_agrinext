@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import DashboardSidebar from '@/components/dashboard/DashboardSidebar';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
-import { useIsMobile } from '@/hooks/use-mobile';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -12,7 +11,6 @@ interface DashboardLayoutProps {
 const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
-  const isMobile = useIsMobile();
 
   const closeSidebar = useCallback(() => {
     setSidebarOpen(false);
@@ -55,6 +53,9 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
 
   return (
     <div className="min-h-screen bg-background">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[60] focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-lg focus:text-sm focus:font-medium">
+        Skip to main content
+      </a>
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div 
@@ -78,7 +79,7 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
       {/* Main content */}
       <div className="md:pl-64">
         <DashboardHeader title={title} onMenuClick={openSidebar} />
-        <main className="p-4 md:p-6">
+        <main id="main-content" className="p-4 md:p-6">
           {children}
         </main>
       </div>

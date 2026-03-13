@@ -8,6 +8,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Truck, MapPin, Calendar, Package, ChevronRight, Plus, ChevronDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
+import { ROUTES } from '@/lib/routes';
 
 const statusConfig = {
   requested: { label: 'Requested', color: 'bg-blue-100 text-blue-800', step: 1 },
@@ -67,7 +68,7 @@ const TransportSection = () => {
                   size="sm" 
                   onClick={(e) => {
                     e.stopPropagation();
-                    navigate('/farmer/transport');
+                    navigate(ROUTES.FARMER.TRANSPORT);
                   }}
                 >
                   <Plus className="h-4 w-4 mr-1" />
@@ -111,7 +112,7 @@ const TransportSection = () => {
               <div className="text-center py-6">
                 <Truck className="h-10 w-10 mx-auto text-muted-foreground/50 mb-3" />
                 <p className="text-muted-foreground text-sm">No active transport requests</p>
-                <Button variant="outline" className="mt-4" size="sm" onClick={() => navigate('/farmer/transport')}>
+                <Button variant="outline" className="mt-4" size="sm" onClick={() => navigate(ROUTES.FARMER.TRANSPORT)}>
                   Request Transport
                 </Button>
               </div>
@@ -182,7 +183,7 @@ const TransportSection = () => {
                   <Button 
                     variant="ghost" 
                     className="w-full text-muted-foreground hover:text-foreground"
-                    onClick={() => navigate('/farmer/transport')}
+                    onClick={() => navigate(ROUTES.FARMER.TRANSPORT)}
                   >
                     View all requests
                     <ChevronRight className="h-4 w-4 ml-1" />

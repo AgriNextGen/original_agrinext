@@ -17,45 +17,50 @@ import { Search, Leaf, MapPin, Calendar, Filter, SortAsc } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useMarketProductsInfinite } from '@/hooks/useMarketplaceDashboard';
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { ROUTES } from '@/lib/routes';
 import { format, parseISO } from 'date-fns';
 
 const statusColors: Record<string, string> = {
+  active: 'bg-green-100 text-green-800',
+  draft: 'bg-gray-100 text-gray-800',
+  sold_out: 'bg-red-100 text-red-800',
   ready: 'bg-green-100 text-green-800',
   one_week: 'bg-amber-100 text-amber-800',
   growing: 'bg-blue-100 text-blue-800',
 };
 
-const statusLabels: Record<string, string> = {
-  ready: 'Ready Now',
-  one_week: '1 Week Away',
-  growing: 'Growing',
-};
-
 const BrowseMarketplace = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('newest');
   
-  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } = useMarketProductsInfinite({
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useMarketProductsInfinite({
     cropName: searchQuery || undefined,
     status: statusFilter !== 'all' ? statusFilter : undefined,
   });
   const products = data ? data.pages.flatMap((p: any) => p.items || []) : [];
-  const { t } = useLanguage();
 
-  // Sort products
+  const statusLabelKeys: Record<string, string> = {
+    active: t('enum.listing_status.active'),
+    draft: t('enum.listing_status.draft'),
+    sold_out: t('enum.listing_status.sold_out'),
+    ready: t('enum.listing_status.ready'),
+    one_week: t('enum.listing_status.one_week'),
+    growing: t('enum.listing_status.growing'),
+  };
+
   const sortedProducts = [...(products || [])].sort((a, b) => {
     switch (sortBy) {
       case 'quantity_high':
-        return (b.estimated_quantity || 0) - (a.estimated_quantity || 0);
+        return (b.available_qty ?? 0) - (a.available_qty ?? 0);
       case 'quantity_low':
-        return (a.estimated_quantity || 0) - (b.estimated_quantity || 0);
-      case 'harvest_date':
-        if (!a.harvest_estimate) return 1;
-        if (!b.harvest_estimate) return -1;
-        return new Date(a.harvest_estimate).getTime() - new Date(b.harvest_estimate).getTime();
+        return (a.available_qty ?? 0) - (b.available_qty ?? 0);
+      case 'price_low':
+        return (a.unit_price ?? 0) - (b.unit_price ?? 0);
+      case 'price_high':
+        return (b.unit_price ?? 0) - (a.unit_price ?? 0);
       default:
         return 0;
     }
@@ -63,7 +68,7 @@ const BrowseMarketplace = () => {
 
   if (isLoading) {
     return (
-      <DashboardLayout title="Browse Marketplace">
+      <DashboardLayout title={t('marketplace.browseMarketplace')}>
         <DataState loading>
           <></>
         </DataState>
@@ -72,10 +77,10 @@ const BrowseMarketplace = () => {
   }
 
   return (
-    <DashboardLayout title="Browse Marketplace">
+    <DashboardLayout title={t('marketplace.browseMarketplace')}>
       <PageShell
-        title="Browse Marketplace"
-        subtitle={`${sortedProducts.length} products available`}
+        title={t('marketplace.browseMarketplace')}
+        subtitle={`${sortedProducts.length} ${t('marketplace.productsAvailable')}`}
       >
 
       {/* Filters */}
@@ -85,7 +90,7 @@ const BrowseMarketplace = () => {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search crops..."
+                placeholder={t('marketplace.searchCrops')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -93,27 +98,28 @@ const BrowseMarketplace = () => {
             </div>
             
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full md:w-40">
+              <SelectTrigger className="w-full md:w-40" aria-label={t('marketplace.allStatus')}>
                 <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Status" />
+                <SelectValue placeholder={t('common.status')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="ready">Ready Now</SelectItem>
-                <SelectItem value="one_week">1 Week Away</SelectItem>
+                <SelectItem value="all">{t('marketplace.allStatus')}</SelectItem>
+                <SelectItem value="active">{t('marketplace.available')}</SelectItem>
+                <SelectItem value="sold_out">{t('enum.listing_status.sold_out')}</SelectItem>
               </SelectContent>
             </Select>
             
             <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-full md:w-44">
+              <SelectTrigger className="w-full md:w-44" aria-label={t('marketplace.sortBy')}>
                 <SortAsc className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Sort by" />
+                <SelectValue placeholder={t('marketplace.sortBy')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="newest">Newest First</SelectItem>
-                <SelectItem value="harvest_date">Harvest Date</SelectItem>
-                <SelectItem value="quantity_high">Quantity: High</SelectItem>
-                <SelectItem value="quantity_low">Quantity: Low</SelectItem>
+                <SelectItem value="newest">{t('marketplace.newestFirst')}</SelectItem>
+                <SelectItem value="price_low">{t('marketplace.priceLowToHigh')}</SelectItem>
+                <SelectItem value="price_high">{t('marketplace.priceHighToLow')}</SelectItem>
+                <SelectItem value="quantity_high">{t('marketplace.quantityHigh')}</SelectItem>
+                <SelectItem value="quantity_low">{t('marketplace.quantityLow')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -123,59 +129,70 @@ const BrowseMarketplace = () => {
       {/* Products Grid */}
       <DataState
         empty={sortedProducts.length === 0}
-        emptyTitle="No products found"
-        emptyMessage="Try adjusting your search or filters."
+        emptyTitle={t('marketplace.noProductsFound')}
+        emptyMessage={t('marketplace.tryDifferentFilters')}
       >
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
         {sortedProducts.map(product => (
-            <Card 
+            <Card
               key={product.id}
               className="cursor-pointer hover:shadow-lg transition-all hover:-translate-y-1"
-              onClick={() => navigate(`/marketplace/product/${product.id}`)}
+              role="link"
+              aria-label={product.title}
+              onClick={() => navigate(ROUTES.MARKETPLACE.PRODUCT_DETAIL(product.id))}
             >
               <CardContent className="p-0">
-                {/* Product Image Placeholder */}
-                <div className="h-32 bg-gradient-to-br from-green-100 to-green-50 flex items-center justify-center">
-                  <Leaf className="h-12 w-12 text-green-300" />
-                </div>
-                
+                {product.image_url ? (
+                  <div className="h-32 overflow-hidden">
+                    <img src={product.image_url} alt={product.title} className="h-full w-full object-cover" />
+                  </div>
+                ) : (
+                  <div className="h-32 bg-gradient-to-br from-green-100 to-green-50 flex items-center justify-center">
+                    <Leaf className="h-12 w-12 text-green-300" />
+                  </div>
+                )}
+
                 <div className="p-4">
                   <div className="flex items-start justify-between mb-2">
                     <div>
-                      <h3 className="font-semibold text-lg">{product.crop_name}</h3>
+                      <h3 className="font-semibold text-lg">{product.title}</h3>
                       {product.variety && (
                         <p className="text-sm text-muted-foreground">{product.variety}</p>
                       )}
                     </div>
-                    <Badge className={statusColors[product.status]}>
-                      {statusLabels[product.status]}
+                    <Badge className={statusColors[product.status ?? 'active'] ?? 'bg-gray-100'}>
+                      {statusLabelKeys[product.status ?? 'active'] ?? product.status}
                     </Badge>
                   </div>
-                  
+
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Available:</span>
-                      <span className="font-medium">{product.estimated_quantity} {product.quantity_unit}</span>
+                      <span className="text-muted-foreground">{t('marketplace.price')}:</span>
+                      <span className="font-semibold text-green-700">₹{product.unit_price}/{product.unit}</span>
                     </div>
-                    
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">{t('marketplace.available')}:</span>
+                      <span className="font-medium">{product.available_qty} {product.unit}</span>
+                    </div>
+
                     <div className="flex items-center gap-1 text-muted-foreground">
                       <MapPin className="h-3 w-3" />
                       <span>
-                        {product.land?.village || product.farmer?.village || 'Unknown'}
+                        {product.location || product.farmer?.village || t('common.unknown')}
                         {product.farmer?.district && `, ${product.farmer.district}`}
                       </span>
                     </div>
-                    
-                    {product.harvest_estimate && (
+
+                    {product.crop?.harvest_estimate && (
                       <div className="flex items-center gap-1 text-muted-foreground">
                         <Calendar className="h-3 w-3" />
-                        <span>Harvest: {format(parseISO(product.harvest_estimate), 'MMM d, yyyy')}</span>
+                        <span>{t('marketplace.harvest')}: {format(parseISO(product.crop.harvest_estimate), 'MMM d, yyyy')}</span>
                       </div>
                     )}
                   </div>
-                  
-                  <Button className="w-full mt-4" variant="outline" onClick={(e) => { e.stopPropagation(); navigate(`/marketplace/product/${product.id}`); }}>
-                    View Details
+
+                  <Button className="w-full mt-4" variant="outline" onClick={(e) => { e.stopPropagation(); navigate(ROUTES.MARKETPLACE.PRODUCT_DETAIL(product.id)); }}>
+                    {t('marketplace.viewDetails')}
                   </Button>
                 </div>
               </CardContent>

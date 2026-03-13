@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/hooks/useLanguage';
 import PageHeader from '@/components/shared/PageHeader';
 import EmptyState from '@/components/shared/EmptyState';
+import { Skeleton } from '@/components/ui/skeleton';
 import { 
   Plus, 
   Search, 
@@ -78,8 +80,7 @@ const FarmerListings = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { t } = useLanguage();
-  const [listings, setListings] = useState<Listing[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterOpen, setFilterOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
@@ -106,26 +107,23 @@ const FarmerListings = () => {
 
   const { data: harvestCrops = [], isLoading: cropsLoading } = useHarvestReadyCrops();
 
-  useEffect(() => {
-    if (user) fetchListings();
-  }, [user]);
-
-  const fetchListings = async () => {
-    try {
+  const { data: listings = [], isLoading: loading } = useQuery({
+    queryKey: ['listings', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
       const { data, error } = await supabase
         .from('listings')
         .select('*')
-        .eq('seller_id', user?.id)
+        .eq('seller_id', user.id)
         .order('created_at', { ascending: false });
-
       if (error) throw error;
-      setListings((data || []) as unknown as Listing[]);
-    } catch (error) {
-      console.error('Error fetching listings:', error);
-      toast({ title: t('common.error'), description: t('farmer.listings.fetchError'), variant: 'destructive' });
-    } finally {
-      setLoading(false);
-    }
+      return (data || []) as unknown as Listing[];
+    },
+    enabled: !!user?.id,
+  });
+
+  const invalidateListings = () => {
+    queryClient.invalidateQueries({ queryKey: ['listings', user?.id] });
   };
 
   const handleCropSelect = (cropId: string) => {
@@ -151,17 +149,34 @@ const FarmerListings = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!user?.id) {
+      toast({ title: t('common.error'), description: 'Not authenticated', variant: 'destructive' });
+      return;
+    }
+
+    const qty = parseFloat(formData.quantity);
+    const price = parseFloat(formData.price);
+
+    if (!Number.isFinite(qty) || qty <= 0 || !Number.isFinite(price) || price <= 0) {
+      toast({ title: t('common.error'), description: 'Please enter valid price and quantity', variant: 'destructive' });
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const listingData: any = {
         title: formData.title,
         description: formData.description || null,
         category: formData.category,
-        price: parseFloat(formData.price),
-        quantity: parseFloat(formData.quantity),
+        price,
+        unit_price: price,
+        quantity: qty,
+        available_qty: qty,
         unit: formData.unit,
         location: formData.location || null,
         seller_id: user?.id,
+        farmer_id: user?.id,
+        profile_id: user?.id,
         trace_settings: traceSettings,
         geo_district_id: formData.geo_district_id || null,
       };
@@ -179,6 +194,9 @@ const FarmerListings = () => {
         if (error) throw error;
         toast({ title: t('common.success'), description: t('farmer.listings.updateSuccess') });
       } else {
+        listingData.status = 'approved';
+        listingData.is_active = true;
+
         const { data: newListing, error } = await supabase
           .from('listings')
           .insert([listingData])
@@ -196,9 +214,9 @@ const FarmerListings = () => {
 
       setIsDialogOpen(false);
       resetForm();
-      fetchListings();
+      invalidateListings();
     } catch (error) {
-      console.error('Error saving listing:', error);
+      if (import.meta.env.DEV) console.error('Error saving listing:', error);
       toast({ title: t('common.error'), description: t('farmer.listings.saveError'), variant: 'destructive' });
     } finally {
       setIsSubmitting(false);
@@ -210,9 +228,9 @@ const FarmerListings = () => {
       const { error } = await supabase.from('listings').delete().eq('id', id);
       if (error) throw error;
       toast({ title: t('common.success'), description: t('farmer.listings.deleteSuccess') });
-      fetchListings();
+      invalidateListings();
     } catch (error) {
-      console.error('Error deleting listing:', error);
+      if (import.meta.env.DEV) console.error('Error deleting listing:', error);
       toast({ title: t('common.error'), description: t('farmer.listings.deleteError'), variant: 'destructive' });
     }
   };
@@ -247,19 +265,23 @@ const FarmerListings = () => {
       const { error } = await supabase.from('listings').update({ is_active: !currentStatus }).eq('id', id);
       if (error) throw error;
       toast({ title: t('common.success'), description: !currentStatus ? t('farmer.listings.activated') : t('farmer.listings.deactivated') });
-      fetchListings();
+      invalidateListings();
     } catch (error) {
-      console.error('Error updating listing status:', error);
+      if (import.meta.env.DEV) console.error('Error updating listing status:', error);
       toast({ title: t('common.error'), description: t('farmer.listings.statusError'), variant: 'destructive' });
     }
   };
 
   const handleTraceCodeGenerated = (listingId: string, traceCode: string) => {
-    setListings(prev => prev.map(l => l.id === listingId ? { ...l, trace_code: traceCode } : l));
+    queryClient.setQueryData<Listing[]>(['listings', user?.id], (prev) =>
+      (prev || []).map(l => l.id === listingId ? { ...l, trace_code: traceCode } : l)
+    );
   };
 
   const handleTraceStatusChange = (listingId: string, newStatus: string) => {
-    setListings(prev => prev.map(l => l.id === listingId ? { ...l, trace_status: newStatus } : l));
+    queryClient.setQueryData<Listing[]>(['listings', user?.id], (prev) =>
+      (prev || []).map(l => l.id === listingId ? { ...l, trace_status: newStatus } : l)
+    );
   };
 
   const filteredListings = listings.filter(listing => {
@@ -517,11 +539,7 @@ const FarmerListings = () => {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-card rounded-xl border border-border p-6 animate-pulse">
-                <div className="h-32 bg-muted rounded-lg mb-4" />
-                <div className="h-4 bg-muted rounded w-3/4 mb-2" />
-                <div className="h-4 bg-muted rounded w-1/2" />
-              </div>
+              <Skeleton key={i} className="h-48 rounded-xl" />
             ))}
           </div>
         ) : filteredListings.length === 0 ? (

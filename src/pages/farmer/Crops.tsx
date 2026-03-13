@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import PageHeader from '@/components/shared/PageHeader';
+import KpiCard from '@/components/dashboard/KpiCard';
 import DataState from '@/components/ui/DataState';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Search, Sprout, Calendar, MapPin, Scale, Edit, Trash2, Truck, BookOpen } from 'lucide-react';
@@ -148,74 +149,11 @@ const CropsPage = () => {
       <PageHeader title={t('farmer.crops.title')}>
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-          <Card 
-            className={`cursor-pointer hover:shadow-md transition-all ${statusFilter === 'all' ? 'ring-2 ring-primary shadow-md' : ''}`} 
-            onClick={() => setStatusFilter('all')}
-          >
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                  <Sprout className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{stats.total}</p>
-                  <p className="text-xs text-muted-foreground">{t('farmer.crops.totalCrops')}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className={`cursor-pointer hover:shadow-md transition-all ${statusFilter === 'growing' ? 'ring-2 ring-primary shadow-md' : ''}`} onClick={() => setStatusFilter('growing')}>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-muted">
-                  <div className="w-5 h-5 rounded-full bg-gray-400" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{stats.growing}</p>
-                  <p className="text-xs text-muted-foreground">{t('enum.crop_status.growing')}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className={`cursor-pointer hover:shadow-md transition-all ${statusFilter === 'one_week' ? 'ring-2 ring-primary shadow-md' : ''}`} onClick={() => setStatusFilter('one_week')}>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-amber-100">
-                  <div className="w-5 h-5 rounded-full bg-amber-500" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{stats.oneWeek}</p>
-                  <p className="text-xs text-muted-foreground">{t('enum.crop_status.one_week')}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className={`cursor-pointer hover:shadow-md transition-all ${statusFilter === 'ready' ? 'ring-2 ring-primary shadow-md' : ''}`} onClick={() => setStatusFilter('ready')}>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-emerald-100">
-                  <div className="w-5 h-5 rounded-full bg-emerald-500" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{stats.ready}</p>
-                  <p className="text-xs text-muted-foreground">{t('enum.crop_status.ready')}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className={`cursor-pointer hover:shadow-md transition-all ${statusFilter === 'harvested' ? 'ring-2 ring-primary shadow-md' : ''}`} onClick={() => setStatusFilter('harvested')}>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-primary/10">
-                  <div className="w-5 h-5 rounded-full bg-primary" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{stats.harvested}</p>
-                  <p className="text-xs text-muted-foreground">{t('enum.crop_status.harvested')}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <KpiCard label={t('farmer.crops.totalCrops')} value={stats.total} icon={Sprout} priority="primary" onClick={() => setStatusFilter('all')} />
+          <KpiCard label={t('enum.crop_status.growing')} value={stats.growing} priority="neutral" onClick={() => setStatusFilter('growing')} />
+          <KpiCard label={t('enum.crop_status.one_week')} value={stats.oneWeek} priority="warning" onClick={() => setStatusFilter('one_week')} />
+          <KpiCard label={t('enum.crop_status.ready')} value={stats.ready} priority="success" onClick={() => setStatusFilter('ready')} />
+          <KpiCard label={t('enum.crop_status.harvested')} value={stats.harvested} priority="primary" onClick={() => setStatusFilter('harvested')} />
         </div>
 
         {/* Header */}
@@ -380,7 +318,7 @@ const CropsPage = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {filteredCrops?.map((crop) => {
-              const status = statusConfig[crop.status];
+              const status = statusConfig[crop.status ?? 'growing'] ?? statusConfig.growing;
               return (
                 <Card key={crop.id} className="hover:shadow-medium transition-all group">
                   <CardContent className="p-4">
@@ -419,13 +357,13 @@ const CropsPage = () => {
                         <BookOpen className="h-4 w-4 mr-1" />
                         {t('farmer.crops.diary')}
                       </Button>
-                      <Button aria-label={`Edit ${crop.crop_name}`} variant="outline" size="sm" onClick={() => {
+                      <Button aria-label={`Edit ${crop.crop_name}`} variant="outline" size="sm" className="touch-target" onClick={() => {
                         setEditingCrop(crop);
                         setEditDialogOpen(true);
                       }}>
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button aria-label={`Request transport for ${crop.crop_name}`} variant="outline" size="sm" onClick={() => {
+                      <Button aria-label={`Request transport for ${crop.crop_name}`} variant="outline" size="sm" className="touch-target" onClick={() => {
                         setTransportCrop(crop);
                         setTransportDialogOpen(true);
                       }}>
@@ -435,7 +373,7 @@ const CropsPage = () => {
                         aria-label={`Delete ${crop.crop_name}`}
                         variant="outline" 
                         size="sm" 
-                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        className="touch-target text-destructive hover:text-destructive hover:bg-destructive/10"
                         onClick={() => handleDeleteClick(crop.id, crop.crop_name)}
                       >
                         <Trash2 className="h-4 w-4" />

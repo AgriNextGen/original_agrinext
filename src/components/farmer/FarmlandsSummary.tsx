@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { LandPlot, MapPin, Plus, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { ROUTES } from '@/lib/routes';
 
 const FarmlandsSummary = () => {
   const { data: farmlands, isLoading } = useFarmlands();
@@ -50,7 +51,7 @@ const FarmlandsSummary = () => {
               {farmlands?.length || 0} plots • {totalArea.toFixed(1)} acres total
             </p>
           </div>
-          <Button variant="outline" size="sm" onClick={() => navigate('/farmer/farmlands')}>
+          <Button variant="outline" size="sm" onClick={() => navigate(ROUTES.FARMER.FARMLANDS)}>
             <Plus className="h-4 w-4 mr-1" />
             Add
           </Button>
@@ -64,7 +65,7 @@ const FarmlandsSummary = () => {
                 variant="outline" 
                 className="mt-3" 
                 size="sm"
-                onClick={() => navigate('/farmer/farmlands')}
+                onClick={() => navigate(ROUTES.FARMER.FARMLANDS)}
               >
                 Add Your First Farmland
               </Button>
@@ -77,7 +78,7 @@ const FarmlandsSummary = () => {
                   <div
                     key={land.id}
                     className="flex items-center justify-between p-2 rounded-lg bg-muted/30 border border-border/50 cursor-pointer hover:bg-muted/50 transition-colors"
-                    onClick={() => navigate('/farmer/farmlands')}
+                    onClick={() => navigate(ROUTES.FARMER.FARMLANDS)}
                   >
                     <div className="flex items-center gap-2">
                       <div className="p-1.5 rounded-lg bg-amber-100 text-amber-600">
@@ -120,7 +121,7 @@ const FarmlandsSummary = () => {
                     <div
                       key={land.id}
                       className="bg-muted/30 border border-border/50 rounded-lg p-2 hover:bg-muted/50 transition-colors cursor-pointer"
-                      onClick={() => navigate('/farmer/farmlands')}
+                      onClick={() => navigate(ROUTES.FARMER.FARMLANDS)}
                     >
                       <div className="flex items-center gap-2">
                         <div className="p-1.5 rounded-lg bg-amber-100 text-amber-600">
@@ -153,7 +154,7 @@ const FarmlandsSummary = () => {
                     <Button 
                       variant="ghost" 
                       className="w-full h-8 text-muted-foreground hover:text-foreground text-xs"
-                      onClick={() => navigate('/farmer/farmlands')}
+                      onClick={() => navigate(ROUTES.FARMER.FARMLANDS)}
                     >
                       View all farmlands ({farmlands.length})
                     </Button>

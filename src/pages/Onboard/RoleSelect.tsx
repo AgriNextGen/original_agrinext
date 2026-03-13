@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 const RoleSelect = () => {
   const [role, setRole] = useState<string>("farmer");
@@ -20,7 +21,7 @@ const RoleSelect = () => {
       // redirect to dashboard
       navigate(role === "farmer" ? "/farmer/dashboard" : role === "buyer" ? "/marketplace/dashboard" : role === "agent" ? "/agent/dashboard" : "/");
     } else {
-      alert(j.error?.message || "Failed to complete onboarding");
+      toast.error(j.error?.message || "Failed to complete onboarding");
     }
   };
 

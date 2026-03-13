@@ -26,7 +26,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useLanguage } from '@/hooks/useLanguage';
+import { ROUTES } from '@/lib/routes';
 import PageHeader from '@/components/shared/PageHeader';
+import { Skeleton } from '@/components/ui/skeleton';
 import EmptyState from '@/components/shared/EmptyState';
 import KpiCard from '@/components/dashboard/KpiCard';
 import ActionPanel from '@/components/dashboard/ActionPanel';
@@ -88,7 +90,7 @@ const MarketplaceDashboard = () => {
       setStockAdvice(data.result);
       toast.success(t('toast.aiRecommendationsReady'));
     } catch (error) {
-      console.error('AI error:', error);
+      if (import.meta.env.DEV) console.error('AI error:', error);
       toast.error(t('errors.ai.recommendationsFailed'));
     } finally {
       setAiLoading(false);
@@ -99,10 +101,10 @@ const MarketplaceDashboard = () => {
     return (
       <DashboardLayout title={t('nav.dashboard')}>
         <div className="space-y-6">
-          <div className="h-32 w-full animate-pulse rounded-lg bg-muted" />
+          <Skeleton className="h-32 w-full rounded-lg" />
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-24 animate-pulse rounded-lg bg-muted" />
+              <Skeleton key={i} className="h-24 rounded-lg" />
             ))}
           </div>
         </div>
@@ -133,7 +135,7 @@ const MarketplaceDashboard = () => {
     );
   }
 
-  const freshProducts = products?.filter((p) => p.status === 'ready').slice(0, 4) || [];
+  const freshProducts = products?.filter((p) => p.is_active && p.available_qty > 0).slice(0, 4) || [];
   const activeOrders = orders?.filter((o) => !['delivered', 'cancelled'].includes(o.status)).slice(0, 3) || [];
   const subtitleParts = [
     profile.name ? `${t('common.welcome')}, ${profile.name}` : t('common.welcome'),
@@ -146,16 +148,16 @@ const MarketplaceDashboard = () => {
         title={t('marketplace.browseMarketplace')}
         subtitle={subtitleParts.join(' - ')}
         actions={
-          <Button aria-label="Browse marketplace" onClick={() => navigate('/marketplace/browse')}>
+          <Button aria-label="Browse marketplace" onClick={() => navigate(ROUTES.MARKETPLACE.BROWSE)}>
             <ShoppingCart className="mr-2 h-4 w-4" />
             {t('marketplace.browseProducts')}
           </Button>
         }
       >
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-          <KpiCard label={t('marketplace.available')} value={stats.totalProducts} icon={Package} priority="primary" onClick={() => navigate('/marketplace/browse')} />
+          <KpiCard label={t('marketplace.available')} value={stats.totalProducts} icon={Package} priority="primary" onClick={() => navigate(ROUTES.MARKETPLACE.BROWSE)} />
           <KpiCard label={t('marketplace.freshHarvest')} value={stats.freshHarvest} icon={Leaf} priority="success" />
-          <KpiCard label={t('marketplace.activeOrdersLabel')} value={stats.activeOrders} icon={ShoppingCart} priority="info" onClick={() => navigate('/marketplace/orders')} />
+          <KpiCard label={t('marketplace.activeOrdersLabel')} value={stats.activeOrders} icon={ShoppingCart} priority="info" onClick={() => navigate(ROUTES.MARKETPLACE.ORDERS)} />
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
@@ -163,10 +165,10 @@ const MarketplaceDashboard = () => {
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2 text-lg">
-                  <Leaf className="h-5 w-5 text-green-600" />
+                  <Leaf className="h-5 w-5 text-success" />
                   {t('marketplace.freshHarvestAvailable')}
                 </CardTitle>
-                <Button variant="ghost" size="sm" onClick={() => navigate('/marketplace/browse')}>
+                <Button variant="ghost" size="sm" onClick={() => navigate(ROUTES.MARKETPLACE.BROWSE)}>
                   {t('common.viewAll')} <ArrowRight className="ml-1 h-4 w-4" />
                 </Button>
               </div>
@@ -177,14 +179,14 @@ const MarketplaceDashboard = () => {
               ) : (
                 <div className="space-y-3">
                   {freshProducts.map((product) => (
-                    <div key={product.id} className="cursor-pointer rounded-lg border p-3 transition-colors hover:bg-accent/50" onClick={() => navigate(`/marketplace/product/${product.id}`)}>
+                    <div key={product.id} className="cursor-pointer rounded-lg border p-3 transition-colors hover:bg-accent/50" onClick={() => navigate(ROUTES.MARKETPLACE.PRODUCT_DETAIL(product.id))}>
                       <div className="mb-2 flex items-center justify-between">
-                        <span className="font-medium">{product.crop_name}</span>
-                        <Badge variant="default" className="bg-green-100 text-green-800">{t('crops.readyShort')}</Badge>
+                        <span className="font-medium">{product.title}</span>
+                        <span className="text-sm font-semibold text-success">₹{product.unit_price}/{product.unit}</span>
                       </div>
                       <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                        <span>{product.estimated_quantity} {product.quantity_unit}</span>
-                        <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{product.farmer?.village || product.land?.village || t('common.unknown')}</span>
+                        <span>{product.available_qty} {product.unit}</span>
+                        <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{product.location || product.farmer?.village || t('common.unknown')}</span>
                       </div>
                     </div>
                   ))}
@@ -197,27 +199,27 @@ const MarketplaceDashboard = () => {
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2 text-lg">
-                  <ShoppingCart className="h-5 w-5 text-blue-600" />
+                  <ShoppingCart className="h-5 w-5 text-primary" />
                   {t('marketplace.yourActiveOrders')}
                 </CardTitle>
-                <Button variant="ghost" size="sm" onClick={() => navigate('/marketplace/orders')}>
+                <Button variant="ghost" size="sm" onClick={() => navigate(ROUTES.MARKETPLACE.ORDERS)}>
                   {t('common.viewAll')} <ArrowRight className="ml-1 h-4 w-4" />
                 </Button>
               </div>
             </CardHeader>
             <CardContent>
               {activeOrders.length === 0 ? (
-                <EmptyState icon={ShoppingCart} title={t('orders.noOrdersYet')} description={t('marketplace.browseProducts')} actionLabel={t('marketplace.browseProducts')} onAction={() => navigate('/marketplace/browse')} />
+                <EmptyState icon={ShoppingCart} title={t('orders.noOrdersYet')} description={t('marketplace.browseProducts')} actionLabel={t('marketplace.browseProducts')} onAction={() => navigate(ROUTES.MARKETPLACE.BROWSE)} />
               ) : (
                 <div className="space-y-3">
                   {activeOrders.map((order) => (
-                    <div key={order.id} className="cursor-pointer rounded-lg border p-3 transition-colors hover:bg-accent/50" onClick={() => navigate('/marketplace/orders')}>
+                    <div key={order.id} className="cursor-pointer rounded-lg border p-3 transition-colors hover:bg-accent/50" onClick={() => navigate(ROUTES.MARKETPLACE.ORDERS)}>
                       <div className="mb-2 flex items-center justify-between">
                         <span className="font-medium">{order.crop?.crop_name || 'Order'}</span>
                         <Badge variant="outline">{order.status}</Badge>
                       </div>
                       <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                        <span>{order.quantity} {order.quantity_unit}</span>
+                        <span>{order.total_amount != null ? `₹${Number(order.total_amount).toLocaleString()}` : '-'}</span>
                         <span className="flex items-center gap-1"><User className="h-3 w-3" />{order.farmer?.full_name || 'Farmer'}</span>
                       </div>
                     </div>

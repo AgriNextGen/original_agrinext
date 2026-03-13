@@ -10,6 +10,7 @@ import {
   RefreshCw, AlertTriangle, Copy, MapPin 
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import KpiCard from "@/components/dashboard/KpiCard";
 
 interface Credential {
   role: string;
@@ -246,10 +247,7 @@ export default function MysuruDemoSeed() {
             <CardContent>
               <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
                 {Object.entries(resetResult.deleted).filter(([_, v]) => v > 0).map(([key, value]) => (
-                  <div key={key} className="bg-muted rounded-lg p-3 text-center">
-                    <div className="text-xl font-bold text-destructive">{value}</div>
-                    <div className="text-xs text-muted-foreground capitalize">{key.replace(/_/g, " ")}</div>
-                  </div>
+                  <KpiCard key={key} label={key.replace(/_/g, " ")} value={value as number} priority="neutral" />
                 ))}
               </div>
             </CardContent>
@@ -270,10 +268,7 @@ export default function MysuruDemoSeed() {
               <CardContent>
                 <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
                   {Object.entries(result.summary).map(([key, value]) => (
-                    <div key={key} className="bg-muted rounded-lg p-3 text-center">
-                      <div className="text-2xl font-bold">{value}</div>
-                      <div className="text-xs text-muted-foreground capitalize">{key.replace(/_/g, " ")}</div>
-                    </div>
+                    <KpiCard key={key} label={key.replace(/_/g, " ")} value={value as number} priority="success" />
                   ))}
                 </div>
               </CardContent>

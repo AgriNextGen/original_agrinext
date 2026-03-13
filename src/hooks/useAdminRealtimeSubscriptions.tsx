@@ -12,7 +12,7 @@ export const useAdminRealtimeSubscriptions = () => {
     // Only subscribe if user is admin
     if (userRole !== 'admin') return;
 
-    console.log('[Admin Realtime] Setting up subscriptions...');
+    if (import.meta.env.DEV) console.log('[Admin Realtime] Setting up subscriptions...');
 
     // Channel for all admin-relevant changes
     const channel = supabase
@@ -22,7 +22,7 @@ export const useAdminRealtimeSubscriptions = () => {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'profiles' },
         (payload) => {
-          console.log('[Admin Realtime] Profiles change:', payload.eventType);
+          if (import.meta.env.DEV) console.log('[Admin Realtime] Profiles change:', payload.eventType);
           queryClient.invalidateQueries({ queryKey: ['admin-all-farmers'] });
           queryClient.invalidateQueries({ queryKey: ['admin-all-agents'] });
           queryClient.invalidateQueries({ queryKey: ['admin-dashboard-stats'] });
@@ -39,7 +39,7 @@ export const useAdminRealtimeSubscriptions = () => {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'user_roles' },
         (payload) => {
-          console.log('[Admin Realtime] User roles change:', payload.eventType);
+          if (import.meta.env.DEV) console.log('[Admin Realtime] User roles change:', payload.eventType);
           queryClient.invalidateQueries({ queryKey: ['admin-all-farmers'] });
           queryClient.invalidateQueries({ queryKey: ['admin-all-agents'] });
           queryClient.invalidateQueries({ queryKey: ['admin-dashboard-stats'] });
@@ -50,7 +50,7 @@ export const useAdminRealtimeSubscriptions = () => {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'crops' },
         (payload) => {
-          console.log('[Admin Realtime] Crops change:', payload.eventType);
+          if (import.meta.env.DEV) console.log('[Admin Realtime] Crops change:', payload.eventType);
           queryClient.invalidateQueries({ queryKey: ['admin-all-crops'] });
           queryClient.invalidateQueries({ queryKey: ['admin-dashboard-stats'] });
           queryClient.invalidateQueries({ queryKey: ['admin-recent-activity'] });
@@ -68,7 +68,7 @@ export const useAdminRealtimeSubscriptions = () => {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'transport_requests' },
         (payload) => {
-          console.log('[Admin Realtime] Transport request change:', payload.eventType);
+          if (import.meta.env.DEV) console.log('[Admin Realtime] Transport request change:', payload.eventType);
           queryClient.invalidateQueries({ queryKey: ['admin-all-transport'] });
           queryClient.invalidateQueries({ queryKey: ['admin-dashboard-stats'] });
           queryClient.invalidateQueries({ queryKey: ['admin-recent-activity'] });
@@ -90,7 +90,7 @@ export const useAdminRealtimeSubscriptions = () => {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'market_orders' },
         (payload) => {
-          console.log('[Admin Realtime] Market order change:', payload.eventType);
+          if (import.meta.env.DEV) console.log('[Admin Realtime] Market order change:', payload.eventType);
           queryClient.invalidateQueries({ queryKey: ['admin-all-orders'] });
           queryClient.invalidateQueries({ queryKey: ['admin-dashboard-stats'] });
           queryClient.invalidateQueries({ queryKey: ['admin-recent-activity'] });
@@ -112,7 +112,7 @@ export const useAdminRealtimeSubscriptions = () => {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'buyers' },
         (payload) => {
-          console.log('[Admin Realtime] Buyers change:', payload.eventType);
+          if (import.meta.env.DEV) console.log('[Admin Realtime] Buyers change:', payload.eventType);
           queryClient.invalidateQueries({ queryKey: ['admin-all-buyers'] });
           queryClient.invalidateQueries({ queryKey: ['admin-dashboard-stats'] });
           
@@ -128,7 +128,7 @@ export const useAdminRealtimeSubscriptions = () => {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'transporters' },
         (payload) => {
-          console.log('[Admin Realtime] Transporters change:', payload.eventType);
+          if (import.meta.env.DEV) console.log('[Admin Realtime] Transporters change:', payload.eventType);
           queryClient.invalidateQueries({ queryKey: ['admin-all-transporters'] });
           queryClient.invalidateQueries({ queryKey: ['admin-dashboard-stats'] });
           
@@ -144,17 +144,17 @@ export const useAdminRealtimeSubscriptions = () => {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'farmlands' },
         (payload) => {
-          console.log('[Admin Realtime] Farmlands change:', payload.eventType);
+          if (import.meta.env.DEV) console.log('[Admin Realtime] Farmlands change:', payload.eventType);
           queryClient.invalidateQueries({ queryKey: ['admin-all-farmers'] });
           queryClient.invalidateQueries({ queryKey: ['admin-dashboard-stats'] });
         }
       )
       .subscribe((status) => {
-        console.log('[Admin Realtime] Subscription status:', status);
+        if (import.meta.env.DEV) console.log('[Admin Realtime] Subscription status:', status);
       });
 
     return () => {
-      console.log('[Admin Realtime] Cleaning up subscriptions...');
+      if (import.meta.env.DEV) console.log('[Admin Realtime] Cleaning up subscriptions...');
       supabase.removeChannel(channel);
     };
   }, [queryClient, userRole]);

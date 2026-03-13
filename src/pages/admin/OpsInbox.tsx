@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '@/layouts/DashboardLayout';
+import PageShell from '@/components/layout/PageShell';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -8,10 +9,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertTriangle, CheckCircle, Clock, Search, Sparkles, X, MapPin } from 'lucide-react';
+import { AlertTriangle, CheckCircle, Clock, Search, Sparkles, X, MapPin, Inbox } from 'lucide-react';
+import EmptyState from '@/components/shared/EmptyState';
 import { useOpsInbox, useResolveOpsItem } from '@/hooks/useOpsInbox';
 import { useSmartSearch } from '@/hooks/useSmartSearch';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import GeoStateSelect from '@/components/geo/GeoStateSelect';
 import GeoDistrictSelect from '@/components/geo/GeoDistrictSelect';
 import { useLanguage } from '@/hooks/useLanguage';
@@ -28,9 +30,9 @@ const ITEM_TYPE_TABS = [
 ];
 
 const SEVERITY_COLORS: Record<string, string> = {
-  high: 'bg-red-100 text-red-800 border-red-200',
-  medium: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  low: 'bg-green-100 text-green-800 border-green-200',
+  high: 'bg-destructive/10 text-destructive border-destructive/20',
+  medium: 'bg-warning/10 text-warning border-warning/20',
+  low: 'bg-success/10 text-success border-success/20',
 };
 
 export default function OpsInbox() {
@@ -75,11 +77,7 @@ export default function OpsInbox() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Ops Inbox</h1>
-        </div>
-
+      <PageShell title="Ops Inbox">
         {/* Smart Search */}
         <Card>
           <CardContent className="pt-4">
@@ -161,13 +159,7 @@ export default function OpsInbox() {
           ))}
 
           {!isLoading && items.length === 0 && (
-            <Card>
-              <CardContent className="py-12 text-center text-muted-foreground">
-                <CheckCircle className="mx-auto h-10 w-10 mb-2 text-green-500" />
-                <p className="font-medium">All clear!</p>
-                <p className="text-sm">No open items in the ops inbox.</p>
-              </CardContent>
-            </Card>
+            <EmptyState icon={CheckCircle} title="All clear!" description="No open items in the ops inbox." />
           )}
 
           {items.map((item) => (
@@ -180,7 +172,7 @@ export default function OpsInbox() {
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-2 min-w-0">
                     <AlertTriangle className={`h-4 w-4 flex-shrink-0 ${
-                      item.severity === 'high' ? 'text-red-500' : item.severity === 'medium' ? 'text-yellow-500' : 'text-green-500'
+                      item.severity === 'high' ? 'text-destructive' : item.severity === 'medium' ? 'text-warning' : 'text-success'
                     }`} />
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -218,7 +210,7 @@ export default function OpsInbox() {
             </Button>
           </div>
         )}
-      </div>
+      </PageShell>
     </DashboardLayout>
   );
 }

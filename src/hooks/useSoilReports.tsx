@@ -172,9 +172,9 @@ export const useDeleteSoilReport = () => {
         const { error: delErr } = await supabase.functions.invoke('storage-delete-v1', {
           body: { bucket: 'soil-reports', path: report.report_file_path },
         });
-        if (delErr) console.warn('storage-delete-v1 warning:', delErr);
+        if (delErr && import.meta.env.DEV) console.warn('storage-delete-v1 warning:', delErr);
       } catch (e) {
-        console.warn('storage-delete-v1 failed:', e);
+        if (import.meta.env.DEV) console.warn('storage-delete-v1 failed:', e);
       }
 
       // Delete from database

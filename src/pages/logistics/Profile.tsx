@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import DashboardLayout from '@/layouts/DashboardLayout';
+import PageShell from '@/components/layout/PageShell';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -102,14 +103,7 @@ const Profile = () => {
 
   return (
     <DashboardLayout title="My Profile">
-      <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">My Profile</h1>
-        <p className="text-muted-foreground">
-          Manage your transporter profile and settings
-        </p>
-      </div>
+      <PageShell title="My Profile" subtitle="Manage your transporter profile and settings">
 
       <div className="grid md:grid-cols-2 gap-6">
         {/* Personal Info */}
@@ -237,7 +231,7 @@ const Profile = () => {
           {isSaving ? 'Saving...' : 'Save Changes'}
         </Button>
       </div>
-      </div>
+      </PageShell>
     </DashboardLayout>
   );
 };

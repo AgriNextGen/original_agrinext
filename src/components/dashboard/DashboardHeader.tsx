@@ -1,7 +1,6 @@
-import { useState, useEffect, useMemo } from 'react';
-import { Bell, Search, Menu, X } from 'lucide-react';
+import { useEffect, useMemo } from 'react';
+import { Bell, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -12,13 +11,24 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/hooks/useAuth';
-import { useFarmerNotifications, useFarmerProfile } from '@/hooks/useFarmerDashboard';
+import { useNotifications } from '@/hooks/useNotifications';
+import { useUserProfile } from '@/hooks/useUserProfile';
 import { useLanguage } from '@/hooks/useLanguage';
+import { ROUTES } from '@/lib/routes';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { formatDistanceToNow } from 'date-fns';
+import { enIN } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
 import SyncIndicator from '@/components/SyncIndicator';
+
+const ROLE_PATHS: Record<string, { settings: string; notifications: string }> = {
+  farmer:    { settings: ROUTES.FARMER.SETTINGS,       notifications: ROUTES.FARMER.NOTIFICATIONS },
+  agent:     { settings: ROUTES.AGENT.PROFILE,         notifications: ROUTES.AGENT.DASHBOARD },
+  logistics: { settings: ROUTES.LOGISTICS.PROFILE,     notifications: ROUTES.LOGISTICS.DASHBOARD },
+  buyer:     { settings: ROUTES.MARKETPLACE.PROFILE,   notifications: ROUTES.MARKETPLACE.ORDERS },
+  admin:     { settings: ROUTES.ADMIN.DASHBOARD,       notifications: ROUTES.ADMIN.OPS_INBOX },
+};
 
 interface DashboardHeaderProps {
   title: string;
@@ -28,11 +38,12 @@ interface DashboardHeaderProps {
 const DashboardHeader = ({ title, onMenuClick }: DashboardHeaderProps) => {
   const { user, signOut, userRole } = useAuth();
   const { t } = useLanguage();
-  const { data: notifications } = useFarmerNotifications();
-  const { data: profile } = useFarmerProfile();
+  const { data: notifications } = useNotifications();
+  const { data: profile } = useUserProfile();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const [searchOpen, setSearchOpen] = useState(false);
+
+  const paths = ROLE_PATHS[userRole ?? 'farmer'];
 
   const unreadCount = useMemo(() => 
     notifications?.filter(n => !n.is_read).length || 0,
@@ -44,7 +55,6 @@ const DashboardHeader = ({ title, onMenuClick }: DashboardHeaderProps) => {
     [notifications]
   );
 
-  // Set up real-time notifications
   useEffect(() => {
     if (!user?.id) return;
 
@@ -59,7 +69,7 @@ const DashboardHeader = ({ title, onMenuClick }: DashboardHeaderProps) => {
           filter: `user_id=eq.${user.id}`,
         },
         () => {
-          queryClient.invalidateQueries({ queryKey: ['farmer-notifications', user.id] });
+          queryClient.invalidateQueries({ queryKey: ['notifications', user.id] });
         }
       )
       .subscribe();
@@ -75,7 +85,7 @@ const DashboardHeader = ({ title, onMenuClick }: DashboardHeaderProps) => {
       .update({ is_read: true })
       .eq('id', id);
     
-    queryClient.invalidateQueries({ queryKey: ['farmer-notifications', user?.id] });
+    queryClient.invalidateQueries({ queryKey: ['notifications', user?.id] });
   };
 
   const getInitials = (name: string | null | undefined, email: string | null | undefined) => {
@@ -86,24 +96,6 @@ const DashboardHeader = ({ title, onMenuClick }: DashboardHeaderProps) => {
   };
 
   const initials = getInitials(profile?.full_name, user?.email);
-
-  // Role-specific settings navigation
-  const getSettingsPath = () => {
-    const rolePaths: Record<string, string> = {
-      farmer: '/farmer/settings',
-      buyer: '/marketplace/profile',
-      logistics: '/logistics/profile',
-      agent: '/agent/dashboard',
-      admin: '/admin/dashboard',
-    };
-    return rolePaths[userRole || ''] || '/';
-  };
-
-  // Role-specific notification path
-  const getNotificationPath = () => {
-    if (userRole === 'farmer') return '/farmer/notifications';
-    return getSettingsPath();
-  };
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 md:px-6">
@@ -117,36 +109,15 @@ const DashboardHeader = ({ title, onMenuClick }: DashboardHeaderProps) => {
         >
           <Menu className="h-5 w-5" />
         </Button>
-        <h1 className="font-display text-lg md:text-xl font-semibold text-foreground truncate max-w-[200px] md:max-w-none">
+        <span className="font-display text-lg md:text-xl font-semibold text-foreground truncate max-w-[200px] md:max-w-none" role="heading" aria-level={2}>
           {title}
-        </h1>
+        </span>
         <div className="ml-3">
           <SyncIndicator />
         </div>
       </div>
 
       <div className="flex items-center gap-2 md:gap-4">
-        {/* Mobile Search Toggle */}
-        <Button
-          aria-label={searchOpen ? 'Close search' : 'Open search'}
-          variant="ghost"
-          size="icon"
-          className="md:hidden"
-          onClick={() => setSearchOpen(!searchOpen)}
-        >
-          {searchOpen ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
-        </Button>
-
-        {/* Desktop Search */}
-        <div className="hidden md:flex relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder={`${t('common.search')}...`}
-            className="w-64 pl-9 bg-muted/50 border-0"
-          />
-        </div>
-        
-        {/* Notifications Dropdown */}
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
             <Button aria-label="Notifications" variant="ghost" size="icon" className="relative">
@@ -182,7 +153,7 @@ const DashboardHeader = ({ title, onMenuClick }: DashboardHeaderProps) => {
                       if (!notification.is_read) {
                         markAsRead(notification.id);
                       }
-                      navigate(getNotificationPath());
+                      navigate(paths.notifications);
                     }}
                   >
                     <div className="flex items-start justify-between w-full">
@@ -195,14 +166,14 @@ const DashboardHeader = ({ title, onMenuClick }: DashboardHeaderProps) => {
                       {notification.message}
                     </span>
                     <span className="text-xs text-muted-foreground">
-                      {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+                      {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true, locale: enIN })}
                     </span>
                   </DropdownMenuItem>
                 ))}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="text-center justify-center text-primary cursor-pointer"
-                  onClick={() => navigate(getNotificationPath())}
+                  onClick={() => navigate(paths.notifications)}
                 >
                   {t('notifications.view_all')}
                 </DropdownMenuItem>
@@ -211,7 +182,6 @@ const DashboardHeader = ({ title, onMenuClick }: DashboardHeaderProps) => {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {/* Profile Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button aria-label="Open profile menu" variant="ghost" className="relative h-9 w-9 rounded-full">
@@ -227,11 +197,11 @@ const DashboardHeader = ({ title, onMenuClick }: DashboardHeaderProps) => {
             <DropdownMenuLabel>
               <div className="flex flex-col space-y-1">
                 <p className="text-sm font-medium">{profile?.full_name || t('common.user')}</p>
-                <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+                <p className="text-xs text-muted-foreground capitalize">{userRole}</p>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => navigate(getSettingsPath())}>
+            <DropdownMenuItem onClick={() => navigate(paths.settings)}>
               {t('settings.profileSettings')}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
@@ -244,20 +214,6 @@ const DashboardHeader = ({ title, onMenuClick }: DashboardHeaderProps) => {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-
-      {/* Mobile Search Bar */}
-      {searchOpen && (
-        <div className="absolute top-16 left-0 right-0 p-4 bg-background border-b border-border md:hidden">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder={`${t('common.search')}...`}
-              className="w-full pl-9"
-              autoFocus
-            />
-          </div>
-        </div>
-      )}
     </header>
   );
 };

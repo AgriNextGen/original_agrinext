@@ -36,7 +36,7 @@ export async function retryAll(handler: (action: OfflineAction) => Promise<boole
       const ok = await handler(a);
       if (ok) removeAction(a.id);
     } catch (e) {
-      console.warn('retry failed', e);
+      if (import.meta.env.DEV) console.warn('retry failed', e);
     }
   }
 }

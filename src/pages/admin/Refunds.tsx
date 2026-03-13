@@ -1,35 +1,44 @@
 import DashboardLayout from '@/layouts/DashboardLayout';
 import PageShell from '@/components/layout/PageShell';
-import { useEffect, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { rpcJson } from '@/lib/readApi';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Refunds() {
-  const [refunds, setRefunds] = useState<any[]>([]);
-  useEffect(() => {
-    (async () => {
-      try {
-        const data = await rpcJson('admin.list_refund_requests_v1', { p_limit: 200 });
-        setRefunds(data || []);
-      } catch (e) {
-        console.error('list refunds', e);
-      }
-    })();
-  }, []);
+  const queryClient = useQueryClient();
+  const { data: refunds = [], isLoading } = useQuery({
+    queryKey: ['admin', 'refunds'],
+    queryFn: () => rpcJson('admin.list_refund_requests_v1', { p_limit: 200 }),
+  });
+
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: ['admin', 'refunds'] });
 
   async function approve(id: string) {
     try {
       await rpcJson('admin.approve_refund_v1', { p_refund_id: id });
-      setRefunds((s) => s.filter((r) => r.id !== id));
-    } catch (e) { console.error(e); }
+      invalidate();
+    } catch (e) { if (import.meta.env.DEV) console.error(e); }
   }
 
   async function reject(id: string) {
     try {
       await rpcJson('admin.reject_refund_v1', { p_refund_id: id, p_reason: 'Rejected by ops' });
-      setRefunds((s) => s.filter((r) => r.id !== id));
-    } catch (e) { console.error(e); }
+      invalidate();
+    } catch (e) { if (import.meta.env.DEV) console.error(e); }
+  }
+
+  if (isLoading) {
+    return (
+      <DashboardLayout title="Refunds">
+        <PageShell title="Refund Requests" subtitle="Approve or reject refund requests">
+          <div className="space-y-3">
+            {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-20 w-full" />)}
+          </div>
+        </PageShell>
+      </DashboardLayout>
+    );
   }
 
   return (

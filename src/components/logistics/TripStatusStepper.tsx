@@ -1,4 +1,4 @@
-import { Check, Truck, MapPin, Package, Navigation, CheckCircle2, AlertTriangle, XCircle } from 'lucide-react';
+import { Check, Package, Navigation, CheckCircle2, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format, parseISO } from 'date-fns';
 
@@ -15,10 +15,8 @@ interface TripStatusStepperProps {
 }
 
 const steps = [
-  { key: 'assigned', label: 'Assigned', icon: Check, timeKey: 'assignedAt' },
-  { key: 'en_route', label: 'En Route', icon: Truck, timeKey: 'enRouteAt' },
-  { key: 'arrived', label: 'Arrived', icon: MapPin, timeKey: 'arrivedAt' },
-  { key: 'picked_up', label: 'Picked Up', icon: Package, timeKey: 'pickedUpAt' },
+  { key: 'accepted', label: 'Accepted', icon: Check, timeKey: 'assignedAt' },
+  { key: 'pickup_done', label: 'Pickup Done', icon: Package, timeKey: 'pickedUpAt' },
   { key: 'in_transit', label: 'In Transit', icon: Navigation, timeKey: 'inTransitAt' },
   { key: 'delivered', label: 'Delivered', icon: CheckCircle2, timeKey: 'deliveredAt' },
 ];
@@ -47,16 +45,15 @@ export default function TripStatusStepper({
 
   const currentIndex = statusOrder.indexOf(currentStatus);
   const isCancelled = currentStatus === 'cancelled';
-  const hasIssue = currentStatus === 'issue';
 
   return (
     <div className="w-full">
       {/* Desktop horizontal stepper */}
       <div className="hidden md:flex items-center justify-between">
         {steps.map((step, index) => {
-          const isCompleted = !isCancelled && !hasIssue && index < currentIndex;
-          const isCurrent = !isCancelled && !hasIssue && index === currentIndex;
-          const isPending = !isCancelled && !hasIssue && index > currentIndex;
+          const isCompleted = !isCancelled && index < currentIndex;
+          const isCurrent = !isCancelled && index === currentIndex;
+          const isPending = !isCancelled && index > currentIndex;
           const timestamp = timestamps[step.timeKey];
 
           return (
@@ -109,9 +106,9 @@ export default function TripStatusStepper({
       {/* Mobile vertical stepper */}
       <div className="md:hidden space-y-3">
         {steps.map((step, index) => {
-          const isCompleted = !isCancelled && !hasIssue && index < currentIndex;
-          const isCurrent = !isCancelled && !hasIssue && index === currentIndex;
-          const isPending = !isCancelled && !hasIssue && index > currentIndex;
+          const isCompleted = !isCancelled && index < currentIndex;
+          const isCurrent = !isCancelled && index === currentIndex;
+          const isPending = !isCancelled && index > currentIndex;
           const timestamp = timestamps[step.timeKey];
 
           return (
@@ -147,31 +144,15 @@ export default function TripStatusStepper({
         })}
       </div>
 
-      {/* Issue/Cancelled state */}
-      {(isCancelled || hasIssue) && (
-        <div className={cn(
-          "mt-4 p-3 rounded-lg flex items-center gap-3",
-          isCancelled ? "bg-destructive/10 text-destructive" : "bg-amber-100 text-amber-800"
-        )}>
-          {isCancelled ? (
-            <>
-              <XCircle className="h-5 w-5" />
-              <div>
-                <p className="font-medium">Trip Cancelled</p>
-                {cancelledAt && (
-                  <p className="text-xs">{format(parseISO(cancelledAt), 'MMM d, h:mm a')}</p>
-                )}
-              </div>
-            </>
-          ) : (
-            <>
-              <AlertTriangle className="h-5 w-5" />
-              <div>
-                <p className="font-medium">Issue Reported</p>
-                {issueCode && <p className="text-xs">Code: {issueCode}</p>}
-              </div>
-            </>
-          )}
+      {isCancelled && (
+        <div className="mt-4 p-3 rounded-lg flex items-center gap-3 bg-destructive/10 text-destructive">
+          <XCircle className="h-5 w-5" />
+          <div>
+            <p className="font-medium">Trip Cancelled</p>
+            {cancelledAt && (
+              <p className="text-xs">{format(parseISO(cancelledAt), 'MMM d, h:mm a')}</p>
+            )}
+          </div>
         </div>
       )}
     </div>

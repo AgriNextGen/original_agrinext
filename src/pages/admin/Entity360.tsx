@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import DashboardLayout from '@/layouts/DashboardLayout';
+import PageShell from '@/components/layout/PageShell';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,7 +11,7 @@ import { ArrowLeft, Lock, Unlock, LogOut, AlertTriangle, Clock, Shield, Ticket, 
 import ReasonModal from '@/components/admin/ReasonModal';
 import SecurityEventsList from '@/components/admin/SecurityEventsList';
 import { useEntity360, useAiTimelineSummary, useLockUser, useUnlockUser, useOverrideTripStatus, useOverrideOrderStatus, useForceLogout, useSetAccountStatus, useResetRiskScore, useAddRiskScore } from '@/hooks/useEntity360';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { useQuery } from '@tanstack/react-query';
 import { rpcJson } from '@/lib/readApi';
 
@@ -84,15 +85,11 @@ export default function Entity360() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-4">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <h1 className="text-2xl font-bold capitalize">{type} Details</h1>
-          <Badge variant="outline" className="text-xs font-mono">{id?.slice(0, 8)}</Badge>
-        </div>
-
+      <PageShell
+        title={`${type} Details`}
+        breadcrumbs={<Button variant="ghost" size="sm" onClick={() => navigate(-1)}><ArrowLeft className="h-4 w-4" /></Button>}
+        actions={<Badge variant="outline" className="text-xs font-mono">{id?.slice(0, 8)}</Badge>}
+      >
         {isLoading && <div className="space-y-4">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-32 w-full" />)}</div>}
         {error && <Card><CardContent className="py-8 text-center text-red-500">Failed to load entity data.</CardContent></Card>}
 
@@ -372,7 +369,7 @@ export default function Entity360() {
           description="This action will be audited. Provide a reason."
           loading={lockUser.isPending || unlockUser.isPending || forceLogout.isPending || overrideTrip.isPending || overrideOrder.isPending}
         />
-      </div>
+      </PageShell>
     </DashboardLayout>
   );
 }

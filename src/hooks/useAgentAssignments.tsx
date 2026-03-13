@@ -153,7 +153,7 @@ export const useFarmerAgent = () => {
         .maybeSingle();
 
       if (agentLiteError) {
-        console.warn('useFarmerAgent user_profiles lookup failed:', agentLiteError.message);
+        if (import.meta.env.DEV) console.warn('useFarmerAgent user_profiles lookup failed:', agentLiteError.message);
       }
 
       return {
@@ -234,7 +234,7 @@ export const useCreateHelpRequest = () => {
       toast.success('Help request sent to your agent');
     },
     onError: (error) => {
-      console.error('Error creating help request:', error);
+      if (import.meta.env.DEV) console.error('Error creating help request:', error);
       toast.error('Failed to send help request');
     }
   });
@@ -296,7 +296,7 @@ export const useStartVisit = () => {
       toast.success('Visit started');
     },
     onError: (error) => {
-      console.error('Error starting visit:', error);
+      if (import.meta.env.DEV) console.error('Error starting visit:', error);
       toast.error('Failed to start visit');
     }
   });
@@ -332,7 +332,7 @@ export const useEndVisit = () => {
       toast.success('Visit ended');
     },
     onError: (error) => {
-      console.error('Error ending visit:', error);
+      if (import.meta.env.DEV) console.error('Error ending visit:', error);
       toast.error('Failed to end visit');
     }
   });
@@ -419,7 +419,7 @@ export const useAssignFarmerToAgent = () => {
       toast.success('Farmer assigned to agent');
     },
     onError: (error) => {
-      console.error('Error assigning farmer:', error);
+      if (import.meta.env.DEV) console.error('Error assigning farmer:', error);
       toast.error('Failed to assign farmer');
     }
   });
@@ -444,7 +444,7 @@ export const useUnassignFarmer = () => {
       toast.success('Farmer unassigned');
     },
     onError: (error) => {
-      console.error('Error unassigning farmer:', error);
+      if (import.meta.env.DEV) console.error('Error unassigning farmer:', error);
       toast.error('Failed to unassign farmer');
     }
   });
@@ -499,7 +499,7 @@ export const useUpdateAgentTaskStatus = () => {
       toast.success('Task status updated');
     },
     onError: (error) => {
-      console.error('Error updating task:', error);
+      if (import.meta.env.DEV) console.error('Error updating task:', error);
       toast.error('Failed to update task');
     }
   });

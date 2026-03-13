@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Sprout, Calendar, MapPin, Scale, Edit, Truck, Plus } from 'lucide-react';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
+import { ROUTES } from '@/lib/routes';
 import EditCropDialog from './EditCropDialog';
 import RequestTransportDialog from './RequestTransportDialog';
 const CropsSection = () => {
@@ -84,7 +85,7 @@ const CropsSection = () => {
             <Sprout className="h-5 w-5 text-primary" />
             {t('farmer.crops.myCrops')}
           </CardTitle>
-          <Button size="sm" onClick={() => navigate('/farmer/crops')}>
+          <Button size="sm" onClick={() => navigate(ROUTES.FARMER.CROPS)}>
             <Plus className="h-4 w-4 mr-1" />
             {t('farmer.crops.addCrop')}
           </Button>
@@ -94,7 +95,7 @@ const CropsSection = () => {
             <div className="flex flex-col items-center justify-center py-10 text-center">
               <Sprout className="h-10 w-10 text-muted-foreground/40 mb-3" />
               <p className="text-sm text-muted-foreground">{t('farmer.crops.noCropsYet')}</p>
-              <Button size="sm" variant="outline" className="mt-4" onClick={() => navigate('/farmer/crops')}>
+              <Button size="sm" variant="outline" className="mt-4" onClick={() => navigate(ROUTES.FARMER.CROPS)}>
                 <Plus className="h-4 w-4 mr-1" />
                 {t('farmer.crops.addCrop')}
               </Button>

@@ -105,7 +105,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       if (error) {
-        console.warn("user_profiles lookup failed, falling back to legacy role tables:", error.message);
+        if (import.meta.env.DEV) console.warn("user_profiles lookup failed, falling back to legacy role tables:", error.message);
       }
 
       const [{ data: roleRows, error: roleError }, { data: profileRow, error: profileError }] = await Promise.all([
@@ -114,10 +114,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       ]);
 
       if (roleError) {
-        console.warn("Legacy user_roles lookup failed:", roleError.message);
+        if (import.meta.env.DEV) console.warn("Legacy user_roles lookup failed:", roleError.message);
       }
       if (profileError) {
-        console.warn("Legacy profiles lookup failed:", profileError.message);
+        if (import.meta.env.DEV) console.warn("Legacy profiles lookup failed:", profileError.message);
       }
 
       const firstRole = roleRows?.[0]?.role ?? null;
@@ -138,7 +138,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setRealRole(null);
       setUserRole(null);
     } catch (error) {
-      console.error("Error fetching user profiles:", error);
+      if (import.meta.env.DEV) console.error("Error fetching user profiles:", error);
       setProfiles([]);
       setRealRole(null);
       setUserRole(null);
@@ -178,7 +178,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setUserRole(active_role ?? real_role ?? null);
         }
       } catch (err) {
-        console.error("fetchDevActiveRole error:", err);
+        if (import.meta.env.DEV) console.error("fetchDevActiveRole error:", err);
       }
     },
     []
@@ -201,7 +201,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         body: JSON.stringify({ active_role: role }),
       });
       if (!res.ok) {
-        console.warn("switchActiveRole failed", await res.text());
+        if (import.meta.env.DEV) console.warn("switchActiveRole failed", await res.text());
         return;
       }
       const json = await res.json();
@@ -214,7 +214,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUserRole(active_role ?? real_role ?? null);
       }
     } catch (err) {
-      console.error("switchActiveRole error:", err);
+      if (import.meta.env.DEV) console.error("switchActiveRole error:", err);
     }
   }, [session?.access_token]);
 
@@ -239,7 +239,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           await fetchDevActiveRole(session.access_token ?? undefined);
         }
       } catch (error) {
-        console.error("Auth initialization error:", error);
+        if (import.meta.env.DEV) console.error("Auth initialization error:", error);
       } finally {
         if (mounted) {
           setLoading(false);
@@ -294,7 +294,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         localStorage.removeItem("agrinext_active_profile");
       } catch {}
     } catch (error) {
-      console.error("Sign out error:", error);
+      if (import.meta.env.DEV) console.error("Sign out error:", error);
     }
   }, []);
 

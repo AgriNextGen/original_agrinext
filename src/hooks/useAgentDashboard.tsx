@@ -225,22 +225,25 @@ export const useAllTransportRequests = () => {
   });
 };
 
-// Update task status
+// Update task status (direct query, guarded by RLS: agent can only update own tasks)
 export const useUpdateTaskStatus = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
     mutationFn: async ({ taskId, status, notes }: { taskId: string; status: 'pending' | 'in_progress' | 'completed'; notes?: string }) => {
-      const { data, error } = await supabase.functions.invoke('agent-update-task-status', {
-        body: {
-          task_id: taskId,
-          status,
-          notes: notes || null,
-        },
-      });
+      const updateData: Record<string, unknown> = { task_status: status };
+      if (notes) updateData.notes = notes;
+      if (status === 'completed') updateData.completed_at = new Date().toISOString();
+
+      const { data, error } = await supabase
+        .from('agent_tasks')
+        .update(updateData)
+        .eq('id', taskId)
+        .select()
+        .single();
 
       if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['agent-tasks'] });
@@ -249,12 +252,12 @@ export const useUpdateTaskStatus = () => {
     },
     onError: (error) => {
       toast.error('Failed to update task');
-      console.error(error);
+      if (import.meta.env.DEV) console.error(error);
     },
   });
 };
 
-// Create new task (via Edge Function)
+// Create new task (direct insert, guarded by RLS: agent must have active farmer assignment)
 export const useCreateTask = () => {
   const queryClient = useQueryClient();
   
@@ -266,18 +269,27 @@ export const useCreateTask = () => {
       due_date: string;
       notes?: string;
     }) => {
-      const { data, error } = await supabase.functions.invoke('agent-create-task', {
-        body: {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data, error } = await supabase
+        .from('agent_tasks')
+        .insert({
+          agent_id: user.id,
           farmer_id: task.farmer_id,
           crop_id: task.crop_id || null,
           task_type: task.task_type,
           due_date: task.due_date,
           notes: task.notes || null,
-        },
-      });
+          task_status: 'pending',
+          created_by: user.id,
+          created_by_role: 'agent',
+        })
+        .select()
+        .single();
 
       if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['agent-tasks'] });
@@ -286,12 +298,12 @@ export const useCreateTask = () => {
     },
     onError: (error) => {
       toast.error('Failed to create task');
-      console.error(error);
+      if (import.meta.env.DEV) console.error(error);
     },
   });
 };
 
-// Update crop status (agent can update any crop)
+// Update crop status (direct query, agent access governed by RLS)
 export const useUpdateCropStatus = () => {
   const queryClient = useQueryClient();
   
@@ -302,17 +314,22 @@ export const useUpdateCropStatus = () => {
       quantity?: number;
       notes?: string;
     }) => {
-      const { data, error } = await supabase.functions.invoke('agent-update-crop-status', {
-        body: {
-          crop_id: cropId,
-          status,
-          estimated_quantity: quantity,
-          notes: notes || null,
-        },
-      });
+      const updateData: Record<string, unknown> = {
+        status,
+        updated_at: new Date().toISOString(),
+      };
+      if (quantity !== undefined) updateData.estimated_quantity = quantity;
+      if (notes) updateData.notes = notes;
+
+      const { data, error } = await supabase
+        .from('crops')
+        .update(updateData)
+        .eq('id', cropId)
+        .select()
+        .single();
 
       if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['all-crops-agent'] });
@@ -320,7 +337,7 @@ export const useUpdateCropStatus = () => {
     },
     onError: (error) => {
       toast.error('Failed to update crop');
-      console.error(error);
+      if (import.meta.env.DEV) console.error(error);
     },
   });
 };

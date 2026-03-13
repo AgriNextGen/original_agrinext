@@ -44,7 +44,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
           localStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
         }
       } catch (error) {
-        console.error('Failed to load language preference:', error);
+        if (import.meta.env.DEV) console.error('Failed to load language preference:', error);
       }
     };
 
@@ -70,7 +70,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
         
         toast.success(t('toast.languageChanged', lang));
       } catch (error) {
-        console.error('Failed to save language preference:', error);
+        if (import.meta.env.DEV) console.error('Failed to save language preference:', error);
         toast.error(t('errors.languagePreferenceSaveFailed', lang));
       }
     }

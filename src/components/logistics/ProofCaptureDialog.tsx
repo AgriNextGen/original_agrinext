@@ -45,8 +45,7 @@ export default function ProofCaptureDialog({
 
   const isLoading = uploadProof.isPending || updateStatus.isPending || isCompressing;
 
-  // Proof is required for picked_up and delivered statuses
-  const proofRequired = ['picked_up', 'delivered'].includes(nextStatus);
+  const proofRequired = ['pickup_done', 'delivered'].includes(nextStatus);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -84,7 +83,7 @@ export default function ProofCaptureDialog({
             useWebWorker: true,
           });
         } catch (error) {
-          console.error('Compression failed:', error);
+          if (import.meta.env.DEV) console.error('Compression failed:', error);
           toast.error(`Failed to compress ${file.name}`);
           continue;
         }

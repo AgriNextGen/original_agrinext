@@ -18,16 +18,28 @@ export interface Buyer {
 
 export interface MarketProduct {
   id: string;
+  title: string;
   crop_name: string;
   variety: string | null;
-  estimated_quantity: number | null;
-  quantity_unit: string | null;
-  status: string;
-  harvest_estimate: string | null;
-  sowing_date: string | null;
-  farmer_id: string;
-  farmer?: { full_name: string; village: string; district: string };
-  land?: { name: string; village: string };
+  category: string;
+  price: number;
+  unit_price: number;
+  quantity: number;
+  available_qty: number;
+  unit: string;
+  description: string | null;
+  location: string | null;
+  image_url: string | null;
+  is_active: boolean;
+  status: string | null;
+  trace_code: string | null;
+  crop_id: string | null;
+  farmer_id: string | null;
+  seller_id: string;
+  created_at: string;
+  updated_at: string;
+  crop?: { crop_name: string; variety: string | null; status: string; harvest_estimate: string | null; sowing_date: string | null; estimated_quantity: number | null; quantity_unit: string | null } | null;
+  farmer?: { full_name: string; village: string | null; district: string | null; phone: string | null } | null;
 }
 
 export interface MarketOrder {
@@ -107,71 +119,128 @@ export const useCreateBuyerProfile = () => {
   });
 };
 
-// Get available products (crops ready for sale)
+const LISTING_SELECT = `
+  id, title, category, price, unit_price, quantity, available_qty, unit,
+  description, location, image_url, is_active, status, trace_code,
+  crop_id, farmer_id, seller_id, created_at, updated_at,
+  crop:crops!listings_crop_id_fkey(crop_name, variety, status, harvest_estimate, sowing_date, estimated_quantity, quantity_unit)
+`;
+
+function buildListingQuery(filters?: { cropName?: string; status?: string; district?: string }) {
+  let query = supabase
+    .from('listings')
+    .select(LISTING_SELECT)
+    .eq('is_active', true);
+
+  if (filters?.cropName) {
+    query = query.ilike('title', `%${filters.cropName}%`);
+  }
+  if (filters?.status) {
+    const dbStatus = filters.status === 'active' ? 'approved' : filters.status;
+    query = query.eq('status', dbStatus);
+  }
+  return query;
+}
+
+async function enrichWithProfiles(listings: any[]): Promise<MarketProduct[]> {
+  if (listings.length === 0) return [];
+
+  const sellerIds = [...new Set(listings.map(l => l.seller_id).filter(Boolean))];
+  if (sellerIds.length === 0) return listings.map(mapListing);
+
+  const { data: profiles } = await supabase
+    .from('profiles')
+    .select('id, full_name, village, district, phone')
+    .in('id', sellerIds);
+
+  const profileMap = new Map((profiles || []).map(p => [p.id, p]));
+
+  return listings.map(row => mapListing({
+    ...row,
+    farmer: profileMap.get(row.seller_id) || null,
+  }));
+}
+
+function mapListing(row: any): MarketProduct {
+  return {
+    ...row,
+    crop_name: row.crop?.crop_name || row.title,
+    variety: row.crop?.variety || null,
+  };
+}
+
 export const useMarketProducts = (filters?: {
   cropName?: string;
   district?: string;
   status?: string;
 }) => {
-  return useQuery({
+  return useQuery<MarketProduct[]>({
     queryKey: ['market-products', filters],
     queryFn: async () => {
-      // Call compact RPC with simple filter translation
-      const filter: any = {};
-      if (filters?.cropName) filter.crop_name = filters.cropName;
-      if (filters?.status) filter.status = filters.status;
-      const { rpcJson } = await import('@/lib/readApi');
-      const data = await rpcJson('list_market_products_compact_v1', { p_filter: filter, p_limit: 30, p_cursor: null });
-      return data?.items || [];
+      const { data, error } = await buildListingQuery(filters)
+        .order('updated_at', { ascending: false })
+        .limit(30);
+
+      if (error) throw error;
+      return enrichWithProfiles(data || []);
     },
   });
 };
 
-// Infinite product list (cursor pagination)
 export const useMarketProductsInfinite = (filters?: { cropName?: string; status?: string }) => {
-  const { cropName, status } = filters || {};
   return useInfiniteQuery({
     queryKey: ['market-products-infinite', filters],
-    queryFn: async ({ pageParam = null }) => {
-      const filter: any = {};
-      if (cropName) filter.crop_name = cropName;
-      if (status) filter.status = status;
-      const { rpcJson } = await import('@/lib/readApi');
-      const data = await rpcJson('list_market_products_compact_v1', { p_filter: filter, p_limit: 24, p_cursor: pageParam });
-      // rpc returns { items, next_cursor }
-      return { items: data?.items || [], next_cursor: data?.next_cursor || null };
+    queryFn: async ({ pageParam = 0 }) => {
+      const from = (pageParam as number) * 24;
+      const { data, error } = await buildListingQuery(filters)
+        .order('updated_at', { ascending: false })
+        .range(from, from + 23);
+
+      if (error) throw error;
+      const items = await enrichWithProfiles(data || []);
+      return { items, nextPage: items.length === 24 ? (pageParam as number) + 1 : undefined };
     },
-    getNextPageParam: (lastPage) => lastPage.next_cursor || undefined,
+    getNextPageParam: (lastPage) => lastPage.nextPage,
+    initialPageParam: 0,
   });
 };
 
-// Get single product details
-export const useProductDetail = (cropId: string) => {
+export const useProductDetail = (listingId: string) => {
   return useQuery({
-    queryKey: ['product-detail', cropId],
+    queryKey: ['product-detail', listingId],
     queryFn: async () => {
-      const { data: crop, error } = await supabase
-        .from('crops')
-        .select('*')
-        .eq('id', cropId)
+      const { data: listing, error } = await supabase
+        .from('listings')
+        .select(LISTING_SELECT)
+        .eq('id', listingId)
         .single();
-      
+
       if (error) throw error;
-      
-      const [farmerRes, landRes, priceRes] = await Promise.all([
-        supabase.from('profiles').select('full_name, village, district, phone').eq('id', crop.farmer_id).maybeSingle(),
-        crop.land_id ? supabase.from('farmlands').select('name, village, district, soil_type').eq('id', crop.land_id).maybeSingle() : Promise.resolve({ data: null }),
-        supabase.from('market_prices').select('*').eq('crop_name', crop.crop_name).order('date', { ascending: false }).limit(1).maybeSingle(),
+
+      const cropName = (listing as any).crop?.crop_name || listing.title;
+
+      const [farmerRes, priceRes, landRes] = await Promise.all([
+        listing.seller_id
+          ? supabase.from('profiles').select('full_name, village, district, phone').eq('id', listing.seller_id).maybeSingle()
+          : Promise.resolve({ data: null }),
+        supabase.from('market_prices').select('*').eq('crop_name', cropName).order('date', { ascending: false }).limit(1).maybeSingle(),
+        listing.crop_id
+          ? supabase.from('crops').select('land_id').eq('id', listing.crop_id).maybeSingle().then(async (cropRes) => {
+              if (cropRes.data?.land_id) {
+                return supabase.from('farmlands').select('name, village, district, soil_type').eq('id', cropRes.data.land_id).maybeSingle();
+              }
+              return { data: null };
+            })
+          : Promise.resolve({ data: null }),
       ]);
-      
+
       return {
-        ...crop,
-        farmer: farmerRes.data,
+        ...mapListing({ ...listing, farmer: farmerRes.data }),
         land: landRes.data,
         market_price: priceRes.data,
       };
     },
-    enabled: !!cropId,
+    enabled: !!listingId,
   });
 };
 
@@ -191,32 +260,25 @@ export const useBuyerOrders = () => {
   });
 };
 
-// Create order
 export const useCreateOrder = () => {
   const queryClient = useQueryClient();
   const { data: buyer } = useBuyerProfile();
-  
+
   return useMutation({
     mutationFn: async (data: {
-      crop_id: string;
-      farmer_id: string;
+      listing_id: string;
       quantity: number;
-      quantity_unit?: string;
-      price_offered?: number;
-      delivery_address?: string;
       notes?: string;
     }) => {
       if (!buyer?.id) throw new Error('Buyer profile not found');
-      // Use Edge function / RPC via marketplaceApi
       const { placeOrder } = await import('@/lib/marketplaceApi');
-      const res = await placeOrder(data.crop_id, data.quantity, data.notes || null, data.price_offered, data.delivery_address);
+      const res = await placeOrder(data.listing_id, data.quantity, data.notes || null);
       if (!res || !res.success) throw new Error(res?.error || 'Order failed');
-      // Invalidate buyer orders to refresh UI
       return res;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['buyer-orders'] });
-      toast.success('Order placed successfully!');
+      queryClient.invalidateQueries({ queryKey: ['market-products'] });
     },
     onError: (error) => {
       toast.error('Failed to place order: ' + error.message);

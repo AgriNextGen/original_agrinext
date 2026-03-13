@@ -202,4 +202,44 @@
     @apply -translate-y-1;
     box-shadow: var(--elevation-2);
   }
+
+  .shadow-glow {
+    box-shadow: 0 0 24px -4px hsl(var(--primary) / 0.25);
+  }
+
+  .animate-pulse-soft {
+    animation: pulse-soft 2.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse-soft {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  .arch-layer {
+    @apply relative;
+  }
+
+  .arch-layer::before {
+    content: '';
+    @apply absolute left-1/2 -translate-x-1/2 w-px bg-border;
+    top: -1rem;
+    height: 1rem;
+  }
+
+  .arch-layer:first-child::before {
+    display: none;
+  }
+
+  .btn-hover-darken {
+    @apply transition-all;
+  }
+
+  .btn-hover-darken:hover {
+    filter: brightness(0.92);
+  }
+
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
 }

@@ -68,7 +68,7 @@ const CropDiseaseReportDialog = ({ cropId, open, onOpenChange }: CropDiseaseRepo
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
+          <div className="space-y-2">
             <Label>Symptoms / Issue Description *</Label>
             <Textarea
               value={notes}
@@ -79,8 +79,8 @@ const CropDiseaseReportDialog = ({ cropId, open, onOpenChange }: CropDiseaseRepo
             />
           </div>
 
-          <div>
-            <Label className="mb-3 block">Severity</Label>
+          <div className="space-y-2">
+            <Label>Severity</Label>
             <RadioGroup
               value={severity}
               onValueChange={(v) => setSeverity(v as 'low' | 'medium' | 'high')}
@@ -107,8 +107,8 @@ const CropDiseaseReportDialog = ({ cropId, open, onOpenChange }: CropDiseaseRepo
             </RadioGroup>
           </div>
 
-          <div>
-            <Label className="mb-2 block">Photo (Optional)</Label>
+          <div className="space-y-2">
+            <Label>Photo (Optional)</Label>
             {!preview ? (
               <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4 text-center">
                 <input

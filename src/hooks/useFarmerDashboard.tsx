@@ -285,8 +285,17 @@ export const useFarmerUpdateOrderStatus = () => {
 
   return useMutation({
     mutationFn: async ({ orderId, newStatus }: { orderId: string; newStatus: string }) => {
-      const { updateOrderStatus } = await import('@/lib/marketplaceApi');
-      const res = await updateOrderStatus(orderId, newStatus);
+      const api = await import('@/lib/marketplaceApi');
+
+      let res;
+      if (newStatus === 'confirmed') {
+        res = await api.confirmOrder(orderId);
+      } else if (newStatus === 'rejected') {
+        res = await api.rejectOrder(orderId, 'Rejected by farmer');
+      } else {
+        res = await api.updateOrderStatus(orderId, newStatus);
+      }
+
       if (!res || !res.success) throw new Error(res?.error || 'Update failed');
       return res;
     },

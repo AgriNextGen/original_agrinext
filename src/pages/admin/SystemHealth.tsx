@@ -1,51 +1,66 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { HealthKPI } from "@/components/admin/HealthKPI";
 import { AlertRow } from "@/components/admin/AlertRow";
+import DashboardLayout from "@/layouts/DashboardLayout";
+import PageShell from "@/components/layout/PageShell";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { RefreshCw } from "lucide-react";
 
 export default function SystemHealthPage() {
-  const [snapshot, setSnapshot] = useState<any>(null);
-  const [alerts, setAlerts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  const load = async () => {
-    setLoading(true);
-    try {
-      const { data } = await supabase.rpc("admin.system_health_snapshot_v1");
-      setSnapshot(data);
-      const { data: a } = await supabase.from("audit.alerts").select("*").eq("status", "open").order("created_at", { ascending: false }).limit(50);
-      setAlerts(a || []);
-    } catch (e) {
-      console.error("system health load", e);
-    } finally { setLoading(false); }
-  };
-
-  useEffect(() => { load(); }, []);
+  const { data, isLoading: loading, refetch } = useQuery({
+    queryKey: ['admin', 'system-health'],
+    queryFn: async () => {
+      const [snapRes, alertsRes] = await Promise.all([
+        supabase.rpc("admin.system_health_snapshot_v1"),
+        supabase.from("audit.alerts").select("*").eq("status", "open").order("created_at", { ascending: false }).limit(50),
+      ]);
+      return { snapshot: snapRes.data, alerts: alertsRes.data ?? [] };
+    },
+  });
+  const snapshot = data?.snapshot;
+  const alerts = data?.alerts ?? [];
 
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-4">System Health</h2>
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <HealthKPI label="Login Success (1h)" value={snapshot?.login_success_count} />
-        <HealthKPI label="Login Failures (1h)" value={snapshot?.login_failure_count} />
-        <HealthKPI label="Webhook Failures (1h)" value={snapshot?.webhook_failure_count} />
-        <HealthKPI label="Job Failures (1h)" value={snapshot?.job_failure_count} />
-        <HealthKPI label="Dead Jobs (1h)" value={snapshot?.dead_jobs_count} />
-        <HealthKPI label="Payout Queue" value={snapshot?.payout_queue_count} />
-      </div>
+    <DashboardLayout title="System Health">
+      <PageShell
+        title="System Health"
+        subtitle="Real-time platform health monitoring"
+        actions={
+          <Button variant="outline" size="sm" onClick={() => refetch()} disabled={loading}>
+            <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            {loading ? "Refreshing..." : "Refresh"}
+          </Button>
+        }
+      >
+        {loading && !snapshot ? (
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Skeleton key={i} className="h-20 w-full" />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+            <HealthKPI label="Login Success (1h)" value={snapshot?.login_success_count} />
+            <HealthKPI label="Login Failures (1h)" value={snapshot?.login_failure_count} />
+            <HealthKPI label="Webhook Failures (1h)" value={snapshot?.webhook_failure_count} />
+            <HealthKPI label="Job Failures (1h)" value={snapshot?.job_failure_count} />
+            <HealthKPI label="Dead Jobs (1h)" value={snapshot?.dead_jobs_count} />
+            <HealthKPI label="Payout Queue" value={snapshot?.payout_queue_count} />
+          </div>
+        )}
 
-      <div className="mb-4">
-        <h3 className="text-xl font-semibold">Open Alerts</h3>
-        <div className="border rounded bg-white">
-          {alerts.length === 0 ? <div className="p-4 text-gray-500">No open alerts</div> :
-            alerts.map(a => <AlertRow key={a.id} alert={a} onChange={load} />)}
+        <div className="mb-4">
+          <h3 className="text-xl font-semibold mb-2">Open Alerts</h3>
+          <div className="border rounded-lg bg-card">
+            {alerts.length === 0 ? <div className="p-4 text-muted-foreground">No open alerts</div> :
+              alerts.map(a => <AlertRow key={a.id} alert={a} onChange={() => refetch()} />)}
+          </div>
         </div>
-      </div>
-
-      <div>
-        <button className="px-3 py-2 bg-blue-600 text-white rounded" onClick={load} disabled={loading}>{loading ? "Refreshing..." : "Refresh"}</button>
-      </div>
-    </div>
+      </PageShell>
+    </DashboardLayout>
   );
 }
 

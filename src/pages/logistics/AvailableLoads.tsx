@@ -41,7 +41,7 @@ const AvailableLoads = () => {
   const { t } = useLanguage();
   const { data: vehicles } = useVehicles();
   const acceptLoad = useAcceptLoadSecure();
-  const { data: pages, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useTransportRequestsInfinite();
+  const { data: pages, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useTransportRequestsInfinite({ status: 'requested' });
   const allLoads = pages ? pages.pages.flatMap((p: any) => p.items || []) : [];
   
   const [searchQuery, setSearchQuery] = useState('');
@@ -237,7 +237,7 @@ const AvailableLoads = () => {
                   <SelectContent>
                     {vehicles.map((vehicle) => (
                       <SelectItem key={vehicle.id} value={vehicle.id}>
-                        {vehicle.number_plate} - {vehicle.vehicle_type} ({vehicle.capacity} tons)
+                        {vehicle.registration_number || 'No Reg.'} - {vehicle.vehicle_type ?? 'Vehicle'} ({vehicle.capacity_kg ?? 0} kg)
                       </SelectItem>
                     ))}
                   </SelectContent>

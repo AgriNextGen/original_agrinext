@@ -28,6 +28,10 @@ const KpiCard = ({ label, value, trend, icon: Icon, priority = 'neutral', onClic
   const TrendIcon = trend === undefined ? Minus : trend > 0 ? TrendingUp : trend < 0 ? TrendingDown : Minus;
   const trendClass = trend === undefined ? 'text-muted-foreground' : trend > 0 ? 'text-success' : trend < 0 ? 'text-destructive' : 'text-muted-foreground';
 
+  const handleKeyDown = clickable
+    ? (e: React.KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick?.(); } }
+    : undefined;
+
   return (
     <Card
       className={cn(
@@ -35,6 +39,7 @@ const KpiCard = ({ label, value, trend, icon: Icon, priority = 'neutral', onClic
         clickable ? 'cursor-pointer hover:-translate-y-[2px] hover:shadow-elev-2' : 'hover:shadow-elev-1'
       )}
       onClick={onClick}
+      {...(clickable ? { role: 'button', tabIndex: 0, onKeyDown: handleKeyDown } : {})}
     >
       <CardContent className="p-4 sm:p-5">
         <div className="flex items-start justify-between gap-3">

@@ -1,87 +1,105 @@
 import DashboardLayout from '@/layouts/DashboardLayout';
 import PageShell from '@/components/layout/PageShell';
-import { useEffect, useState } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import KpiCard from '@/components/dashboard/KpiCard';
+import EmptyState from '@/components/shared/EmptyState';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { toast } from 'sonner';
+import { Inbox, Clock, Play, AlertTriangle, Skull } from 'lucide-react';
+import { useLanguage } from '@/hooks/useLanguage';
+import { useAdminJobsSummary, useRetryJob } from '@/hooks/useAdminJobs';
 
 export default function AdminJobs() {
-  const [summary, setSummary] = useState<any>(null);
-  const [jobs, setJobs] = useState<any[]>([]);
+  const { t } = useLanguage();
+  const { data, isLoading } = useAdminJobsSummary();
+  const retryJob = useRetryJob();
+  const summary = data?.summary ?? {};
+  const jobs: any[] = data?.jobs ?? [];
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch('/.netlify/functions/admin-jobs-summary', { credentials: 'include' });
-        const json = await res.json();
-        setSummary(json.summary || {});
-        setJobs(json.jobs || []);
-      } catch (e) {
-        console.error('fetch jobs summary', e);
-      }
-    })();
-  }, []);
+  if (isLoading) {
+    return (
+      <DashboardLayout title={t('admin.jobs.title')}>
+        <PageShell title={t('admin.jobs.title')} subtitle={t('admin.jobs.subtitle')}>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-24" />)}
+            </div>
+            <Skeleton className="h-96 w-full" />
+          </div>
+        </PageShell>
+      </DashboardLayout>
+    );
+  }
+
+  const handleRetry = (jobType: string, payload: any) => {
+    retryJob.mutate({ jobType, payload }, {
+      onSuccess: () => toast.success(t('admin.jobs.retryEnqueued')),
+      onError: () => toast.error(t('admin.jobs.retryFailed')),
+    });
+  };
 
   return (
-    <DashboardLayout title="Jobs">
-      <PageShell title="Jobs" subtitle="Background job queue">
+    <DashboardLayout title={t('admin.jobs.title')}>
+      <PageShell title={t('admin.jobs.title')} subtitle={t('admin.jobs.subtitle')}>
         <div className="space-y-4">
-          <div className="grid grid-cols-4 gap-4">
-            <div className="p-4 border rounded">
-              <div className="text-xs text-muted-foreground">Queued</div>
-              <div className="text-xl font-semibold">{summary?.queued || 0}</div>
-            </div>
-            <div className="p-4 border rounded">
-              <div className="text-xs text-muted-foreground">Running</div>
-              <div className="text-xl font-semibold">{summary?.running || 0}</div>
-            </div>
-            <div className="p-4 border rounded">
-              <div className="text-xs text-muted-foreground">Failed</div>
-              <div className="text-xl font-semibold">{summary?.failed || 0}</div>
-            </div>
-            <div className="p-4 border rounded">
-              <div className="text-xs text-muted-foreground">Dead</div>
-              <div className="text-xl font-semibold">{summary?.dead || 0}</div>
-            </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <KpiCard label={t('admin.jobs.queued')} value={summary?.queued || 0} icon={Clock} priority="info" />
+            <KpiCard label={t('admin.jobs.running')} value={summary?.running || 0} icon={Play} priority="primary" />
+            <KpiCard label={t('admin.jobs.failed')} value={summary?.failed || 0} icon={AlertTriangle} priority="warning" />
+            <KpiCard label={t('admin.jobs.dead')} value={summary?.dead || 0} icon={Skull} priority="neutral" />
           </div>
 
-          <div>
-            <table className="w-full">
-              <thead>
-                <tr>
-                  <th>ID</th><th>Type</th><th>Status</th><th>Attempts</th><th>Run At</th><th>Priority</th><th>Error</th><th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {jobs.map(j => (
-                  <tr key={j.id}>
-                    <td className="text-xs">{j.id}</td>
-                    <td>{j.job_type}</td>
-                    <td>{j.status}</td>
-                    <td>{j.attempts}/{j.max_attempts}</td>
-                    <td>{new Date(j.run_at).toLocaleString()}</td>
-                    <td>{j.priority}</td>
-                    <td><pre className="text-xs">{j.last_error}</pre></td>
-                    <td>
-                      <button className="px-2 py-1 border rounded" onClick={async () => {
-                        try {
-                          await fetch('/.netlify/functions/admin-enqueue', {
-                            method: 'POST',
-                            credentials: 'include',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ job_type: j.job_type, payload: j.payload })
-                          });
-                          alert('retry enqueued');
-                        } catch (e) {
-                          alert('failed to enqueue');
-                        }
-                      }}>Retry</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          {jobs.length === 0 ? (
+            <EmptyState icon={Inbox} title={t('admin.jobs.noJobs')} description={t('admin.jobs.queueEmpty')} />
+          ) : (
+            <Card>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{t('admin.jobs.id')}</TableHead>
+                      <TableHead>{t('admin.jobs.type')}</TableHead>
+                      <TableHead>{t('common.status')}</TableHead>
+                      <TableHead>{t('admin.jobs.attempts')}</TableHead>
+                      <TableHead>{t('admin.jobs.runAt')}</TableHead>
+                      <TableHead>{t('admin.jobs.priority')}</TableHead>
+                      <TableHead>{t('admin.jobs.error')}</TableHead>
+                      <TableHead>{t('common.actions')}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {jobs.map((j: any) => (
+                      <TableRow key={j.id}>
+                        <TableCell className="text-xs font-mono">{j.id}</TableCell>
+                        <TableCell>{j.job_type}</TableCell>
+                        <TableCell>{j.status}</TableCell>
+                        <TableCell>{j.attempts}/{j.max_attempts}</TableCell>
+                        <TableCell>{new Date(j.run_at).toLocaleString()}</TableCell>
+                        <TableCell>{j.priority}</TableCell>
+                        <TableCell><pre className="text-xs max-w-[200px] truncate">{j.last_error}</pre></TableCell>
+                        <TableCell>
+                          <Button size="sm" variant="outline" onClick={() => handleRetry(j.job_type, j.payload)}>
+                            {t('admin.jobs.retry')}
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </Card>
+          )}
         </div>
       </PageShell>
     </DashboardLayout>
   );
 }
-

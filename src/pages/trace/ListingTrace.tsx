@@ -109,7 +109,7 @@ const ListingTrace = () => {
           setError(null);
         }
       } catch (err) {
-        console.error('Error fetching trace data:', err);
+        if (import.meta.env.DEV) console.error('Error fetching trace data:', err);
         setError('Unable to verify this product. Please try again later.');
       } finally {
         setLoading(false);

@@ -10,6 +10,7 @@ import { normalizePhone, getAuthEmailFromPhone } from "@/lib/auth";
 import { useAuth } from "@/hooks/useAuth";
 import type { Database } from "@/integrations/supabase/types";
 import { useLanguage } from "@/hooks/useLanguage";
+import { ROLE_DASHBOARD_ROUTES } from "@/lib/routes";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
 
@@ -51,13 +52,15 @@ const logSupabaseError = (label: string, error: unknown) => {
     hint?: string;
     status?: number;
   };
-  console.error(label, {
-    message: err.message,
-    code: err.code,
-    details: err.details,
-    hint: err.hint,
-    status: err.status,
-  });
+  if (import.meta.env.DEV) {
+    console.error(label, {
+      message: err.message,
+      code: err.code,
+      details: err.details,
+      hint: err.hint,
+      status: err.status,
+    });
+  }
 };
 
 const getRoles = (t: (key: string) => string): { id: AppRole; label: string; icon: typeof Users; description: string }[] => [
@@ -66,14 +69,6 @@ const getRoles = (t: (key: string) => string): { id: AppRole; label: string; ico
   { id: "agent", label: t("roles.agent"), icon: ClipboardList, description: t("roles.agent_description") },
   { id: "logistics", label: t("roles.logistics"), icon: Truck, description: t("roles.logistics_description") },
 ];
-
-const roleRoutes: Record<string, string> = {
-  farmer: "/farmer/dashboard",
-  buyer: "/marketplace/dashboard",
-  agent: "/agent/dashboard",
-  logistics: "/logistics/dashboard",
-  admin: "/admin/dashboard",
-};
 
 const Signup = () => {
   const { t } = useLanguage();
@@ -96,7 +91,7 @@ const Signup = () => {
   // Redirect if already logged in with role
   useEffect(() => {
     if (user && userRole) {
-      navigate(roleRoutes[userRole] || "/");
+      navigate(ROLE_DASHBOARD_ROUTES[userRole] || "/");
     }
   }, [user, userRole, navigate]);
 
@@ -109,7 +104,7 @@ const Signup = () => {
     if (!normalizedPhone || normalizedPhone.length < 12) {
       return t("validation.phone_required");
     }
-    if (formData.password.length < 6) {
+    if (formData.password.length < 8) {
       return t("validation.password_min");
     }
     if (formData.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
@@ -123,7 +118,7 @@ const Signup = () => {
     setError(null);
     // Prevent duplicate submits from rapid clicks/race conditions
     if (isLoading || isSubmittingRef.current) {
-      console.warn("Signup already in progress - ignoring duplicate submit");
+      if (import.meta.env.DEV) console.warn("Signup already in progress - ignoring duplicate submit");
       return;
     }
     if (step === 1 && selectedRole) {
@@ -212,10 +207,10 @@ const Signup = () => {
           description: t("auth.welcome_agrinext"),
         });
 
-        const nextRoute = signupData.dashboard_route || roleRoutes[selectedRole] || "/";
+        const nextRoute = signupData.dashboard_route || ROLE_DASHBOARD_ROUTES[selectedRole] || "/";
         navigate(nextRoute);
       } catch (error) {
-        console.error("Signup unexpected error:", error);
+        if (import.meta.env.DEV) console.error("Signup unexpected error:", error);
         setError(t("common.error"));
         toast({
           title: t("common.error"),
@@ -392,7 +387,7 @@ const Signup = () => {
                       className="pl-10 h-12"
                       disabled={isLoading}
                       required
-                      minLength={6}
+                      minLength={8}
                       autoComplete="new-password"
                     />
                   </div>

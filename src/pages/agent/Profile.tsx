@@ -22,6 +22,8 @@ import GeoStateSelect from '@/components/geo/GeoStateSelect';
 import GeoDistrictSelect from '@/components/geo/GeoDistrictSelect';
 import { toast } from 'sonner';
 import PageHeader from '@/components/shared/PageHeader';
+import { Skeleton } from '@/components/ui/skeleton';
+import { ROUTES } from '@/lib/routes';
 
 export default function AgentProfile() {
   const { user } = useAuth();
@@ -105,19 +107,15 @@ export default function AgentProfile() {
 
   const isValid = fullName.trim() && phone.trim();
 
-  if (isLoading) {
-    return (
-      <DashboardLayout title={language === 'kn' ? 'ನನ್ನ ಪ್ರೊಫೈಲ್' : 'My Profile'}>
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
-      </DashboardLayout>
-    );
-  }
-
   return (
     <DashboardLayout title={language === 'kn' ? 'ನನ್ನ ಪ್ರೊಫೈಲ್' : 'My Profile'}>
       <PageHeader title={language === 'kn' ? 'ನನ್ನ ಪ್ರೊಫೈಲ್' : 'My Profile'} subtitle={language === 'kn' ? 'ನಿಮ್ಮ ಪ್ರೊಫೈಲ್ ಮಾಹಿತಿ ನವೀಕರಿಸಿ' : 'Update your profile information'}>
+      {isLoading ? (
+        <div className="max-w-2xl mx-auto space-y-6">
+          <Skeleton className="h-64 w-full" />
+          <Skeleton className="h-48 w-full" />
+        </div>
+      ) : (
       <div className="max-w-2xl mx-auto space-y-6">
 
         <Card>
@@ -201,7 +199,7 @@ export default function AgentProfile() {
               </Select>
             </div>
 
-            <Link to="/agent/service-area" className="block">
+            <Link to={ROUTES.AGENT.SERVICE_AREA} className="block">
               <div className="flex items-center gap-2 p-3 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer">
                 <MapPin className="h-5 w-5 text-primary" />
                 <div>
@@ -233,6 +231,7 @@ export default function AgentProfile() {
           </CardContent>
         </Card>
       </div>
+      )}
       </PageHeader>
     </DashboardLayout>
   );

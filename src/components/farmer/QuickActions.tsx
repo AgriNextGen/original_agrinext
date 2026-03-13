@@ -9,6 +9,7 @@ import {
   ShoppingBag
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { ROUTES } from '@/lib/routes';
 import { useFarmerAgent } from '@/hooks/useAgentAssignments';
 
 const QuickActions = () => {
@@ -20,7 +21,7 @@ const QuickActions = () => {
       label: 'Add Crop',
       icon: Plus,
       color: 'bg-primary hover:bg-primary/90 text-primary-foreground',
-      onClick: () => navigate('/farmer/crops'),
+      onClick: () => navigate(ROUTES.FARMER.CROPS),
       disabled: false,
       tooltip: null,
     },
@@ -28,7 +29,7 @@ const QuickActions = () => {
       label: 'Add Farmland',
       icon: LandPlot,
       color: 'bg-amber-600 hover:bg-amber-700 text-white',
-      onClick: () => navigate('/farmer/farmlands'),
+      onClick: () => navigate(ROUTES.FARMER.FARMLANDS),
       disabled: false,
       tooltip: null,
     },
@@ -36,7 +37,7 @@ const QuickActions = () => {
       label: 'Request Transport',
       icon: Truck,
       color: 'bg-blue-600 hover:bg-blue-700 text-white',
-      onClick: () => navigate('/farmer/transport'),
+      onClick: () => navigate(ROUTES.FARMER.TRANSPORT),
       disabled: false,
       tooltip: null,
     },
@@ -44,7 +45,7 @@ const QuickActions = () => {
       label: 'Create Listing',
       icon: ShoppingBag,
       color: 'bg-emerald-600 hover:bg-emerald-700 text-white',
-      onClick: () => navigate('/farmer/listings'),
+      onClick: () => navigate(ROUTES.FARMER.LISTINGS),
       disabled: false,
       tooltip: null,
     },

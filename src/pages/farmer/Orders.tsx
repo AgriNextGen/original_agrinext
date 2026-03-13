@@ -8,6 +8,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import PageHeader from '@/components/shared/PageHeader';
 import EmptyState from '@/components/shared/EmptyState';
 import { useLanguage } from '@/hooks/useLanguage';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   Search, 
   Filter,
@@ -34,16 +36,25 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useFarmerOrders, useFarmerUpdateOrderStatus } from '@/hooks/useFarmerDashboard';
 import { format } from 'date-fns';
 
-type OrderStatus = 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled' | 'rejected';
+type OrderStatus = 'placed' | 'confirmed' | 'packed' | 'ready_for_pickup' | 'delivered' | 'cancelled' | 'rejected';
 
 const statusConfig: Record<OrderStatus, { label: string; icon: typeof Clock; color: string }> = {
-  pending: { label: 'Pending', icon: Clock, color: 'bg-accent/20 text-accent-foreground border-accent/30' },
+  placed: { label: 'New Order', icon: Clock, color: 'bg-accent/20 text-accent-foreground border-accent/30' },
   confirmed: { label: 'Confirmed', icon: CheckCircle, color: 'bg-primary/20 text-primary border-primary/30' },
-  shipped: { label: 'Shipped', icon: Truck, color: 'bg-blue-500/20 text-blue-700 border-blue-500/30' },
+  packed: { label: 'Packed', icon: Package, color: 'bg-blue-500/20 text-blue-700 border-blue-500/30' },
+  ready_for_pickup: { label: 'Ready for Pickup', icon: Truck, color: 'bg-purple-500/20 text-purple-700 border-purple-500/30' },
   delivered: { label: 'Delivered', icon: Package, color: 'bg-primary/20 text-primary border-primary/30' },
   cancelled: { label: 'Cancelled', icon: XCircle, color: 'bg-destructive/20 text-destructive border-destructive/30' },
   rejected: { label: 'Rejected', icon: XCircle, color: 'bg-destructive/20 text-destructive border-destructive/30' },
@@ -65,15 +76,16 @@ const FarmerOrders = () => {
       order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
       order.buyer?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       order.crop?.crop_name?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
+    const matchesStatus = statusFilter === 'all'
+      || (statusFilter === 'active' ? ['packed', 'ready_for_pickup'].includes(order.status) : order.status === statusFilter);
     return matchesSearch && matchesStatus;
   });
 
   const orderCounts = {
     all: orders?.length || 0,
-    pending: orders?.filter(o => o.status === 'pending').length || 0,
+    placed: orders?.filter(o => o.status === 'placed').length || 0,
     confirmed: orders?.filter(o => o.status === 'confirmed').length || 0,
-    shipped: orders?.filter(o => o.status === 'shipped').length || 0,
+    active: orders?.filter(o => ['packed', 'ready_for_pickup'].includes(o.status)).length || 0,
     delivered: orders?.filter(o => o.status === 'delivered').length || 0,
     cancelled: orders?.filter(o => o.status === 'cancelled' || o.status === 'rejected').length || 0,
   };
@@ -83,18 +95,17 @@ const FarmerOrders = () => {
     setIsDetailOpen(true);
   };
 
-  // timeline state
-  const [timeline, setTimeline] = useState<any[]>([]);
-  const fetchTimeline = async (orderId: string) => {
-    try {
-      const { data, error } = await (await import('@/integrations/supabase/client')).supabase.rpc('get_order_timeline_v1', { p_order_id: orderId });
+  const { data: timeline = [] } = useQuery({
+    queryKey: ['order-timeline', selectedOrder?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('get_order_timeline_v1', {
+        p_order_id: selectedOrder!.id,
+      } as any);
       if (error) throw error;
-      setTimeline(data || []);
-    } catch (err) {
-      console.error('Failed to load timeline', err);
-      setTimeline([]);
-    }
-  };
+      return (data || []) as any[];
+    },
+    enabled: !!selectedOrder?.id,
+  });
  
   const viewProof = async (fileId: string | null) => {
     if (!fileId) return;
@@ -115,7 +126,7 @@ const FarmerOrders = () => {
       if (!res.ok || !json?.signed_url) throw new Error(json?.error || 'Failed to sign read url');
       window.open(json.signed_url, '_blank');
     } catch (err) {
-      console.error('viewProof error', err);
+      if (import.meta.env.DEV) console.error('viewProof error', err);
       toast({ title: 'Error', description: 'Unable to open proof file', variant: 'destructive' });
     }
   };
@@ -131,15 +142,17 @@ const FarmerOrders = () => {
   if (isLoading) {
     return (
       <DashboardLayout title={t('orders.title')}>
-        <div className="space-y-6">
-          <Skeleton className="h-10 w-full max-w-md" />
-          <Skeleton className="h-12 w-full" />
-          <div className="space-y-4">
-            {Array(5).fill(0).map((_, i) => (
-              <Skeleton key={i} className="h-20 w-full" />
-            ))}
+        <PageHeader title={t('orders.title')}>
+          <div className="space-y-6">
+            <Skeleton className="h-10 w-full max-w-md" />
+            <Skeleton className="h-12 w-full" />
+            <div className="space-y-4">
+              {Array(5).fill(0).map((_, i) => (
+                <Skeleton key={i} className="h-20 w-full" />
+              ))}
+            </div>
           </div>
-        </div>
+        </PageHeader>
       </DashboardLayout>
     );
   }
@@ -166,9 +179,9 @@ const FarmerOrders = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="placed">New</SelectItem>
                 <SelectItem value="confirmed">Confirmed</SelectItem>
-                <SelectItem value="shipped">Shipped</SelectItem>
+                <SelectItem value="active">In Progress</SelectItem>
                 <SelectItem value="delivered">Delivered</SelectItem>
                 <SelectItem value="cancelled">Cancelled</SelectItem>
               </SelectContent>
@@ -182,14 +195,14 @@ const FarmerOrders = () => {
             <TabsTrigger value="all" className="data-[state=active]:bg-background">
               All <Badge variant="secondary" className="ml-2">{orderCounts.all}</Badge>
             </TabsTrigger>
-            <TabsTrigger value="pending" className="data-[state=active]:bg-background">
-              Pending <Badge variant="secondary" className="ml-2">{orderCounts.pending}</Badge>
+            <TabsTrigger value="placed" className="data-[state=active]:bg-background">
+              New <Badge variant="secondary" className="ml-2">{orderCounts.placed}</Badge>
             </TabsTrigger>
             <TabsTrigger value="confirmed" className="data-[state=active]:bg-background">
               Confirmed <Badge variant="secondary" className="ml-2">{orderCounts.confirmed}</Badge>
             </TabsTrigger>
-            <TabsTrigger value="shipped" className="data-[state=active]:bg-background">
-              Shipped <Badge variant="secondary" className="ml-2">{orderCounts.shipped}</Badge>
+            <TabsTrigger value="active" className="data-[state=active]:bg-background">
+              In Progress <Badge variant="secondary" className="ml-2">{orderCounts.active}</Badge>
             </TabsTrigger>
             <TabsTrigger value="delivered" className="data-[state=active]:bg-background">
               Delivered <Badge variant="secondary" className="ml-2">{orderCounts.delivered}</Badge>
@@ -198,88 +211,89 @@ const FarmerOrders = () => {
         </Tabs>
 
         {/* Orders Table */}
-        <div className="bg-card rounded-xl border border-border shadow-soft overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border bg-muted/30">
-                  <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-6 py-4">Order ID</th>
-                  <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-6 py-4">Buyer</th>
-                  <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-6 py-4">Product</th>
-                  <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-6 py-4">Quantity</th>
-                  <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-6 py-4">Total</th>
-                  <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-6 py-4">Status</th>
-                  <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-6 py-4">Date</th>
-                  <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-6 py-4">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {filteredOrders.map((order) => {
-                  const status = order.status as OrderStatus;
-                  const config = statusConfig[status] || statusConfig.pending;
-                  const StatusIcon = config.icon;
-                  return (
-                    <tr key={order.id} className="hover:bg-muted/50 transition-colors">
-                      <td className="px-6 py-4 text-sm font-medium text-foreground">
-                        {order.id.slice(0, 8).toUpperCase()}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div>
-                          <p className="text-sm font-medium text-foreground">{order.buyer?.name || 'Unknown Buyer'}</p>
-                          <p className="text-xs text-muted-foreground">{order.buyer?.district || '-'}</p>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-foreground">
-                        {order.crop?.crop_name || 'N/A'}
-                        {order.crop?.variety && <span className="text-muted-foreground ml-1">({order.crop.variety})</span>}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-muted-foreground">
-                        {order.quantity} {order.quantity_unit || 'quintals'}
-                      </td>
-                      <td className="px-6 py-4 text-sm font-medium text-foreground">
-                        {order.price_offered ? `₹${order.price_offered.toLocaleString()}` : '-'}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className={cn('gap-1', config.color)}>
-                            <StatusIcon className="h-3 w-3" />
-                            {config.label}
-                          </Badge>
-                          {order.payout_hold && (
-                            <Badge className="bg-yellow-100 text-yellow-800">
-                              Payout hold
+        {filteredOrders.length === 0 ? (
+          <EmptyState
+            icon={Package}
+            title={orders?.length === 0 ? t('orders.noOrdersYet') : t('common.noResultsFound')}
+            description={orders?.length === 0 ? t('orders.noOrdersYet') : t('common.tryAgain')}
+          />
+        ) : (
+          <div className="rounded-xl border border-border shadow-soft overflow-hidden">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Order ID</TableHead>
+                    <TableHead>Buyer</TableHead>
+                    <TableHead>Product</TableHead>
+                    <TableHead>Quantity</TableHead>
+                    <TableHead>Total</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredOrders.map((order) => {
+                    const status = order.status as OrderStatus;
+                    const config = statusConfig[status] || statusConfig.placed;
+                    const StatusIcon = config.icon;
+                    return (
+                      <TableRow key={order.id}>
+                        <TableCell className="font-medium">
+                          {order.id.slice(0, 8).toUpperCase()}
+                        </TableCell>
+                        <TableCell>
+                          <div>
+                            <p className="text-sm font-medium text-foreground">{order.buyer?.name || 'Unknown Buyer'}</p>
+                            <p className="text-xs text-muted-foreground">{order.buyer?.district || '-'}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {order.crop?.crop_name || 'N/A'}
+                          {order.crop?.variety && <span className="text-muted-foreground ml-1">({order.crop.variety})</span>}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {order.quantity} {order.quantity_unit || 'quintals'}
+                        </TableCell>
+                        <TableCell className="font-medium">
+                          {order.price_offered ? `₹${order.price_offered.toLocaleString()}` : '-'}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className={cn('gap-1', config.color)}>
+                              <StatusIcon className="h-3 w-3" />
+                              {config.label}
                             </Badge>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-muted-foreground">
-                        {format(new Date(order.created_at), 'dd MMM yyyy')}
-                      </td>
-                      <td className="px-6 py-4">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="gap-2"
-                          onClick={() => handleViewOrder(order)}
-                        >
-                          <Eye className="h-4 w-4" />
-                          View
-                        </Button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                            {order.payout_hold && (
+                              <Badge className="bg-yellow-100 text-yellow-800">
+                                Payout hold
+                              </Badge>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {format(new Date(order.created_at), 'dd MMM yyyy')}
+                        </TableCell>
+                        <TableCell>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="gap-2"
+                            onClick={() => handleViewOrder(order)}
+                          >
+                            <Eye className="h-4 w-4" />
+                            View
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
           </div>
-          {filteredOrders.length === 0 && (
-            <EmptyState
-              icon={Package}
-              title={orders?.length === 0 ? t('orders.noOrdersYet') : t('common.noResultsFound')}
-              description={orders?.length === 0 ? t('orders.noOrdersYet') : t('common.tryAgain')}
-            />
-          )}
-        </div>
+        )}
 
         {/* Order Detail Dialog */}
         <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
@@ -408,7 +422,7 @@ const FarmerOrders = () => {
             )}
             </div>
             <DialogFooter className="flex-col sm:flex-row gap-2">
-              {selectedOrder?.status === 'pending' && (
+              {selectedOrder?.status === 'placed' && (
                 <>
                   <Button 
                     variant="outline" 
@@ -432,20 +446,30 @@ const FarmerOrders = () => {
               {selectedOrder?.status === 'confirmed' && (
                 <Button 
                   className="gap-2"
-                  onClick={() => handleStatusUpdate('shipped')}
+                  onClick={() => handleStatusUpdate('packed')}
+                  disabled={updateStatus.isPending}
+                >
+                  <Package className="h-4 w-4" />
+                  Mark as Packed
+                </Button>
+              )}
+              {selectedOrder?.status === 'packed' && (
+                <Button 
+                  className="gap-2"
+                  onClick={() => handleStatusUpdate('ready_for_pickup')}
                   disabled={updateStatus.isPending}
                 >
                   <Truck className="h-4 w-4" />
-                  Mark as Shipped
+                  Ready for Pickup
                 </Button>
               )}
-              {selectedOrder?.status === 'shipped' && (
+              {selectedOrder?.status === 'ready_for_pickup' && (
                 <Button 
                   className="gap-2"
                   onClick={() => handleStatusUpdate('delivered')}
                   disabled={updateStatus.isPending}
                 >
-                  <Package className="h-4 w-4" />
+                  <CheckCircle className="h-4 w-4" />
                   Mark as Delivered
                 </Button>
               )}

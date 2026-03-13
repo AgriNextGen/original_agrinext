@@ -1,9 +1,11 @@
 import DashboardLayout from '@/layouts/DashboardLayout';
+import PageShell from '@/components/layout/PageShell';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Sprout, Search, MapPin, Calendar } from 'lucide-react';
+import { Search, MapPin, Calendar, Inbox } from 'lucide-react';
+import EmptyState from '@/components/shared/EmptyState';
 import { useAllCrops } from '@/hooks/useAdminDashboard';
 import { useState } from 'react';
 import {
@@ -54,15 +56,10 @@ const AdminCrops = () => {
 
   return (
     <DashboardLayout title="Crop Monitoring">
-      <div className="space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-              <Sprout className="w-6 h-6 text-emerald-600" />
-              Crop Monitoring
-            </h1>
-            <p className="text-muted-foreground">Complete crop ecosystem overview</p>
-          </div>
+      <PageShell
+        title="Crop Monitoring"
+        subtitle="Complete crop ecosystem overview"
+        actions={
           <div className="flex gap-2">
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-40">
@@ -86,8 +83,8 @@ const AdminCrops = () => {
               />
             </div>
           </div>
-        </div>
-
+        }
+      >
         <Card>
           <CardHeader>
             <CardTitle>All Crops ({filteredCrops.length})</CardTitle>
@@ -99,6 +96,8 @@ const AdminCrops = () => {
                   <Skeleton key={i} className="h-16 w-full" />
                 ))}
               </div>
+            ) : filteredCrops.length === 0 ? (
+              <EmptyState icon={Inbox} title="No crops found" />
             ) : (
               <div className="overflow-x-auto">
                 <Table>
@@ -150,20 +149,13 @@ const AdminCrops = () => {
                         </TableCell>
                       </TableRow>
                     ))}
-                    {filteredCrops.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                          No crops found
-                        </TableCell>
-                      </TableRow>
-                    )}
                   </TableBody>
                 </Table>
               </div>
             )}
           </CardContent>
         </Card>
-      </div>
+      </PageShell>
     </DashboardLayout>
   );
 };

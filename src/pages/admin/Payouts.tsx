@@ -1,35 +1,49 @@
 import DashboardLayout from '@/layouts/DashboardLayout';
 import PageShell from '@/components/layout/PageShell';
-import { useEffect, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { rpcJson } from '@/lib/readApi';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Payouts() {
-  const [payouts, setPayouts] = useState<any[]>([]);
-  useEffect(() => {
-    (async () => {
-      try {
-        const data = await rpcJson('admin.list_payout_jobs_v1', { p_limit: 200 });
-        setPayouts(data || []);
-      } catch (e) { console.error('list payouts', e); }
-    })();
-  }, []);
+  const queryClient = useQueryClient();
+  const { data: payouts = [], isLoading } = useQuery({
+    queryKey: ['admin', 'payouts'],
+    queryFn: () => rpcJson('admin.list_payout_jobs_v1', { p_limit: 200 }),
+  });
+
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: ['admin', 'payouts'] });
 
   async function markInitiated(id: string) {
     try {
       await rpcJson('admin.mark_payout_initiated_v1', { p_payout_job_id: id, p_reference_id: `manual:${Date.now()}` });
-    } catch (e) { console.error(e); }
+      invalidate();
+    } catch (e) { if (import.meta.env.DEV) console.error(e); }
   }
   async function markSuccess(id: string) {
     try {
       await rpcJson('admin.mark_payout_success_v1', { p_payout_job_id: id, p_reference_id: `manual:${Date.now()}` });
-    } catch (e) { console.error(e); }
+      invalidate();
+    } catch (e) { if (import.meta.env.DEV) console.error(e); }
   }
   async function markFailed(id: string) {
     try {
       await rpcJson('admin.mark_payout_failed_v1', { p_payout_job_id: id, p_error: 'manual failure' });
-    } catch (e) { console.error(e); }
+      invalidate();
+    } catch (e) { if (import.meta.env.DEV) console.error(e); }
+  }
+
+  if (isLoading) {
+    return (
+      <DashboardLayout title="Payouts">
+        <PageShell title="Payout Jobs" subtitle="Manage queued payouts">
+          <div className="space-y-3">
+            {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-20 w-full" />)}
+          </div>
+        </PageShell>
+      </DashboardLayout>
+    );
   }
 
   return (

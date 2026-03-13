@@ -338,15 +338,7 @@ const AgentTasks = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredTasks?.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={7} className="text-center py-12">
-                        <ClipboardList className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
-                        <p className="text-muted-foreground">No tasks found</p>
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    filteredTasks?.map((task) => (
+                  {filteredTasks?.map((task) => (
                       <TableRow key={task.id}>
                         <TableCell className="font-medium">
                           {task.farmer?.full_name || 'Unknown'}
@@ -421,8 +413,7 @@ const AgentTasks = () => {
                           </div>
                         </TableCell>
                       </TableRow>
-                    ))
-                  )}
+                    ))}
                 </TableBody>
               </Table>
               <div className="p-4 text-center">

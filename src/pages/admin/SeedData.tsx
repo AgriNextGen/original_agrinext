@@ -1,10 +1,12 @@
 import { useState } from "react";
 import DashboardLayout from "@/layouts/DashboardLayout";
+import PageShell from "@/components/layout/PageShell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, Database, CheckCircle, Users, Truck, ShoppingBag, Shield, Leaf } from "lucide-react";
+import KpiCard from "@/components/dashboard/KpiCard";
 
 interface SeedResult {
   success: boolean;
@@ -83,7 +85,7 @@ export default function SeedData() {
 
   return (
     <DashboardLayout title="Seed Test Data">
-      <div className="max-w-4xl mx-auto space-y-6">
+      <PageShell title="Seed Test Data" className="max-w-4xl mx-auto">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -137,10 +139,7 @@ export default function SeedData() {
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {Object.entries(result.summary).map(([key, value]) => (
-                    <div key={key} className="bg-muted rounded-lg p-3 text-center">
-                      <div className="text-2xl font-bold">{value}</div>
-                      <div className="text-xs text-muted-foreground capitalize">{key.replace(/_/g, " ")}</div>
-                    </div>
+                    <KpiCard key={key} label={key.replace(/_/g, " ")} value={value as number} priority="success" />
                   ))}
                 </div>
               </div>
@@ -168,7 +167,7 @@ export default function SeedData() {
             </div>
           </CardContent>
         </Card>
-      </div>
+      </PageShell>
     </DashboardLayout>
   );
 }

@@ -28,24 +28,19 @@ import { format, parseISO } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useLanguage } from '@/hooks/useLanguage';
+import { ROUTES } from '@/lib/routes';
 import PageHeader from '@/components/shared/PageHeader';
 import EmptyState from '@/components/shared/EmptyState';
 import KpiCard from '@/components/dashboard/KpiCard';
 import ActionPanel from '@/components/dashboard/ActionPanel';
-
-const statusColors: Record<string, string> = {
-  requested: 'bg-amber-100 text-amber-800',
-  assigned: 'bg-blue-100 text-blue-800',
-  en_route: 'bg-purple-100 text-purple-800',
-  picked_up: 'bg-indigo-100 text-indigo-800',
-  delivered: 'bg-green-100 text-green-800',
-};
+import { TRANSPORT_STATUS_COLORS } from '@/lib/constants';
 
 const LogisticsDashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { t } = useLanguage();
-  const { stats } = useLogisticsDashboardStats();
+  const { data: dashData, isLoading: statsLoading } = useLogisticsDashboardStats();
+  const stats = dashData?.stats ?? { availableLoads: 0, acceptedTrips: 0, tripsInProgress: 0, completedTrips: 0 };
   const { data: activeTrips, isLoading: tripsLoading } = useActiveTrips();
   const { data: availableLoads, isLoading: loadsLoading } = useAvailableLoads();
   const { data: profile, isLoading: profileLoading } = useTransporterProfile();
@@ -99,7 +94,7 @@ const LogisticsDashboard = () => {
       setAiSuggestion(data.result);
       toast.success('Route optimization complete!');
     } catch (error) {
-      console.error('AI error:', error);
+      if (import.meta.env.DEV) console.error('AI error:', error);
       toast.error('Failed to get AI suggestions');
     } finally {
       setAiLoading(false);
@@ -131,7 +126,7 @@ const LogisticsDashboard = () => {
       setReverseSuggestion(data.result);
       toast.success('Reverse load suggestions ready!');
     } catch (error) {
-      console.error('AI error:', error);
+      if (import.meta.env.DEV) console.error('AI error:', error);
       toast.error('Failed to get reverse load suggestions');
     } finally {
       setReverseLoading(false);
@@ -182,17 +177,17 @@ const LogisticsDashboard = () => {
         title={t('logistics.transporterDashboard')}
         subtitle={`Welcome back, ${profile.name} - ${profile.operating_village || t('logistics.setYourLocation')}`}
         actions={
-          <Button aria-label="Open profile" variant="outline" onClick={() => navigate('/logistics/profile')}>
+          <Button aria-label="Open profile" variant="outline" onClick={() => navigate(ROUTES.LOGISTICS.PROFILE)}>
             <User className="mr-2 h-4 w-4" />
             {t('nav.profile')}
           </Button>
         }
       >
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-          <KpiCard label={t('logistics.availableLoads')} value={stats.availableLoads} icon={Package} priority="warning" onClick={() => navigate('/logistics/loads')} />
-          <KpiCard label={t('logistics.acceptedTrips')} value={stats.acceptedTrips} icon={Clock} priority="info" onClick={() => navigate('/logistics/trips')} />
-          <KpiCard label={t('logistics.inProgress')} value={stats.tripsInProgress} icon={Truck} priority="primary" onClick={() => navigate('/logistics/trips')} />
-          <KpiCard label={t('logistics.completedTrips')} value={stats.completedTrips} icon={CheckCircle2} priority="success" onClick={() => navigate('/logistics/completed')} />
+          <KpiCard label={t('logistics.availableLoads')} value={stats.availableLoads} icon={Package} priority="warning" onClick={() => navigate(ROUTES.LOGISTICS.AVAILABLE_LOADS)} />
+          <KpiCard label={t('logistics.acceptedTrips')} value={stats.acceptedTrips} icon={Clock} priority="info" onClick={() => navigate(ROUTES.LOGISTICS.ACTIVE_TRIPS)} />
+          <KpiCard label={t('logistics.inProgress')} value={stats.tripsInProgress} icon={Truck} priority="primary" onClick={() => navigate(ROUTES.LOGISTICS.ACTIVE_TRIPS)} />
+          <KpiCard label={t('logistics.completedTrips')} value={stats.completedTrips} icon={CheckCircle2} priority="success" onClick={() => navigate(ROUTES.LOGISTICS.COMPLETED_TRIPS)} />
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
@@ -203,7 +198,7 @@ const LogisticsDashboard = () => {
                   <Truck className="h-5 w-5 text-primary" />
                   {t('logistics.todaysActiveTrips')}
                 </CardTitle>
-                <Button variant="ghost" size="sm" onClick={() => navigate('/logistics/trips')}>
+                <Button variant="ghost" size="sm" onClick={() => navigate(ROUTES.LOGISTICS.ACTIVE_TRIPS)}>
                   {t('common.viewAll')} <ArrowRight className="ml-1 h-4 w-4" />
                 </Button>
               </div>
@@ -217,11 +212,13 @@ const LogisticsDashboard = () => {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {activeTrips.slice(0, 3).map((trip) => (
-                    <div key={trip.id} className="cursor-pointer rounded-lg border p-3 transition-colors hover:bg-accent/50" onClick={() => navigate(`/logistics/trip/${trip.id}`)}>
+                  {activeTrips.slice(0, 3).map((trip) => {
+                    const tripId = trip.accepted_trip_id || trip.assigned_trip_id;
+                    return (
+                    <div key={trip.id} className="cursor-pointer rounded-lg border p-3 transition-colors hover:bg-accent/50" onClick={() => tripId && navigate(ROUTES.LOGISTICS.TRIP_DETAIL(tripId))}>
                       <div className="mb-2 flex items-center justify-between">
                         <span className="font-medium">{trip.crop?.crop_name || 'Unknown Crop'}</span>
-                        <Badge className={statusColors[trip.status]}>{trip.status.replace('_', ' ')}</Badge>
+                        <Badge className={TRANSPORT_STATUS_COLORS[trip.status] ?? 'bg-gray-100 text-gray-800'}>{trip.status.replace('_', ' ')}</Badge>
                       </div>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <MapPin className="h-3 w-3" />
@@ -230,7 +227,8 @@ const LogisticsDashboard = () => {
                         <span>{trip.quantity} {trip.quantity_unit}</span>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </CardContent>
@@ -240,10 +238,10 @@ const LogisticsDashboard = () => {
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2 text-lg">
-                  <Package className="h-5 w-5 text-amber-600" />
+                  <Package className="h-5 w-5 text-warning" />
                   {t('logistics.newLoadRequests')}
                 </CardTitle>
-                <Button variant="ghost" size="sm" onClick={() => navigate('/logistics/loads')}>
+                <Button variant="ghost" size="sm" onClick={() => navigate(ROUTES.LOGISTICS.AVAILABLE_LOADS)}>
                   {t('common.viewAll')} <ArrowRight className="ml-1 h-4 w-4" />
                 </Button>
               </div>

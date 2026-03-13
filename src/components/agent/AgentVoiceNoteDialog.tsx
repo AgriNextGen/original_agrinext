@@ -93,7 +93,7 @@ const AgentVoiceNoteDialog = ({
       }, MAX_RECORDING_DURATION);
 
     } catch (error) {
-      console.error('Recording error:', error);
+      if (import.meta.env.DEV) console.error('Recording error:', error);
       toast.error('Could not start recording. Please check microphone permissions.');
     }
   }, []);
@@ -161,7 +161,7 @@ const AgentVoiceNoteDialog = ({
       setRecordingDuration(0);
       onNoteSaved?.();
     } catch (error: any) {
-      console.error('Save error:', error);
+      if (import.meta.env.DEV) console.error('Save error:', error);
       toast.error(error.message || 'Failed to save note');
     } finally {
       setIsSaving(false);

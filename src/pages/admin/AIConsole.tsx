@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import DashboardLayout from '@/layouts/DashboardLayout';
+import PageShell from '@/components/layout/PageShell';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -11,8 +12,13 @@ import {
   Sparkles,
   RefreshCw,
   FileText,
-  Clock
+  Clock,
+  Users,
+  Sprout,
+  Truck,
+  Package
 } from 'lucide-react';
+import KpiCard from '@/components/dashboard/KpiCard';
 import { useAdminDashboardStats } from '@/hooks/useAdminDashboard';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -70,22 +76,10 @@ const AIConsole = () => {
     setLoading(module.id);
     
     try {
-      const { data, error } = await supabase.functions.invoke('admin-ai', {
-        body: {
-          type: module.type,
-          data: {
-            totalFarmers: stats?.totalFarmers || 0,
-            totalBuyers: stats?.totalBuyers || 0,
-            activeTransporters: stats?.activeTransporters || 0,
-            totalCrops: stats?.totalCrops || 0,
-            harvestReady: stats?.harvestReady || 0,
-            oneWeekAway: stats?.oneWeekAway || 0,
-            pendingTransport: stats?.pendingTransport || 0,
-            activeTransport: stats?.activeTransport || 0,
-            pendingOrders: stats?.pendingOrders || 0,
-            totalOrders: stats?.newOrdersToday || 0,
-          },
-        },
+      const prompt = `Perform a ${module.type} analysis for an agricultural supply chain platform with these stats: totalFarmers=${stats?.totalFarmers || 0}, totalBuyers=${stats?.totalBuyers || 0}, activeTransporters=${stats?.activeTransporters || 0}, totalCrops=${stats?.totalCrops || 0}, harvestReady=${stats?.harvestReady || 0}, oneWeekAway=${stats?.oneWeekAway || 0}, pendingTransport=${stats?.pendingTransport || 0}, activeTransport=${stats?.activeTransport || 0}, pendingOrders=${stats?.pendingOrders || 0}, totalOrders=${stats?.newOrdersToday || 0}. Give actionable insights in 3-5 bullet points.`;
+
+      const { data, error } = await supabase.functions.invoke('ai-gateway', {
+        body: { prompt, context: 'admin_analysis' },
       });
 
       if (error) throw error;
@@ -93,14 +87,14 @@ const AIConsole = () => {
       setResults(prev => ({
         ...prev,
         [module.id]: {
-          text: data.analysis,
+          text: data?.response || data?.text || 'No analysis generated.',
           timestamp: new Date().toLocaleString(),
         },
       }));
       
       toast.success(`${module.title} analysis complete!`);
     } catch (error) {
-      console.error('AI error:', error);
+      if (import.meta.env.DEV) console.error('AI error:', error);
       toast.error('Failed to generate AI analysis');
     } finally {
       setLoading(null);
@@ -109,17 +103,10 @@ const AIConsole = () => {
 
   return (
     <DashboardLayout title="AI Command Console">
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-            <Brain className="w-6 h-6 text-purple-600" />
-            AI Command Console
-          </h1>
-          <p className="text-muted-foreground">
-            Generate AI-powered analytics and insights for the entire Agri Mitra ecosystem
-          </p>
-        </div>
-
+      <PageShell
+        title="AI Command Console"
+        subtitle="Generate AI-powered analytics and insights for the entire Agri Mitra ecosystem"
+      >
         {/* AI Modules Grid */}
         <div className="grid md:grid-cols-2 gap-6">
           {aiModules.map((module) => (
@@ -180,28 +167,16 @@ const AIConsole = () => {
             {statsLoading ? (
               <Skeleton className="h-20 w-full" />
             ) : (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                <div className="p-3 bg-muted/50 rounded-lg">
-                  <p className="text-muted-foreground">Farmers</p>
-                  <p className="text-2xl font-bold">{stats?.totalFarmers || 0}</p>
-                </div>
-                <div className="p-3 bg-muted/50 rounded-lg">
-                  <p className="text-muted-foreground">Harvest Ready</p>
-                  <p className="text-2xl font-bold text-green-600">{stats?.harvestReady || 0}</p>
-                </div>
-                <div className="p-3 bg-muted/50 rounded-lg">
-                  <p className="text-muted-foreground">Pending Transport</p>
-                  <p className="text-2xl font-bold text-amber-600">{stats?.pendingTransport || 0}</p>
-                </div>
-                <div className="p-3 bg-muted/50 rounded-lg">
-                  <p className="text-muted-foreground">Pending Orders</p>
-                  <p className="text-2xl font-bold text-purple-600">{stats?.pendingOrders || 0}</p>
-                </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <KpiCard label="Farmers" value={stats?.totalFarmers || 0} icon={Users} priority="primary" />
+                <KpiCard label="Harvest Ready" value={stats?.harvestReady || 0} icon={Sprout} priority="success" />
+                <KpiCard label="Pending Transport" value={stats?.pendingTransport || 0} icon={Truck} priority="warning" />
+                <KpiCard label="Pending Orders" value={stats?.pendingOrders || 0} icon={Package} priority="info" />
               </div>
             )}
           </CardContent>
         </Card>
-      </div>
+      </PageShell>
     </DashboardLayout>
   );
 };

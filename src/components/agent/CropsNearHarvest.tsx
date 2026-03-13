@@ -4,8 +4,10 @@ import { useAllCrops } from '@/hooks/useAgentDashboard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Wheat, Calendar, MapPin } from 'lucide-react';
 import { differenceInDays, parseISO } from 'date-fns';
+import { useLanguage } from '@/hooks/useLanguage';
 
 const CropsNearHarvest = () => {
+  const { t } = useLanguage();
   const { data: crops, isLoading } = useAllCrops();
 
   const today = new Date();
@@ -29,7 +31,7 @@ const CropsNearHarvest = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Wheat className="h-5 w-5" />
-            Crops Near Harvest
+            {t('agent.cropsNearHarvest.title')}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -46,14 +48,14 @@ const CropsNearHarvest = () => {
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-lg">
           <Wheat className="h-5 w-5 text-amber-600" />
-          Crops Near Harvest
+          {t('agent.cropsNearHarvest.title')}
         </CardTitle>
       </CardHeader>
       <CardContent>
         {!nearHarvestCrops || nearHarvestCrops.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <Wheat className="h-12 w-12 mx-auto mb-3 opacity-50" />
-            <p>No crops near harvest</p>
+            <p>{t('agent.cropsNearHarvest.noCrops')}</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -75,14 +77,14 @@ const CropsNearHarvest = () => {
                           : 'bg-gray-100 text-gray-800'
                       }
                     >
-                      {crop.status === 'ready' ? 'Ready' : crop.status === 'one_week' ? '1 Week' : 'Growing'}
+                      {crop.status === 'ready' ? t('agent.cropsNearHarvest.ready') : crop.status === 'one_week' ? t('agent.cropsNearHarvest.oneWeek') : t('agent.cropsNearHarvest.growing')}
                     </Badge>
                   </div>
                   <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                    <span>{(crop as any).farmer?.full_name || 'Unknown'}</span>
+                    <span>{(crop as any).farmer?.full_name || t('agent.cropsNearHarvest.unknown')}</span>
                     <span className="flex items-center gap-1">
                       <MapPin className="h-3 w-3" />
-                      {(crop as any).farmer?.village || 'Unknown'}
+                      {(crop as any).farmer?.village || t('agent.cropsNearHarvest.unknown')}
                     </span>
                   </div>
                 </div>
@@ -92,11 +94,11 @@ const CropsNearHarvest = () => {
                       crop.daysToHarvest <= 3 ? 'text-red-600' : crop.daysToHarvest <= 7 ? 'text-amber-600' : 'text-green-600'
                     }`}
                   >
-                    {crop.daysToHarvest === 0 ? 'Today' : `${crop.daysToHarvest}d`}
+                    {crop.daysToHarvest === 0 ? t('agent.cropsNearHarvest.today') : `${crop.daysToHarvest}d`}
                   </div>
                   <div className="text-xs text-muted-foreground flex items-center gap-1">
                     <Calendar className="h-3 w-3" />
-                    to harvest
+                    {t('agent.cropsNearHarvest.toHarvest')}
                   </div>
                 </div>
               </div>

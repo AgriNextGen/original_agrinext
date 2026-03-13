@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import PageHeader from '@/components/shared/PageHeader';
+import KpiCard from '@/components/dashboard/KpiCard';
 import DataState from '@/components/ui/DataState';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Search, LandPlot, MapPin, Layers, Edit, Trash2, TreeDeciduous, TestTube2, Loader2, CheckCircle2 } from 'lucide-react';
@@ -126,62 +127,10 @@ const FarmlandsPage = () => {
       <PageHeader title={t('farmer.farmlands.title')}>
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                  <LandPlot className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{farmlands?.length || 0}</p>
-                  <p className="text-xs text-muted-foreground">{t('farmer.farmlands.totalPlots')}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-emerald-100 text-emerald-600">
-                  <Layers className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{totalArea.toFixed(1)}</p>
-                  <p className="text-xs text-muted-foreground">{t('farmer.farmlands.totalAcres')}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-amber-100 text-amber-600">
-                  <TreeDeciduous className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">
-                    {Object.keys(soilDistribution || {}).filter(k => k !== 'unknown').length}
-                  </p>
-                  <p className="text-xs text-muted-foreground">{t('farmer.farmlands.soilTypes')}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-blue-100 text-blue-600">
-                  <MapPin className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">
-                    {new Set(farmlands?.map(l => l.village).filter(Boolean)).size}
-                  </p>
-                  <p className="text-xs text-muted-foreground">{t('farmer.farmlands.villages')}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <KpiCard label={t('farmer.farmlands.totalPlots')} value={farmlands?.length || 0} icon={LandPlot} priority="primary" />
+          <KpiCard label={t('farmer.farmlands.totalAcres')} value={totalArea.toFixed(1)} icon={Layers} priority="success" />
+          <KpiCard label={t('farmer.farmlands.soilTypes')} value={Object.keys(soilDistribution || {}).filter(k => k !== 'unknown').length} icon={TreeDeciduous} priority="warning" />
+          <KpiCard label={t('farmer.farmlands.villages')} value={new Set(farmlands?.map(l => l.village).filter(Boolean)).size} icon={MapPin} priority="info" />
         </div>
 
         {/* Header */}
@@ -294,27 +243,27 @@ const FarmlandsPage = () => {
                 <div className="rounded-lg border border-border p-3 space-y-2">
                   <Label className="text-sm font-medium flex items-center gap-1.5">
                     <MapPin className="h-4 w-4" />
-                    Farm Location (GPS) - Optional
+                    {t('farmerFarmlands.locationLabel')}
                   </Label>
                   {geo.position ? (
                     <div className="flex items-center justify-between">
                       <span className="text-sm flex items-center gap-1 text-green-600">
                         <CheckCircle2 className="h-4 w-4" />
-                        Location captured
+                        {t('farmerFarmlands.locationCaptured')}
                       </span>
                       <Button type="button" variant="outline" size="sm" onClick={() => geo.capture()} disabled={geo.capturing}>
                         {geo.capturing ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
-                        Recapture
+                        {t('farmerFarmlands.recapture')}
                       </Button>
                     </div>
                   ) : (
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Location not added</span>
+                      <span className="text-sm text-muted-foreground">{t('farmerFarmlands.locationNotAdded')}</span>
                       <Button type="button" variant="outline" size="sm" onClick={() => geo.capture()} disabled={geo.capturing}>
                         {geo.capturing ? (
-                          <><Loader2 className="h-3 w-3 animate-spin mr-1" /> Capturing...</>
+                          <><Loader2 className="h-3 w-3 animate-spin mr-1" /> {t('farmerFarmlands.capturing')}</>
                         ) : (
-                          <><MapPin className="h-3 w-3 mr-1" /> Capture Location</>
+                          <><MapPin className="h-3 w-3 mr-1" /> {t('farmerFarmlands.captureLocation')}</>
                         )}
                       </Button>
                     </div>
@@ -388,12 +337,12 @@ const FarmlandsPage = () => {
                     {(land as { geo_verified?: boolean }).geo_verified ? (
                       <div className="flex items-center gap-2 text-green-600">
                         <CheckCircle2 className="h-4 w-4 shrink-0" />
-                        <span>Location captured</span>
-                      </div>
+                      <span>{t('farmerFarmlands.locationCaptured')}</span>
+                    </div>
                     ) : (
                       <div className="flex items-center gap-2">
                         <MapPin className="h-4 w-4 shrink-0 opacity-40" />
-                        <span>Location not added</span>
+                        <span>{t('farmerFarmlands.locationNotAdded')}</span>
                       </div>
                     )}
                   </div>
@@ -414,6 +363,7 @@ const FarmlandsPage = () => {
                       aria-label={`Edit ${land.name}`}
                       variant="outline"
                       size="sm"
+                      className="touch-target"
                       onClick={() => {
                         setEditingFarmland(land);
                         setEditDialogOpen(true);
@@ -425,7 +375,7 @@ const FarmlandsPage = () => {
                       aria-label={`Delete ${land.name}`}
                       variant="outline"
                       size="sm"
-                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                      className="touch-target text-destructive hover:text-destructive hover:bg-destructive/10"
                       onClick={() => handleDeleteClick(land.id, land.name)}
                     >
                       <Trash2 className="h-4 w-4" />

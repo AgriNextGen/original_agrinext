@@ -3,12 +3,13 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Leaf, Lock, ArrowRight, Loader2, AlertCircle, Eye, EyeOff, Phone, Users, ShoppingBag, ClipboardList, Truck } from "lucide-react";
+import { Leaf, Lock, ArrowRight, Loader2, AlertCircle, Eye, EyeOff, Phone, Users, ShoppingBag, ClipboardList, Truck, Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/hooks/useLanguage";
 import { normalizePhone } from "@/lib/auth";
+import { ROLE_DASHBOARD_ROUTES } from "@/lib/routes";
 import type { Database } from "@/integrations/supabase/types";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
@@ -19,19 +20,12 @@ type LoginByPhoneError = {
   retry_after_seconds?: number;
 };
 
-const roleRoutes: Record<string, string> = {
-  farmer: "/farmer/dashboard",
-  buyer: "/marketplace/dashboard",
-  agent: "/agent/dashboard",
-  logistics: "/logistics/dashboard",
-  admin: "/admin/dashboard",
-};
-
 const LOGIN_ROLES: { id: AppRole; labelKey: string; icon: typeof Users }[] = [
   { id: "farmer", labelKey: "roles.farmer", icon: Users },
   { id: "buyer", labelKey: "roles.buyer", icon: ShoppingBag },
   { id: "agent", labelKey: "roles.agent", icon: ClipboardList },
   { id: "logistics", labelKey: "roles.logistics", icon: Truck },
+  { id: "admin", labelKey: "roles.admin", icon: Shield },
 ];
 
 function formatCooldown(seconds: number): string {
@@ -95,7 +89,7 @@ const Login = () => {
   // Redirect if already logged in
   useEffect(() => {
     if (user && userRole) {
-      navigate(roleRoutes[userRole] || "/");
+      navigate(ROLE_DASHBOARD_ROUTES[userRole] || "/");
     }
   }, [user, userRole, navigate]);
 
@@ -190,7 +184,7 @@ const Login = () => {
 
         toast({ title: t("auth.welcome_back"), description: t("auth.login_success") });
         setLockoutUntilMs(null);
-        navigate(roleRoutes[selectedRole] || "/");
+        navigate(ROLE_DASHBOARD_ROUTES[selectedRole] || "/");
       } catch {
         setError(t("common.error"));
         toast({ title: t("common.error"), description: t("common.error"), variant: "destructive" });
