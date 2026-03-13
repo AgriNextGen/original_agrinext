@@ -1,3 +1,23 @@
+/**
+ * @function payment-webhook
+ * @description Receives and processes Razorpay payment events.
+ *   Verifies HMAC-SHA256 signature before processing any event.
+ *   Idempotent: safe to receive the same event multiple times.
+ *
+ * @auth verify_jwt = false (webhook — no JWT, signature-verified instead)
+ *
+ * @request POST /functions/v1/payment-webhook
+ *   Headers: x-razorpay-signature (HMAC-SHA256 of body using RAZORPAY_WEBHOOK_SECRET)
+ *   Body: Razorpay webhook event payload
+ *
+ * @response
+ *   200: { success: true }
+ *   400: { error: { code: "invalid_signature"|"invalid_payload" } }
+ *   500: { error: { code: "processing_error" } }
+ *
+ * @guards HMAC-SHA256 signature verification (RAZORPAY_WEBHOOK_SECRET), idempotency key per event
+ * @secrets RAZORPAY_WEBHOOK_SECRET (set in Supabase Edge Function secrets)
+ */
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { getRequiredEnv } from "../_shared/env.ts";

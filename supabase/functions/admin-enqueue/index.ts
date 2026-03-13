@@ -1,3 +1,20 @@
+/**
+ * @function admin-enqueue
+ * @description Admin-only endpoint to enqueue background jobs into the job queue.
+ *   Calls the enqueue_job_v1 RPC to atomically insert a job.
+ *
+ * @auth verify_jwt = true (JWT required, role must be admin)
+ *
+ * @request POST /functions/v1/admin-enqueue
+ *   { job_type: string, payload: object, run_at?: string (ISO), idempotency_key?: string, priority?: number, max_attempts?: number }
+ *
+ * @response
+ *   200: { success: true, data: { job_id: string } }
+ *   400: { error: { code: "invalid_input" } }
+ *   403: { error: { code: "forbidden" } }
+ *
+ * @guards JWT, role = admin, input validation
+ */
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 

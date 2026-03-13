@@ -1,3 +1,23 @@
+/**
+ * @function ai-gateway
+ * @description Routes AI requests to Google Gemini with role-aware context injection.
+ *   Supports farmer advisory, agent field assist, and logistics support.
+ *   Rate-limited per user (120 req/60s).
+ *
+ * @auth verify_jwt = true (JWT required)
+ *
+ * @request POST /functions/v1/ai-gateway
+ *   { message: string, context_type?: "farmer"|"agent"|"logistics", language?: "en"|"kn" }
+ *
+ * @response
+ *   200: { success: true, data: { text: string, audio_url?: string } }
+ *   401: { error: { code: "unauthorized" } }
+ *   429: { error: { code: "rate_limited" } }
+ *   500: { error: { code: "ai_error"|"internal" } }
+ *
+ * @guards JWT required, rate limiting, role-scoped prompts from _shared/ai_prompts.ts
+ * @dependencies _shared/gemini_client.ts, _shared/ai_context.ts, _shared/ai_prompts.ts, _shared/ai_lang.ts
+ */
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 import { corsHeaders } from "../_shared/cors.ts";

@@ -1,3 +1,22 @@
+/**
+ * @function job-worker
+ * @description Background job processor. Pulls jobs from the jobs queue and executes them.
+ *   Triggered by a cron webhook or manual call. Creates job_runs for audit trail.
+ *   Uses service_role key — never expose this function directly to the frontend.
+ *
+ * @auth verify_jwt = false + x-worker-secret header (matches WORKER_SECRET env var)
+ *
+ * @request POST /functions/v1/job-worker
+ *   Headers: x-worker-secret: <WORKER_SECRET>
+ *   Body: { batch_size?: number }  (default: 25)
+ *
+ * @response
+ *   200: { success: true, data: { processed: number, failed: number } }
+ *   401: { error: { code: "unauthorized" } }
+ *   500: { error: { code: "internal" } }
+ *
+ * @secrets WORKER_SECRET, SUPABASE_SERVICE_ROLE_KEY
+ */
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 

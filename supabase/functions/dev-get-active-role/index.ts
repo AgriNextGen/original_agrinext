@@ -1,55 +1,91 @@
-import { serve } from "std/server";
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+/**
+ * @function dev-get-active-role
+ * @description DEV ONLY. Query the currently active role (real or acting via dev session).
+ *   Returns isDevOverride=true when a dev_acting_sessions record is active for this user.
+ *
+ * @auth verify_jwt = true + x-dev-secret header
+ * @env DEV_TOOLS_ENABLED must be "true"
+ *
+ * @request GET /functions/v1/dev-get-active-role
+ *   Headers: Authorization: Bearer <jwt>, x-dev-secret: <DEV_TOOLS_SECRET>
+ *
+ * @response
+ *   200: { success: true, data: { role: string, isDevOverride: boolean } }
+ *   401/403: { error: { code: "unauthorized"|"dev_tools_disabled" } }
+ *
+ * @never Call this from any production UI path.
+ */
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const DEV_TOOLS_ENABLED = Deno.env.get("DEV_TOOLS_ENABLED") || "false";
 const DEV_TOOLS_SECRET = Deno.env.get("DEV_TOOLS_SECRET") || "";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "Authorization, x-dev-secret",
-  "Content-Type": "application/json",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
 };
 
-serve(async (req: Request) => {
+function jsonResponse(status: number, body: unknown): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
+function extractBearerToken(req: Request): string | null {
+  const header = req.headers.get("authorization") ?? req.headers.get("Authorization");
+  if (!header) return null;
+  const [scheme, token] = header.split(" ");
+  if (!scheme || !token || scheme.toLowerCase() !== "bearer") return null;
+  return token.trim();
+}
+
+async function resolveUserId(token: string): Promise<string | null> {
+  const response = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      apikey: SUPABASE_ANON_KEY,
+    },
+  });
+
+  if (!response.ok) return null;
+
+  const body = await response.json().catch(() => null);
+  return typeof body?.id === "string" ? body.id : null;
+}
+
+Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: { ...corsHeaders, "Access-Control-Allow-Methods": "GET, OPTIONS" } });
+    return new Response("ok", { headers: corsHeaders });
   }
+
   if (req.method !== "GET") {
-    return new Response(JSON.stringify({ ok: false, error: "Method not allowed" }), {
-      status: 405,
-      headers: corsHeaders,
-    });
+    return jsonResponse(405, { success: false, errorCode: "METHOD_NOT_ALLOWED", message: "Method not allowed" });
   }
 
   if (DEV_TOOLS_ENABLED !== "true") {
-    return new Response(JSON.stringify({ ok: false, error: "Not found" }), { status: 404, headers: corsHeaders });
+    return jsonResponse(404, { success: false, errorCode: "NOT_FOUND", message: "Not found" });
   }
 
   const maybeSecret = req.headers.get("x-dev-secret") || "";
   if (DEV_TOOLS_SECRET && DEV_TOOLS_SECRET !== "" && maybeSecret !== DEV_TOOLS_SECRET) {
-    return new Response(JSON.stringify({ ok: false, error: "Forbidden" }), { status: 403, headers: corsHeaders });
+    return jsonResponse(403, { success: false, errorCode: "FORBIDDEN", message: "Forbidden" });
   }
 
-  const authHeader = req.headers.get("authorization");
-  if (!authHeader || !authHeader.toLowerCase().startsWith("bearer ")) {
-    return new Response(JSON.stringify({ ok: false, error: "Missing authorization" }), { status: 401, headers: corsHeaders });
+  const token = extractBearerToken(req);
+  if (!token) {
+    return jsonResponse(401, { success: false, errorCode: "UNAUTHORIZED", message: "Missing authorization" });
   }
-  const token = authHeader.split(" ")[1];
 
-  // Get user info from Supabase Auth endpoint using the bearer token
-  const userRes = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
-    method: "GET",
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!userRes.ok) {
-    return new Response(JSON.stringify({ ok: false, error: "Invalid token" }), { status: 401, headers: corsHeaders });
-  }
-  const userJson = await userRes.json();
-  const userId = userJson?.id;
+  const userId = await resolveUserId(token);
   if (!userId) {
-    return new Response(JSON.stringify({ ok: false, error: "Unable to determine user" }), { status: 401, headers: corsHeaders });
+    return jsonResponse(401, { success: false, errorCode: "UNAUTHORIZED", message: "Invalid token" });
   }
 
   const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
@@ -59,41 +95,60 @@ serve(async (req: Request) => {
       .from("user_roles")
       .select("role")
       .eq("user_id", userId)
-      .maybe_single();
+      .maybeSingle();
+
     if (roleErr) {
-      return new Response(JSON.stringify({ ok: false, error: "role_check_failed" }), { status: 500, headers: corsHeaders });
+      return jsonResponse(500, { success: false, errorCode: "ROLE_CHECK_FAILED", message: "role_check_failed" });
     }
-    const isAdmin = roleData?.role === "admin";
+
+    const realRole = roleData?.role ?? null;
+    const isAdmin = realRole === "admin";
+
     const { data: allowRow, error: allowErr } = await supabase
       .from("dev_allowlist")
       .select("user_id")
       .eq("user_id", userId)
-      .maybe_single();
+      .maybeSingle();
+
     if (allowErr) {
-      return new Response(JSON.stringify({ ok: false, error: "allowlist_check_failed" }), { status: 500, headers: corsHeaders });
+      return jsonResponse(500, { success: false, errorCode: "ALLOWLIST_CHECK_FAILED", message: "allowlist_check_failed" });
     }
+
     if (!isAdmin && !allowRow) {
-      return new Response(JSON.stringify({ ok: false, error: "Forbidden" }), { status: 403, headers: corsHeaders });
+      return jsonResponse(403, { success: false, errorCode: "FORBIDDEN", message: "Forbidden" });
     }
 
-    // Check for override that is not expired
-    const { data: overrideData } = await supabase
-      .from("dev_role_overrides")
-      .select("active_role, expires_at")
-      .eq("user_id", userId)
-      .maybe_single();
+    const nowIso = new Date().toISOString();
+    const { data: sessionRow, error: sessionErr } = await supabase
+      .from("dev_acting_sessions")
+      .select("acting_as_role, revoked_at, expires_at, created_at")
+      .eq("developer_user_id", userId)
+      .is("revoked_at", null)
+      .gt("expires_at", nowIso)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
-    const real_role = roleData?.role ?? null;
-    const hasOverride = overrideData && new Date(overrideData.expires_at) > new Date();
-    const active_role = hasOverride ? overrideData.active_role : real_role;
-    const expires_at = overrideData?.expires_at ?? null;
+    if (sessionErr) {
+      return jsonResponse(500, { success: false, errorCode: "SESSION_LOOKUP_FAILED", message: "session_lookup_failed" });
+    }
 
-    return new Response(JSON.stringify({ ok: true, real_role, active_role, override: !!hasOverride, expires_at }), {
-      status: 200,
-      headers: corsHeaders,
+    const activeRole = sessionRow?.acting_as_role ?? realRole;
+    const isDevOverride = !!sessionRow && sessionRow.acting_as_role !== realRole;
+
+    return jsonResponse(200, {
+      success: true,
+      data: {
+        role: activeRole,
+        isDevOverride,
+      },
     });
-  } catch (err) {
-    console.error("dev-get-active-role error", err);
-    return new Response(JSON.stringify({ ok: false, error: "server_error" }), { status: 500, headers: corsHeaders });
+  } catch (error) {
+    console.error("dev-get-active-role error:", error);
+    return jsonResponse(500, {
+      success: false,
+      errorCode: "INTERNAL_ERROR",
+      message: error instanceof Error ? error.message : "server_error",
+    });
   }
 });

@@ -1,55 +1,105 @@
-import { serve } from "std/server";
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+/**
+ * @function dev-switch-role
+ * @description DEV ONLY. Switch the acting role for a developer session without creating new accounts.
+ *   Creates or updates a dev_acting_sessions record with 8-hour expiry.
+ *   The frontend reads this session via dev-get-active-role to present the correct role UI.
+ *
+ * @auth verify_jwt = true + x-dev-secret header (matches DEV_TOOLS_SECRET env var)
+ * @env DEV_TOOLS_ENABLED must be "true" — disabled in production
+ *
+ * @request POST /functions/v1/dev-switch-role
+ *   Headers: Authorization: Bearer <jwt>, x-dev-secret: <DEV_TOOLS_SECRET>
+ *   Body: { targetRole: "farmer" | "agent" | "logistics" | "buyer" | "admin" }
+ *
+ * @response
+ *   200: { success: true, data: { activeRole: string, switchedAt: string } }
+ *   400: { error: { code: "invalid_role" } }
+ *   401: { error: { code: "unauthorized" } }
+ *   403: { error: { code: "dev_tools_disabled"|"invalid_dev_secret" } }
+ *
+ * @guards DEV_TOOLS_ENABLED check, x-dev-secret header, JWT, admin OR dev_allowlist membership
+ * @sideeffects Writes to dev_acting_sessions table. Session expires in 8 hours.
+ * @never Call this from any production UI path.
+ */
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const DEV_TOOLS_ENABLED = Deno.env.get("DEV_TOOLS_ENABLED") || "false";
 const DEV_TOOLS_SECRET = Deno.env.get("DEV_TOOLS_SECRET") || "";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "Authorization, Content-Type, x-dev-secret",
-  "Content-Type": "application/json",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
 };
 
-serve(async (req: Request) => {
+const VALID_ROLES = new Set(["farmer", "agent", "logistics", "buyer", "admin"]);
+
+function jsonResponse(status: number, body: unknown): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
+function extractBearerToken(req: Request): string | null {
+  const header = req.headers.get("authorization") ?? req.headers.get("Authorization");
+  if (!header) return null;
+  const [scheme, token] = header.split(" ");
+  if (!scheme || !token || scheme.toLowerCase() !== "bearer") return null;
+  return token.trim();
+}
+
+async function resolveUserId(token: string): Promise<string | null> {
+  const response = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      apikey: SUPABASE_ANON_KEY,
+    },
+  });
+
+  if (!response.ok) return null;
+
+  const body = await response.json().catch(() => null);
+  return typeof body?.id === "string" ? body.id : null;
+}
+
+Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: { ...corsHeaders, "Access-Control-Allow-Methods": "POST, OPTIONS" } });
+    return new Response("ok", { headers: corsHeaders });
   }
+
   if (req.method !== "POST") {
-    return new Response(JSON.stringify({ ok: false, error: "Method not allowed" }), {
-      status: 405,
-      headers: corsHeaders,
-    });
+    return jsonResponse(405, { success: false, errorCode: "METHOD_NOT_ALLOWED", message: "Method not allowed" });
   }
 
   if (DEV_TOOLS_ENABLED !== "true") {
-    return new Response(JSON.stringify({ ok: false, error: "Not found" }), { status: 404, headers: corsHeaders });
+    return jsonResponse(404, { success: false, errorCode: "NOT_FOUND", message: "Not found" });
   }
 
   const maybeSecret = req.headers.get("x-dev-secret") || "";
   if (DEV_TOOLS_SECRET && DEV_TOOLS_SECRET !== "" && maybeSecret !== DEV_TOOLS_SECRET) {
-    return new Response(JSON.stringify({ ok: false, error: "Forbidden" }), { status: 403, headers: corsHeaders });
+    return jsonResponse(403, { success: false, errorCode: "FORBIDDEN", message: "Forbidden" });
   }
 
-  const authHeader = req.headers.get("authorization");
-  if (!authHeader || !authHeader.toLowerCase().startsWith("bearer ")) {
-    return new Response(JSON.stringify({ ok: false, error: "Missing authorization" }), { status: 401, headers: corsHeaders });
+  const token = extractBearerToken(req);
+  if (!token) {
+    return jsonResponse(401, { success: false, errorCode: "UNAUTHORIZED", message: "Missing authorization" });
   }
-  const token = authHeader.split(" ")[1];
 
-  // Get user info from Supabase Auth endpoint using the bearer token
-  const userRes = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
-    method: "GET",
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!userRes.ok) {
-    return new Response(JSON.stringify({ ok: false, error: "Invalid token" }), { status: 401, headers: corsHeaders });
-  }
-  const userJson = await userRes.json();
-  const userId = userJson?.id;
+  const userId = await resolveUserId(token);
   if (!userId) {
-    return new Response(JSON.stringify({ ok: false, error: "Unable to determine user" }), { status: 401, headers: corsHeaders });
+    return jsonResponse(401, { success: false, errorCode: "UNAUTHORIZED", message: "Invalid token" });
+  }
+
+  const body = await req.json().catch(() => ({}));
+  const targetRole = typeof body?.targetRole === "string" ? body.targetRole : "";
+  if (!VALID_ROLES.has(targetRole)) {
+    return jsonResponse(400, { success: false, errorCode: "INVALID_ROLE", message: "Invalid targetRole" });
   }
 
   const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
@@ -59,56 +109,89 @@ serve(async (req: Request) => {
       .from("user_roles")
       .select("role")
       .eq("user_id", userId)
-      .maybe_single();
+      .maybeSingle();
+
     if (roleErr) {
-      return new Response(JSON.stringify({ ok: false, error: "role_check_failed" }), { status: 500, headers: corsHeaders });
+      return jsonResponse(500, { success: false, errorCode: "ROLE_CHECK_FAILED", message: "role_check_failed" });
     }
+
     const isAdmin = roleData?.role === "admin";
+
     const { data: allowRow, error: allowErr } = await supabase
       .from("dev_allowlist")
       .select("user_id")
       .eq("user_id", userId)
-      .maybe_single();
+      .maybeSingle();
+
     if (allowErr) {
-      return new Response(JSON.stringify({ ok: false, error: "allowlist_check_failed" }), { status: 500, headers: corsHeaders });
+      return jsonResponse(500, { success: false, errorCode: "ALLOWLIST_CHECK_FAILED", message: "allowlist_check_failed" });
     }
+
     if (!isAdmin && !allowRow) {
-      return new Response(JSON.stringify({ ok: false, error: "Forbidden" }), { status: 403, headers: corsHeaders });
+      return jsonResponse(403, { success: false, errorCode: "FORBIDDEN", message: "Forbidden" });
     }
 
-    const body = await req.json().catch(() => ({}));
-    const active_role = body.hasOwnProperty("active_role") ? body.active_role : undefined;
+    const now = new Date();
+    const nowIso = now.toISOString();
+    const expiresAt = new Date(now.getTime() + 8 * 60 * 60 * 1000).toISOString();
 
-    if (active_role === null) {
-      // clear override
-      await supabase.from("dev_role_overrides").delete().eq("user_id", userId);
-    } else if (typeof active_role === "string") {
-      const expiresAt = new Date(Date.now() + 8 * 3600 * 1000).toISOString();
-      await supabase.from("dev_role_overrides").upsert(
-        { user_id: userId, active_role: active_role, expires_at: expiresAt },
-        { onConflict: "user_id" }
-      );
+    const { data: existingSession, error: existingErr } = await supabase
+      .from("dev_acting_sessions")
+      .select("id")
+      .eq("developer_user_id", userId)
+      .is("revoked_at", null)
+      .gt("expires_at", nowIso)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (existingErr) {
+      return jsonResponse(500, { success: false, errorCode: "SESSION_LOOKUP_FAILED", message: "session_lookup_failed" });
+    }
+
+    if (existingSession?.id) {
+      const { error: updateErr } = await supabase
+        .from("dev_acting_sessions")
+        .update({
+          acting_as_user_id: userId,
+          acting_as_role: targetRole,
+          expires_at: expiresAt,
+          revoked_at: null,
+        })
+        .eq("id", existingSession.id);
+
+      if (updateErr) {
+        return jsonResponse(500, { success: false, errorCode: "SESSION_UPDATE_FAILED", message: updateErr.message });
+      }
     } else {
-      return new Response(JSON.stringify({ ok: false, error: "Invalid payload" }), { status: 400, headers: corsHeaders });
+      const { error: insertErr } = await supabase
+        .from("dev_acting_sessions")
+        .insert([{
+          developer_user_id: userId,
+          acting_as_user_id: userId,
+          acting_as_role: targetRole,
+          expires_at: expiresAt,
+          revoked_at: null,
+        }]);
+
+      if (insertErr) {
+        return jsonResponse(500, { success: false, errorCode: "SESSION_INSERT_FAILED", message: insertErr.message });
+      }
     }
 
-    // Read current override (if any) and real role
-    const { data: overrideData } = await supabase
-      .from("dev_role_overrides")
-      .select("active_role, expires_at")
-      .eq("user_id", userId)
-      .maybe_single();
-
-    const real_role = roleData?.role ?? null;
-    const activeRole = overrideData && new Date(overrideData.expires_at) > new Date() ? overrideData.active_role : real_role;
-    const expires_at = overrideData?.expires_at ?? null;
-
-    return new Response(JSON.stringify({ ok: true, real_role, active_role: activeRole, expires_at }), {
-      status: 200,
-      headers: corsHeaders,
+    return jsonResponse(200, {
+      success: true,
+      data: {
+        activeRole: targetRole,
+        switchedAt: nowIso,
+      },
     });
-  } catch (err) {
-    console.error("dev-switch-role error", err);
-    return new Response(JSON.stringify({ ok: false, error: "server_error" }), { status: 500, headers: corsHeaders });
+  } catch (error) {
+    console.error("dev-switch-role error:", error);
+    return jsonResponse(500, {
+      success: false,
+      errorCode: "INTERNAL_ERROR",
+      message: error instanceof Error ? error.message : "server_error",
+    });
   }
 });

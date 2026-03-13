@@ -1,3 +1,22 @@
+/**
+ * @function login-by-phone
+ * @description Authenticate a user with phone number + password. Returns a Supabase JWT session.
+ *   Normalises phone to +91XXXXXXXXXX format (India).
+ *   Tracks failed attempts in login_attempts table and enforces lockout threshold.
+ *
+ * @auth verify_jwt = false (public endpoint)
+ *
+ * @request POST /functions/v1/login-by-phone
+ *   { phone: string, password: string }
+ *
+ * @response
+ *   200: { success: true, data: { session: { access_token, refresh_token, ... }, user } }
+ *   400: { error: { code: "invalid_input"|"invalid_credentials" } }
+ *   423: { error: { code: "account_locked", message: "Too many failed attempts" } }
+ *   429: { error: { code: "rate_limited" } }
+ *
+ * @guards Rate limiting, login lockout (failed attempts tracked in login_attempts table)
+ */
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import {
@@ -29,7 +48,8 @@ function getAuthEmailFromPhone(phone: string): string {
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-request-id",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
 function jsonHeaders() {

@@ -1,10 +1,28 @@
+/**
+ * @function storage-sign-upload-v1
+ * @description Generate a signed URL for uploading files to Supabase private Storage.
+ *   Used by frontend before every file upload (crop photos, proof media, KYC docs).
+ *   Validates bucket allowlist and file size before issuing the URL.
+ *
+ * @auth verify_jwt = true (JWT required)
+ *
+ * @request POST /functions/v1/storage-sign-upload-v1
+ *   { bucket: string, path: string, content_type: string, file_size_bytes: number }
+ *
+ * @response
+ *   200: { success: true, data: { signed_url: string, token: string, path: string } }
+ *   400: { error: { code: "invalid_bucket"|"file_too_large"|"invalid_content_type" } }
+ *   401: { error: { code: "unauthorized" } }
+ *
+ * @guards JWT, bucket allowlist, max file size, content type check
+ * @buckets crop-media (private), trip-proofs (private), kyc-docs (private, secure schema)
+ */
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { getRequestIdFromHeaders, makeResponseWithRequestId, logStructured } from "../_shared/request_context.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const WORKER_SECRET = Deno.env.get("WORKER_SECRET")!;
 
 const corsHeaders = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "content-type, authorization" };
 

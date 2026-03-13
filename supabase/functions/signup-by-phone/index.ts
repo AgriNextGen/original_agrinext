@@ -1,3 +1,22 @@
+/**
+ * @function signup-by-phone
+ * @description Register a new AgriNext user with phone number + password.
+ *   Creates a Supabase Auth user with synthetic email (91XXXXXXXXXX@agrinext.local).
+ *   This is the ONLY valid signup path — never use supabase.auth.signUp() from frontend.
+ *
+ * @auth verify_jwt = false (public endpoint)
+ *
+ * @request POST /functions/v1/signup-by-phone
+ *   { phone: string, password: string, full_name: string, role: "farmer"|"agent"|"logistics"|"buyer"|"admin", profile_metadata?: object }
+ *
+ * @response
+ *   200: { success: true, data: { user_id, role } }
+ *   400: { error: { code: "invalid_input"|"duplicate_phone"|"role_locked", message } }
+ *   429: { error: { code: "rate_limited", message } }
+ *   500: { error: { code: "internal", message } }
+ *
+ * @guards Rate limiting, role-based signup lockdown, duplicate phone/email check
+ */
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import {
