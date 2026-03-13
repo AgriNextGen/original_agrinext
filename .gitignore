@@ -24,4 +24,25 @@ dist-ssr
 *.sw?
 .env
 .env.*
-artifacts/staging/
+!.env.example
+artifacts/
+
+# Vite preview server state (do not commit)
+.preview.err.log
+.preview.out.log
+.preview.pid
+.tmp_preview_pid.txt
+.tmp_fn_dl*/
+
+# Dev screenshots (do not commit)
+screenshot*.png
+
+# Build outputs
+output/
+backups/
+coverage/
+*.tsbuildinfo
+
+# Deprecated (archived to branch archive/cleanup-2026-03)
+backend/
+supabase_backup/

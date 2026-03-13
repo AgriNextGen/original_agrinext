@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls -1d \"c:\\\\Users\\\\shiva basavesh a s\\\\Downloads\\\\GitHub\\\\og_agri2_with github_clone\\\\original_agrinext\"/*)",
+      "Bash(grep -v \"^[^/]*$\")"
+    ]
+  }
+}

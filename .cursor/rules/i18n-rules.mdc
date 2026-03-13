@@ -1,0 +1,43 @@
+---
+description: Internationalization rules for AgriNext Gen (English + Kannada)
+globs:
+  - "src/i18n/**"
+  - "src/components/**"
+  - "src/pages/**"
+---
+
+# i18n Rules
+
+## Files
+
+- English: `src/i18n/en.ts` (source of truth)
+- Kannada: `src/i18n/kn.ts`
+- Engine: `src/i18n/index.ts` (includes Kannada encoding repair)
+- Aliases: `src/i18n/aliases.ts` (backward compatibility)
+
+## Non-Negotiable
+
+1. **ALWAYS add keys to BOTH `en.ts` AND `kn.ts` simultaneously** — never add to one without the other
+2. **Use `useLanguage()` hook** — `const { t } = useLanguage();`
+3. **Never hardcode user-visible strings** in components or pages
+4. **Key format**: dot-separated, organised by role/feature: `farmer.dashboard.title`
+
+## Pattern
+
+```tsx
+// In component:
+const { t } = useLanguage();
+return <span>{t('farmer.dashboard.title')}</span>;
+
+// In src/i18n/en.ts:
+farmer: { dashboard: { title: 'My Dashboard' } }
+
+// In src/i18n/kn.ts:
+farmer: { dashboard: { title: 'ನನ್ನ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್' } }
+```
+
+## Kannada Notes
+
+- The translation engine auto-detects mojibake (corrupted Kannada) and attempts UTF-8 recovery
+- Dev warnings fire for missing keys in development mode
+- Region: Karnataka, India. Primary languages: Kannada + English (bilingual)
