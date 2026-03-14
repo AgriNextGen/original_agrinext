@@ -70,7 +70,8 @@ describe('Route Cluster Utilities', () => {
       const bangalore = { lat: 12.9716, lng: 77.5946 };
       const mysuru = { lat: 12.2958, lng: 76.6394 };
       const dist = haversineDistanceKm(bangalore, mysuru);
-      expect(dist).toBeGreaterThan(130);
+      // Haversine straight-line distance is ~128 km; road distance is ~145 km
+      expect(dist).toBeGreaterThan(120);
       expect(dist).toBeLessThan(160);
     });
 

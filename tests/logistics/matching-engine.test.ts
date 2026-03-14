@@ -65,12 +65,20 @@ vi.mock('@/services/logistics/ReverseLogisticsService', () => ({
   },
 }));
 
+vi.mock('@/services/logistics/VehicleRecommendationService', () => ({
+  VehicleRecommendationService: {
+    rankVehiclesForPool: vi.fn().mockResolvedValue([]),
+    expireStaleRecommendations: vi.fn().mockResolvedValue({ expired_count: 0 }),
+  },
+}));
+
 import { LogisticsMatchingEngine } from '@/services/logistics/LogisticsMatchingEngine';
 import { LoadPoolingService } from '@/services/logistics/LoadPoolingService';
 import { VehicleCapacityService } from '@/services/logistics/VehicleCapacityService';
 import { TripGenerationService } from '@/services/logistics/TripGenerationService';
 import { LogisticsEventService } from '@/services/logistics/LogisticsEventService';
 import { ReverseLogisticsService } from '@/services/logistics/ReverseLogisticsService';
+import { VehicleRecommendationService } from '@/services/logistics/VehicleRecommendationService';
 
 function chainable(result: { data: unknown; error: unknown; count?: number }) {
   const chain: Record<string, unknown> = {};
@@ -110,7 +118,7 @@ describe('LogisticsMatchingEngine', () => {
       expect(LogisticsEventService.emit).toHaveBeenCalled();
     });
 
-    it('should process clusters and generate trips when pools are ready', async () => {
+    it('should process clusters and generate recommendations when pools are ready', async () => {
       const clusters = [{
         route_cluster_id: 'rc-001',
         shipments: [{ id: 'sr-001', weight_estimate_kg: 500 }, { id: 'sr-002', weight_estimate_kg: 700 }],
@@ -130,8 +138,9 @@ describe('LogisticsMatchingEngine', () => {
       const readyPool = { id: 'lp-001', total_weight_kg: 1200, total_volume_cbm: 0, member_count: 2 };
       vi.mocked(LoadPoolingService.getDispatchReadyPools).mockResolvedValueOnce([readyPool] as never);
 
-      vi.mocked(VehicleCapacityService.findBestVehicleForPool).mockResolvedValueOnce([
-        { vehicle_id: 'v-001', transporter_id: 't-001', vehicle_type: 'truck', capacity_kg: 5000, capacity_volume_cbm: null, registration_number: 'KA-01', fit_score: 0.24 },
+      // Engine now generates recommendations (not auto-trips) via VehicleRecommendationService
+      vi.mocked(VehicleRecommendationService.rankVehiclesForPool).mockResolvedValueOnce([
+        { vehicle_id: 'v-001', recommendation_score: 90 } as never,
       ]);
 
       mockFrom
@@ -141,9 +150,13 @@ describe('LogisticsMatchingEngine', () => {
       const result = await LogisticsMatchingEngine.runMatchingCycle();
 
       expect(result.shipments_processed).toBe(2);
-      expect(result.trips_generated).toBe(1);
-      expect(result.bookings_created).toBe(1);
-      expect(TripGenerationService.generateTripFromPool).toHaveBeenCalledWith('lp-001', 'v-001');
+      // The engine now generates recommendations, not auto-trips
+      expect(result.trips_generated).toBe(0);
+      expect(result.bookings_created).toBe(0);
+      expect(VehicleRecommendationService.rankVehiclesForPool).toHaveBeenCalledWith('lp-001');
+      expect(LogisticsEventService.emit).toHaveBeenCalledWith(
+        expect.objectContaining({ event_type: 'recommendation_generated' })
+      );
     });
 
     it('should record error when no vehicle available for pool', async () => {
@@ -151,7 +164,8 @@ describe('LogisticsMatchingEngine', () => {
 
       const readyPool = { id: 'lp-no-veh', total_weight_kg: 50000, total_volume_cbm: 0, member_count: 5 };
       vi.mocked(LoadPoolingService.getDispatchReadyPools).mockResolvedValueOnce([readyPool] as never);
-      vi.mocked(VehicleCapacityService.findBestVehicleForPool).mockResolvedValueOnce([]);
+      // rankVehiclesForPool returns [] by default (no recommendations available)
+      vi.mocked(VehicleRecommendationService.rankVehiclesForPool).mockResolvedValueOnce([]);
 
       mockFrom
         .mockReturnValueOnce(chainable({ data: { id: 'run-003' }, error: null }))

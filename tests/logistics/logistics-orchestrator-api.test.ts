@@ -6,14 +6,16 @@
  *
  * Uses mock Supabase client to isolate the controller from the database.
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, beforeEach } from 'vitest';
 
 const WORKER_SECRET = 'test-worker-secret';
 const SUPABASE_URL = 'https://test.supabase.co';
 
-const mockRpc = vi.fn();
-const mockFrom = vi.fn();
-const mockGetUser = vi.fn();
+const { mockRpc, mockFrom, mockGetUser } = vi.hoisted(() => ({
+  mockRpc: vi.fn(),
+  mockFrom: vi.fn(),
+  mockGetUser: vi.fn(),
+}));
 
 vi.mock('jsr:@supabase/supabase-js@2', () => ({
   createClient: () => ({
@@ -57,7 +59,23 @@ async function parseResponse(res: Response) {
   return { status: res.status, body: await res.json() };
 }
 
+// Captured once in beforeAll; re-used by every test via getHandler().
+let edgeFunctionHandler: ((req: Request) => Promise<Response>) | null = null;
+
 describe('logistics-orchestrator API routes', () => {
+  beforeAll(async () => {
+    // Load the edge function module once so it registers the Deno.serve handler.
+    // Dynamic import() (unlike require()) goes through Vitest's TypeScript
+    // transformer and correctly strips non-null assertions ('!') in the source.
+    await import('../../supabase/functions/logistics-orchestrator/index.ts');
+    const serveMock = vi.mocked(Deno.serve);
+    const h = serveMock.mock.calls[0]?.[0];
+    if (typeof h !== 'function') {
+      throw new Error('Deno.serve was not called with a handler function');
+    }
+    edgeFunctionHandler = h as (req: Request) => Promise<Response>;
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -341,17 +359,11 @@ describe('logistics-orchestrator API routes', () => {
 });
 
 /**
- * Extract the handler function from the Edge Function module.
- * Since Deno.serve is mocked, we capture the handler passed to it.
+ * Return the handler captured from Deno.serve() during beforeAll.
  */
 function getHandler(): (req: Request) => Promise<Response> {
-  const serveMock = vi.mocked(Deno.serve);
-  if (serveMock.mock.calls.length === 0) {
-    require('../../supabase/functions/logistics-orchestrator/index.ts');
+  if (!edgeFunctionHandler) {
+    throw new Error('Edge function handler not initialised — beforeAll must complete first');
   }
-  const handler = serveMock.mock.calls[0]?.[0];
-  if (typeof handler !== 'function') {
-    throw new Error('Deno.serve was not called with a handler function');
-  }
-  return handler as (req: Request) => Promise<Response>;
+  return edgeFunctionHandler;
 }
