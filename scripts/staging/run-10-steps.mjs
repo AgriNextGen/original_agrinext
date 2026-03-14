@@ -2,14 +2,10 @@
  * Execute all 10 steps for AgriNext staging fixes.
  * Uses @supabase/supabase-js service role client.
  */
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseConfig, createAdminClient } from './common.mjs';
 
-const SUPABASE_URL = 'https://rmtkkzfzdmpjlqexrbme.supabase.co';
-const SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtdGtremZ6ZG1wamxxZXhyYm1lIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MTE3MTM0MywiZXhwIjoyMDg2NzQ3MzQzfQ.boHbegytdSBXEhCT_dkg8Bl98W5lyQupb2bGo0nSqR4';
-
-const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
-  auth: { autoRefreshToken: false, persistSession: false }
-});
+const { url: SUPABASE_URL, serviceRoleKey: SERVICE_ROLE_KEY } = getSupabaseConfig();
+const supabase = createAdminClient();
 
 // ─── Helper: raw SQL via PostgREST REST endpoint ─────────────────────────────
 // This works for queries returning data via a SELECT wrapper.
@@ -531,8 +527,9 @@ WHERE proname = 'handle_new_user'
 }
 
 async function main() {
+  const projectRef = new URL(SUPABASE_URL).hostname.split('.')[0];
   console.log('AgriNext — 10-Step Staging Fix Run');
-  console.log('Project: rmtkkzfzdmpjlqexrbme');
+  console.log('Project:', projectRef);
   console.log('Time:', new Date().toISOString());
 
   await step1_assignRoles();

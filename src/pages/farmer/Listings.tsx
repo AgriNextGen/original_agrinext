@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/hooks/useLanguage';
 import PageHeader from '@/components/shared/PageHeader';
 import EmptyState from '@/components/shared/EmptyState';
+import { Skeleton } from '@/components/ui/skeleton';
 import { 
   Plus, 
   Search, 
@@ -45,6 +47,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { useCreateListing, useUpdateListing, useDeleteListing, useToggleListingStatus } from '@/hooks/useFarmerListingMutations';
 import ListingTraceQR from '@/components/listings/ListingTraceQR';
 import CropSourceSelector from '@/components/listings/CropSourceSelector';
 import TraceSettingsPanel from '@/components/listings/TraceSettingsPanel';
@@ -78,8 +81,11 @@ const FarmerListings = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { t } = useLanguage();
-  const [listings, setListings] = useState<Listing[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const createListingMut = useCreateListing();
+  const updateListingMut = useUpdateListing();
+  const deleteListingMut = useDeleteListing();
+  const toggleStatusMut = useToggleListingStatus();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterOpen, setFilterOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
@@ -106,26 +112,24 @@ const FarmerListings = () => {
 
   const { data: harvestCrops = [], isLoading: cropsLoading } = useHarvestReadyCrops();
 
-  useEffect(() => {
-    if (user) fetchListings();
-  }, [user]);
-
-  const fetchListings = async () => {
-    try {
+  const { data: listings = [], isLoading: loading, isError: listingsError, refetch: refetchListings } = useQuery({
+    queryKey: ['listings', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
       const { data, error } = await supabase
         .from('listings')
         .select('*')
-        .eq('seller_id', user?.id)
+        .eq('seller_id', user.id)
         .order('created_at', { ascending: false });
-
       if (error) throw error;
-      setListings((data || []) as unknown as Listing[]);
-    } catch (error) {
-      console.error('Error fetching listings:', error);
-      toast({ title: t('common.error'), description: t('farmer.listings.fetchError'), variant: 'destructive' });
-    } finally {
-      setLoading(false);
-    }
+      return (data || []) as unknown as Listing[];
+    },
+    enabled: !!user?.id,
+    retry: 2,
+  });
+
+  const invalidateListings = () => {
+    queryClient.invalidateQueries({ queryKey: ['listings', user?.id] });
   };
 
   const handleCropSelect = (cropId: string) => {
@@ -151,17 +155,34 @@ const FarmerListings = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!user?.id) {
+      toast({ title: t('common.error'), description: t('farmer.listings.notAuthenticated'), variant: 'destructive' });
+      return;
+    }
+
+    const qty = parseFloat(formData.quantity);
+    const price = parseFloat(formData.price);
+
+    if (!Number.isFinite(qty) || qty <= 0 || !Number.isFinite(price) || price <= 0) {
+      toast({ title: t('common.error'), description: t('farmer.listings.invalidPriceQty'), variant: 'destructive' });
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const listingData: any = {
         title: formData.title,
         description: formData.description || null,
         category: formData.category,
-        price: parseFloat(formData.price),
-        quantity: parseFloat(formData.quantity),
+        price,
+        unit_price: price,
+        quantity: qty,
+        available_qty: qty,
         unit: formData.unit,
         location: formData.location || null,
         seller_id: user?.id,
+        farmer_id: user?.id,
+        profile_id: user?.id,
         trace_settings: traceSettings,
         geo_district_id: formData.geo_district_id || null,
       };
@@ -171,24 +192,12 @@ const FarmerListings = () => {
       }
 
       if (editingListing) {
-        const { error } = await supabase
-          .from('listings')
-          .update(listingData)
-          .eq('id', editingListing.id);
-
-        if (error) throw error;
+        await updateListingMut.mutateAsync({ id: editingListing.id, data: listingData });
         toast({ title: t('common.success'), description: t('farmer.listings.updateSuccess') });
       } else {
-        const { data: newListing, error } = await supabase
-          .from('listings')
-          .insert([listingData])
-          .select()
-          .single();
-
-        if (error) throw error;
+        const newListing = await createListingMut.mutateAsync(listingData);
         toast({ title: t('common.success'), description: t('farmer.listings.createSuccess') });
 
-        // After creation, offer evidence upload
         if (newListing) {
           setShowEvidenceForListing(newListing.id);
         }
@@ -196,9 +205,9 @@ const FarmerListings = () => {
 
       setIsDialogOpen(false);
       resetForm();
-      fetchListings();
+      invalidateListings();
     } catch (error) {
-      console.error('Error saving listing:', error);
+      if (import.meta.env.DEV) console.error('Error saving listing:', error);
       toast({ title: t('common.error'), description: t('farmer.listings.saveError'), variant: 'destructive' });
     } finally {
       setIsSubmitting(false);
@@ -207,12 +216,11 @@ const FarmerListings = () => {
 
   const handleDelete = async (id: string) => {
     try {
-      const { error } = await supabase.from('listings').delete().eq('id', id);
-      if (error) throw error;
+      await deleteListingMut.mutateAsync(id);
       toast({ title: t('common.success'), description: t('farmer.listings.deleteSuccess') });
-      fetchListings();
+      invalidateListings();
     } catch (error) {
-      console.error('Error deleting listing:', error);
+      if (import.meta.env.DEV) console.error('Error deleting listing:', error);
       toast({ title: t('common.error'), description: t('farmer.listings.deleteError'), variant: 'destructive' });
     }
   };
@@ -244,22 +252,25 @@ const FarmerListings = () => {
 
   const toggleListingStatus = async (id: string, currentStatus: boolean) => {
     try {
-      const { error } = await supabase.from('listings').update({ is_active: !currentStatus }).eq('id', id);
-      if (error) throw error;
+      await toggleStatusMut.mutateAsync({ id, currentActive: currentStatus });
       toast({ title: t('common.success'), description: !currentStatus ? t('farmer.listings.activated') : t('farmer.listings.deactivated') });
-      fetchListings();
+      invalidateListings();
     } catch (error) {
-      console.error('Error updating listing status:', error);
+      if (import.meta.env.DEV) console.error('Error updating listing status:', error);
       toast({ title: t('common.error'), description: t('farmer.listings.statusError'), variant: 'destructive' });
     }
   };
 
   const handleTraceCodeGenerated = (listingId: string, traceCode: string) => {
-    setListings(prev => prev.map(l => l.id === listingId ? { ...l, trace_code: traceCode } : l));
+    queryClient.setQueryData<Listing[]>(['listings', user?.id], (prev) =>
+      (prev || []).map(l => l.id === listingId ? { ...l, trace_code: traceCode } : l)
+    );
   };
 
   const handleTraceStatusChange = (listingId: string, newStatus: string) => {
-    setListings(prev => prev.map(l => l.id === listingId ? { ...l, trace_status: newStatus } : l));
+    queryClient.setQueryData<Listing[]>(['listings', user?.id], (prev) =>
+      (prev || []).map(l => l.id === listingId ? { ...l, trace_status: newStatus } : l)
+    );
   };
 
   const filteredListings = listings.filter(listing => {
@@ -376,11 +387,11 @@ const FarmerListings = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>District</Label>
+                      <Label>{t('farmer.listings.district')}</Label>
                       <GeoDistrictSelect
                         value={formData.geo_district_id}
                         onValueChange={(v) => setFormData({ ...formData, geo_district_id: v })}
-                        placeholder="Select listing district"
+                        placeholder={t('farmer.listings.selectDistrict')}
                       />
                     </div>
                   </div>
@@ -453,7 +464,7 @@ const FarmerListings = () => {
         {filterOpen && (
           <div className="flex flex-wrap gap-3 items-center p-3 bg-muted/30 rounded-lg border border-border">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-muted-foreground">Status:</span>
+              <span className="text-xs font-medium text-muted-foreground">{t('farmer.listings.filterStatus')}</span>
               <div className="flex gap-1">
                 {(['all', 'active', 'inactive'] as const).map(s => (
                   <Button
@@ -463,19 +474,19 @@ const FarmerListings = () => {
                     className="h-7 text-xs capitalize"
                     onClick={() => setFilterStatus(s)}
                   >
-                    {s === 'all' ? 'All' : s.charAt(0).toUpperCase() + s.slice(1)}
+                    {s === 'all' ? t('farmer.listings.filterAll') : s === 'active' ? t('farmer.listings.filterActive') : t('farmer.listings.filterInactive')}
                   </Button>
                 ))}
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-muted-foreground">Category:</span>
+              <span className="text-xs font-medium text-muted-foreground">{t('farmer.listings.filterCategory')}</span>
               <Select value={filterCategory} onValueChange={setFilterCategory}>
                 <SelectTrigger className="h-7 text-xs w-36">
-                  <SelectValue placeholder="All" />
+                  <SelectValue placeholder={t('farmer.listings.filterAll')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
+                  <SelectItem value="all">{t('farmer.listings.allCategories')}</SelectItem>
                   {categories.map(cat => (
                     <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                   ))}
@@ -489,7 +500,7 @@ const FarmerListings = () => {
                 className="h-7 text-xs text-destructive"
                 onClick={() => { setFilterStatus('all'); setFilterCategory('all'); }}
               >
-                Clear
+                {t('farmer.listings.clearFilters')}
               </Button>
             )}
           </div>
@@ -500,14 +511,14 @@ const FarmerListings = () => {
           <Dialog open={!!showEvidenceForListing} onOpenChange={() => setShowEvidenceForListing(null)}>
             <DialogContent className="sm:max-w-[500px]">
               <DialogHeader>
-                <DialogTitle>Add Evidence (Optional)</DialogTitle>
+                <DialogTitle>{t('farmer.listings.evidenceTitle')}</DialogTitle>
                 <DialogDescription>
-                  Upload photos or reports to strengthen your listing's traceability
+                  {t('farmer.listings.evidenceDescription')}
                 </DialogDescription>
               </DialogHeader>
               <EvidenceUploadSection listingId={showEvidenceForListing} cropId={listings.find(l => l.id === showEvidenceForListing)?.crop_id} />
               <DialogFooter>
-                <Button variant="outline" onClick={() => setShowEvidenceForListing(null)}>Done</Button>
+                <Button variant="outline" onClick={() => setShowEvidenceForListing(null)}>{t('farmer.listings.evidenceDone')}</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -517,12 +528,17 @@ const FarmerListings = () => {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-card rounded-xl border border-border p-6 animate-pulse">
-                <div className="h-32 bg-muted rounded-lg mb-4" />
-                <div className="h-4 bg-muted rounded w-3/4 mb-2" />
-                <div className="h-4 bg-muted rounded w-1/2" />
-              </div>
+              <Skeleton key={i} className="h-48 rounded-xl animate-pulse" />
             ))}
+          </div>
+        ) : listingsError ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <Package className="h-12 w-12 text-destructive mb-4" />
+            <p className="text-lg font-medium mb-2">{t('common.loadError')}</p>
+            <p className="text-sm text-muted-foreground mb-4">{t('common.retryMessage')}</p>
+            <Button variant="outline" onClick={() => refetchListings()}>
+              {t('common.retry')}
+            </Button>
           </div>
         ) : filteredListings.length === 0 ? (
           <EmptyState
@@ -539,7 +555,7 @@ const FarmerListings = () => {
                 <div className="h-32 bg-gradient-earth flex items-center justify-center relative">
                   <span className="text-4xl">🌾</span>
                   {listing.crop_id && (
-                    <Badge className="absolute top-2 left-2 bg-primary/80 text-xs">Crop-linked</Badge>
+                    <Badge className="absolute top-2 left-2 bg-primary/80 text-xs">{t('farmer.listings.cropLinked')}</Badge>
                   )}
                 </div>
                 <div className="p-4">
@@ -563,7 +579,7 @@ const FarmerListings = () => {
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => setShowEvidenceForListing(listing.id)}>
                           <Camera className="h-4 w-4 mr-2" />
-                          Add Evidence
+                          {t('farmer.listings.addEvidence')}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => toggleListingStatus(listing.id, listing.is_active)}>
                           <Eye className="h-4 w-4 mr-2" />
@@ -586,7 +602,7 @@ const FarmerListings = () => {
                   <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border">
                     <QrCode className="h-4 w-4 text-muted-foreground" />
                     <span className="text-xs text-muted-foreground flex-1">
-                      {listing.trace_code || 'No trace code'}
+                      {listing.trace_code || t('farmer.listings.noTraceCode')}
                     </span>
                     <ListingTraceQR
                       listingId={listing.id}

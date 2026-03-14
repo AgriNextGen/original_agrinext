@@ -108,7 +108,7 @@ const AgentTasks = () => {
 
   const handleCreateTask = () => {
     if (!newTask.farmer_id) {
-      toast.error('Please select a farmer');
+      toast.error(t('agent.tasks.selectFarmerError'));
       return;
     }
     
@@ -152,7 +152,7 @@ const AgentTasks = () => {
         entityType: 'agent_task',
         entityId: task.id
       });
-      toast.success('Saved locally — will sync when online');
+      toast.success(t('agent.tasks.savedLocally'));
       return;
     }
     updateStatus.mutate({ taskId: task.id, status: newStatus }, {
@@ -176,44 +176,44 @@ const AgentTasks = () => {
             entityType: 'agent_task',
             entityId: task.id
           });
-          toast.success('Saved locally — will sync when online');
+          toast.success(t('agent.tasks.savedLocally'));
         }
       }
     });
   };
 
   return (
-    <DashboardLayout title="Tasks">
+    <DashboardLayout title={t('agent.tasks.title')}>
       <PageHeader
-        title="My Tasks"
-        subtitle="Manage your field visit tasks"
+        title={t('agent.tasks.title')}
+        subtitle={t('agent.tasks.subtitle')}
         actions={(
           <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
               <DialogTrigger asChild>
               <Button variant="default">
                 <Plus className="h-4 w-4 mr-2" />
-                New Task
+                {t('agent.tasks.newTask')}
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Create New Task</DialogTitle>
-                <DialogDescription>Schedule a new field visit or task</DialogDescription>
+                <DialogTitle>{t('agent.tasks.createTitle')}</DialogTitle>
+                <DialogDescription>{t('agent.tasks.createSubtitle')}</DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <Label>Farmer *</Label>
+                  <Label>{t('agent.myFarmers.name')} *</Label>
                   <Select 
                     value={newTask.farmer_id} 
                     onValueChange={(v) => setNewTask({ ...newTask, farmer_id: v })}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select farmer" />
+                      <SelectValue placeholder={t('agent.tasks.selectFarmer')} />
                     </SelectTrigger>
                     <SelectContent>
                       {farmers?.map((f) => (
                         <SelectItem key={f.id} value={f.id}>
-                          {f.full_name || 'Unknown'} - {f.village || 'N/A'}
+                          {f.full_name || t('common.unknown')} - {f.village || 'N/A'}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -221,16 +221,16 @@ const AgentTasks = () => {
                 </div>
                 
                 <div>
-                  <Label>Crop (Optional)</Label>
+                  <Label>{t('agent.farmerDetail.crop')} ({t('common.optional')})</Label>
                   <Select 
                     value={newTask.crop_id} 
                     onValueChange={(v) => setNewTask({ ...newTask, crop_id: v === '__none__' ? '' : v })}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select crop" />
+                      <SelectValue placeholder={t('agent.tasks.selectCrop')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="__none__">None</SelectItem>
+                      <SelectItem value="__none__">{t('common.none')}</SelectItem>
                       {crops?.filter(c => c.farmer_id === newTask.farmer_id).map((c) => (
                         <SelectItem key={c.id} value={c.id}>
                           {c.crop_name} - {c.status}
@@ -241,7 +241,7 @@ const AgentTasks = () => {
                 </div>
                 
                 <div>
-                  <Label>Task Type</Label>
+                  <Label>{t('agent.farmerTasks.taskType')}</Label>
                   <Select 
                     value={newTask.task_type} 
                     onValueChange={(v: 'visit' | 'verify_crop' | 'harvest_check' | 'transport_assist') =>
@@ -252,16 +252,16 @@ const AgentTasks = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="visit">Farm Visit</SelectItem>
-                      <SelectItem value="verify_crop">Verify Crop</SelectItem>
-                      <SelectItem value="harvest_check">Harvest Check</SelectItem>
-                      <SelectItem value="transport_assist">Transport Assist</SelectItem>
+                      <SelectItem value="visit">{t('agent.taskTypes.visit')}</SelectItem>
+                      <SelectItem value="verify_crop">{t('agent.taskTypes.verify_crop')}</SelectItem>
+                      <SelectItem value="harvest_check">{t('agent.taskTypes.harvest_check')}</SelectItem>
+                      <SelectItem value="transport_assist">{t('agent.taskTypes.transport_assist')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 
                 <div>
-                  <Label>Due Date</Label>
+                  <Label>{t('agent.tasks.dueDate')}</Label>
                   <Input
                     type="date"
                     value={newTask.due_date}
@@ -270,11 +270,11 @@ const AgentTasks = () => {
                 </div>
                 
                 <div>
-                  <Label>Notes</Label>
+                  <Label>{t('agent.tasks.notes')}</Label>
                   <Textarea
                     value={newTask.notes}
                     onChange={(e) => setNewTask({ ...newTask, notes: e.target.value })}
-                    placeholder="Add any notes..."
+                    placeholder={t('agent.farmerTasks.notesPlaceholder')}
                   />
                 </div>
                 
@@ -284,7 +284,7 @@ const AgentTasks = () => {
                   className="w-full"
                   variant="default"
                 >
-                  {createTask.isPending ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Creating...</> : 'Create Task'}
+                  {createTask.isPending ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{t('agent.tasks.creating')}</> : t('agent.tasks.createTask')}
                 </Button>
               </div>
             </DialogContent>
@@ -299,7 +299,7 @@ const AgentTasks = () => {
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search by farmer, village, or crop..."
+                  placeholder={t('agent.tasks.searchPlaceholder')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-9"
@@ -313,7 +313,7 @@ const AgentTasks = () => {
                     size="sm"
                     onClick={() => setFilterStatus(status)}
                   >
-                    {status === 'all' ? 'All' : status.replace('_', ' ')}
+                    {status === 'all' ? t('common.all') : t(`agent.transportPage.statusLabels.${status}`)}
                   </Button>
                 ))}
               </div>
@@ -324,32 +324,24 @@ const AgentTasks = () => {
         {/* Tasks Table */}
         <Card>
           <CardContent className="p-0">
-            <DataState loading={isLoading} empty={!isLoading && (!filteredTasks || filteredTasks.length === 0)} emptyTitle="No tasks found">
+            <DataState loading={isLoading} empty={!isLoading && (!filteredTasks || filteredTasks.length === 0)} emptyTitle={t('agent.tasks.noTasks')}>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Farmer</TableHead>
-                    <TableHead>Village</TableHead>
-                    <TableHead>Crop</TableHead>
-                    <TableHead>Task Type</TableHead>
-                    <TableHead>Due Date</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead>{t('agent.myFarmers.name')}</TableHead>
+                    <TableHead>{t('agent.farmers.village')}</TableHead>
+                    <TableHead>{t('agent.farmerDetail.crop')}</TableHead>
+                    <TableHead>{t('agent.farmerTasks.taskType')}</TableHead>
+                    <TableHead>{t('agent.tasks.dueDate')}</TableHead>
+                    <TableHead>{t('agent.farmerDetail.status')}</TableHead>
+                    <TableHead>{t('agent.myFarmers.actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredTasks?.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={7} className="text-center py-12">
-                        <ClipboardList className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
-                        <p className="text-muted-foreground">No tasks found</p>
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    filteredTasks?.map((task) => (
+                  {filteredTasks?.map((task) => (
                       <TableRow key={task.id}>
                         <TableCell className="font-medium">
-                          {task.farmer?.full_name || 'Unknown'}
+                          {task.farmer?.full_name || t('common.unknown')}
                         </TableCell>
                         <TableCell>
                           <span className="flex items-center gap-1">
@@ -366,7 +358,7 @@ const AgentTasks = () => {
                             <span className="text-muted-foreground">-</span>
                           )}
                         </TableCell>
-                        <TableCell>{taskTypeLabels[task.task_type]}</TableCell>
+                        <TableCell>{t(`agent.taskTypes.${task.task_type}`)}</TableCell>
                         <TableCell>
                           {task.due_date ? (
                             <span className="flex items-center gap-1">
@@ -382,7 +374,7 @@ const AgentTasks = () => {
                             {task.task_status === 'pending' && <Clock className="h-3 w-3 mr-1" />}
                             {task.task_status === 'in_progress' && <Play className="h-3 w-3 mr-1" />}
                             {task.task_status === 'completed' && <CheckCircle className="h-3 w-3 mr-1" />}
-                            {task.task_status.replace('_', ' ')}
+                            {t(`agent.transportPage.statusLabels.${task.task_status}`)}
                           </Badge>
                         </TableCell>
                         <TableCell>
@@ -393,7 +385,7 @@ const AgentTasks = () => {
                                 variant="outline"
                                 onClick={() => handleStatusChange(task, 'in_progress')}
                               >
-                                Start
+                                {t('agent.tasks.start')}
                               </Button>
                             )}
                             {task.task_status === 'in_progress' && (
@@ -402,11 +394,11 @@ const AgentTasks = () => {
                                 variant="default"
                                 onClick={() => handleStatusChange(task, 'completed')}
                               >
-                                Complete
+                                {t('agent.tasks.complete')}
                               </Button>
                             )}
                             {task.task_status === 'completed' && (
-                              <span className="text-sm text-green-600">Done</span>
+                              <span className="text-sm text-green-600">{t('agent.tasks.done')}</span>
                             )}
                             <AgentVoiceNoteDialog
                               farmerId={task.farmer_id}
@@ -421,8 +413,7 @@ const AgentTasks = () => {
                           </div>
                         </TableCell>
                       </TableRow>
-                    ))
-                  )}
+                    ))}
                 </TableBody>
               </Table>
               <div className="p-4 text-center">

@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import DashboardLayout from '@/layouts/DashboardLayout';
+import PageShell from '@/components/layout/PageShell';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -8,7 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { CheckCircle, XCircle, Sparkles, Clock } from 'lucide-react';
 import { useAiOutputs, useAcceptAiSuggestion } from '@/hooks/useAiOutputs';
 import { useLanguage } from '@/hooks/useLanguage';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 const TARGET_TYPES = ['ticket', 'timeline', 'search_intent', 'voice_note'];
 const STATUS_OPTIONS = ['suggested', 'accepted', 'rejected'];
@@ -39,30 +40,26 @@ export default function AiReview() {
 
   const handleDecision = (outputId: string, accept: boolean) => {
     acceptSuggestion.mutate({ outputId, accept }, {
-      onSuccess: () => toast({ title: accept ? 'Accepted' : 'Rejected' }),
+      onSuccess: () => toast({ title: accept ? t('admin.aiReview.accepted') : t('admin.aiReview.rejected') }),
     });
   };
 
   return (
     <DashboardLayout>
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">AI Outputs Review</h1>
-        </div>
-
+      <PageShell title={t('admin.aiReview.title')}>
         <div className="flex gap-2 flex-wrap">
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-36"><SelectValue placeholder="Status" /></SelectTrigger>
+            <SelectTrigger className="w-36"><SelectValue placeholder={t('admin.aiReview.status')} /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="all">{t('admin.aiReview.all')}</SelectItem>
               {STATUS_OPTIONS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
             </SelectContent>
           </Select>
           <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger className="w-40"><SelectValue placeholder="Type" /></SelectTrigger>
+            <SelectTrigger className="w-40"><SelectValue placeholder={t('admin.aiReview.type')} /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Types</SelectItem>
-              {TARGET_TYPES.map((t) => <SelectItem key={t} value={t}>{t.replace(/_/g, ' ')}</SelectItem>)}
+              <SelectItem value="all">{t('admin.aiReview.allTypes')}</SelectItem>
+              {TARGET_TYPES.map((tt) => <SelectItem key={tt} value={tt}>{tt.replace(/_/g, ' ')}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
@@ -71,7 +68,7 @@ export default function AiReview() {
           {isLoading && Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-24 w-full" />)}
 
           {!isLoading && items.length === 0 && (
-            <Card><CardContent className="py-12 text-center text-muted-foreground">No AI outputs to review.</CardContent></Card>
+            <Card><CardContent className="py-12 text-center text-muted-foreground">{t('admin.aiReview.noOutputs')}</CardContent></Card>
           )}
 
           {items.map((item) => (
@@ -85,21 +82,21 @@ export default function AiReview() {
                       <Badge className={`text-xs ${STATUS_COLORS[item.status] || ''}`}>{item.status}</Badge>
                       <Badge variant="secondary" className="text-xs">{item.provider}</Badge>
                       {item.confidence != null && (
-                        <span className="text-xs text-muted-foreground">Confidence: {(item.confidence * 100).toFixed(0)}%</span>
+                        <span className="text-xs text-muted-foreground">{t('admin.aiReview.confidenceLabel')} {(item.confidence * 100).toFixed(0)}%</span>
                       )}
                     </div>
 
                     <div className="text-xs text-muted-foreground mb-1">
-                      Target: {item.target_id.slice(0, 8)} | <Clock className="inline h-3 w-3" /> {new Date(item.created_at).toLocaleString()}
+                      {t('admin.aiReview.target')} {item.target_id.slice(0, 8)} | <Clock className="inline h-3 w-3" /> {new Date(item.created_at).toLocaleString()}
                     </div>
 
                     {/* Output preview */}
                     <div className="bg-muted/50 rounded p-2 text-sm">
                       {item.target_type === 'ticket' && (
                         <div className="space-y-1">
-                          <p>Category: <strong>{item.output?.suggested_category}</strong></p>
-                          <p>Priority: <strong>{item.output?.suggested_priority}</strong></p>
-                          {item.output?.suggested_actions && <p>Actions: {(item.output.suggested_actions as string[]).join(', ')}</p>}
+                          <p>{t('admin.aiReview.categoryLabel')} <strong>{item.output?.suggested_category}</strong></p>
+                          <p>{t('admin.aiReview.priorityLabel')} <strong>{item.output?.suggested_priority}</strong></p>
+                          {item.output?.suggested_actions && <p>{t('admin.aiReview.actionsLabel')} {(item.output.suggested_actions as string[]).join(', ')}</p>}
                         </div>
                       )}
                       {item.target_type === 'timeline' && (
@@ -107,8 +104,8 @@ export default function AiReview() {
                       )}
                       {item.target_type === 'search_intent' && (
                         <div className="space-y-1">
-                          <p>Query: <em>{item.output?.original_query}</em></p>
-                          <p>Filters: {JSON.stringify(item.output?.suggested_filters)}</p>
+                          <p>{t('admin.aiReview.query')} <em>{item.output?.original_query}</em></p>
+                          <p>{t('admin.aiReview.filters')} {JSON.stringify(item.output?.suggested_filters)}</p>
                         </div>
                       )}
                       {!['ticket', 'timeline', 'search_intent'].includes(item.target_type) && (
@@ -120,10 +117,10 @@ export default function AiReview() {
                   {item.status === 'suggested' && (
                     <div className="flex flex-col gap-1 flex-shrink-0">
                       <Button size="sm" onClick={() => handleDecision(item.id, true)}>
-                        <CheckCircle className="h-3 w-3 mr-1" /> Accept
+                        <CheckCircle className="h-3 w-3 mr-1" /> {t('admin.aiReview.accept')}
                       </Button>
                       <Button size="sm" variant="outline" onClick={() => handleDecision(item.id, false)}>
-                        <XCircle className="h-3 w-3 mr-1" /> Reject
+                        <XCircle className="h-3 w-3 mr-1" /> {t('admin.aiReview.reject')}
                       </Button>
                     </div>
                   )}
@@ -140,7 +137,7 @@ export default function AiReview() {
             </Button>
           </div>
         )}
-      </div>
+      </PageShell>
     </DashboardLayout>
   );
 }

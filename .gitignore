@@ -24,4 +24,36 @@ dist-ssr
 *.sw?
 .env
 .env.*
-artifacts/staging/
+!.env.example
+artifacts/
+
+# Vite preview server state (do not commit)
+.preview.err.log
+.preview.out.log
+.preview.pid
+.tmp_preview_pid.txt
+.tmp_fn_dl*/
+
+# Dev screenshots and test artifacts (do not commit)
+screenshot*.png
+test_*.png
+test-http-simple.cjs
+test-pages.html
+test-routing-fix.mjs
+test-visual-playwright.js
+test-visual.mjs
+test_pages.html
+test_pages.mjs
+
+# Generated reports (keep directory, ignore output)
+reports/*.md
+
+# Build outputs
+output/
+backups/
+coverage/
+*.tsbuildinfo
+
+# Deprecated (archived to branch archive/cleanup-2026-03)
+backend/
+supabase_backup/

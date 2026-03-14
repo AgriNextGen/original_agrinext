@@ -4,76 +4,40 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { useAllTransportRequests, useAllFarmers, useAllCrops } from '@/hooks/useAgentDashboard';
-import { supabase } from '@/integrations/supabase/client';
-import { useQueryClient } from '@tanstack/react-query';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useAllTransportRequests } from '@/hooks/useAgentDashboard';
 import { 
   Truck, 
-  Plus, 
   MapPin, 
   Calendar,
   Package,
   Search,
-  Filter,
-  Loader2
+  Info,
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
-import { toast } from 'sonner';
 import PageHeader from '@/components/shared/PageHeader';
-import EmptyState from '@/components/shared/EmptyState';
+import ResponsiveDataView from '@/components/shared/ResponsiveDataView';
+import type { Column } from '@/components/shared/ResponsiveDataView';
+import { useLoadingTimeout } from '@/hooks/useLoadingTimeout';
+import { useLanguage } from '@/hooks/useLanguage';
 
 const statusColors: Record<string, string> = {
+  open: 'bg-gray-100 text-gray-800',
   requested: 'bg-amber-100 text-amber-800',
   assigned: 'bg-blue-100 text-blue-800',
-  en_route: 'bg-purple-100 text-purple-800',
-  picked_up: 'bg-indigo-100 text-indigo-800',
+  accepted: 'bg-blue-100 text-blue-800',
+  in_progress: 'bg-purple-100 text-purple-800',
+  completed: 'bg-green-100 text-green-800',
   delivered: 'bg-green-100 text-green-800',
   cancelled: 'bg-red-100 text-red-800',
 };
 
 const AgentTransport = () => {
+  const { t } = useLanguage();
   const { data: requests, isLoading } = useAllTransportRequests();
-  const { data: farmers } = useAllFarmers();
-  const { data: crops } = useAllCrops();
-  const queryClient = useQueryClient();
+  const loadingTimedOut = useLoadingTimeout(isLoading);
   
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  const [newRequest, setNewRequest] = useState({
-    farmer_id: '',
-    crop_id: '',
-    quantity: '',
-    pickup_village: '',
-    preferred_date: new Date().toISOString().split('T')[0],
-  });
 
   const filteredRequests = requests?.filter((req) => {
     const matchesStatus = filterStatus === 'all' || req.status === filterStatus;
@@ -84,155 +48,27 @@ const AgentTransport = () => {
     return matchesStatus && (searchQuery === '' || matchesSearch);
   });
 
-  const handleCreateRequest = async () => {
-    if (!newRequest.farmer_id || !newRequest.quantity) {
-      toast.error('Please fill in all required fields');
-      return;
-    }
-    
-    try {
-      setIsSubmitting(true);
-      const { error } = await supabase.from('transport_requests').insert({
-        farmer_id: newRequest.farmer_id,
-        crop_id: newRequest.crop_id || null,
-        quantity: parseFloat(newRequest.quantity),
-        pickup_village: newRequest.pickup_village,
-        pickup_location: newRequest.pickup_village,
-        preferred_date: newRequest.preferred_date,
-        status: 'requested',
-      });
-      
-      if (error) throw error;
-      
-      queryClient.invalidateQueries({ queryKey: ['all-transport-requests'] });
-      toast.success('Transport request created');
-      setIsCreateOpen(false);
-      setNewRequest({
-        farmer_id: '',
-        crop_id: '',
-        quantity: '',
-        pickup_village: '',
-        preferred_date: new Date().toISOString().split('T')[0],
-      });
-    } catch (error) {
-      toast.error('Failed to create request');
-      console.error(error);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const statusLabel = (s: string) => t(`agent.transportPage.statusLabels.${s}`);
 
-  const handleUpdateStatus = async (requestId: string, newStatus: 'requested' | 'assigned' | 'en_route' | 'picked_up' | 'delivered' | 'cancelled') => {
-    try {
-      const { error } = await supabase
-        .from('transport_requests')
-        .update({ status: newStatus })
-        .eq('id', requestId);
-      
-      if (error) throw error;
-      
-      queryClient.invalidateQueries({ queryKey: ['all-transport-requests'] });
-      toast.success('Status updated');
-    } catch (error) {
-      toast.error('Failed to update status');
-      console.error(error);
-    }
-  };
-
-  const farmerCrops = crops?.filter(c => c.farmer_id === newRequest.farmer_id) || [];
+  const columns: Column<any>[] = [
+    { key: 'farmer', header: t('agent.transportPage.farmer'), render: (r) => <span className="font-medium">{r.farmer?.full_name || t('agent.transportPage.unknown')}</span> },
+    { key: 'crop', header: t('agent.transportPage.crop'), render: (r) => r.crop ? <Badge variant="outline" className="bg-green-50">{r.crop.crop_name}</Badge> : '-' },
+    { key: 'quantity', header: t('agent.transportPage.quantity'), render: (r) => <span className="flex items-center gap-1"><Package className="h-3 w-3" />{r.quantity} {r.quantity_unit}</span> },
+    { key: 'village', header: t('agent.transportPage.village'), render: (r) => <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{r.pickup_village || r.pickup_location}</span> },
+    { key: 'date', header: t('agent.transportPage.preferredDate'), render: (r) => r.preferred_date ? <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />{format(parseISO(r.preferred_date), 'MMM d')}</span> : '-' },
+    { key: 'status', header: t('agent.transportPage.status'), render: (r) => <Badge className={statusColors[r.status]}>{statusLabel(r.status)}</Badge> },
+  ];
 
   return (
-    <DashboardLayout title="Transport">
-      <PageHeader title="Transport Requests" subtitle="Manage transport and pickup requests">
+    <DashboardLayout title={t('agent.transportPage.title')}>
+      <PageHeader title={t('agent.transportPage.requestsTitle')} subtitle={t('agent.transportPage.subtitle')}>
       <div className="space-y-6">
 
-          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-            <DialogTrigger asChild>
-              <Button variant="default">
-                <Plus className="h-4 w-4 mr-2" />
-                New Request
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Create Transport Request</DialogTitle>
-                <DialogDescription>Request transport for a farmer's crops</DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label>Farmer *</Label>
-                  <Select 
-                    value={newRequest.farmer_id} 
-                    onValueChange={(v) => setNewRequest({ ...newRequest, farmer_id: v, crop_id: '' })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select farmer" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {farmers?.map((f) => (
-                        <SelectItem key={f.id} value={f.id}>
-                          {f.full_name || 'Unknown'} - {f.village || 'N/A'}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div>
-                  <Label>Crop</Label>
-                  <Select 
-                    value={newRequest.crop_id} 
-                    onValueChange={(v) => setNewRequest({ ...newRequest, crop_id: v })}
-                    disabled={!newRequest.farmer_id}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select crop" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">None</SelectItem>
-                      {farmerCrops.map((c) => (
-                        <SelectItem key={c.id} value={c.id}>
-                          {c.crop_name} - {c.estimated_quantity || '?'} {c.quantity_unit}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div>
-                  <Label>Quantity (quintals) *</Label>
-                  <Input
-                    type="number"
-                    value={newRequest.quantity}
-                    onChange={(e) => setNewRequest({ ...newRequest, quantity: e.target.value })}
-                    placeholder="Enter quantity"
-                  />
-                </div>
-                
-                <div>
-                  <Label>Pickup Village</Label>
-                  <Input
-                    value={newRequest.pickup_village}
-                    onChange={(e) => setNewRequest({ ...newRequest, pickup_village: e.target.value })}
-                    placeholder="Enter village name"
-                  />
-                </div>
-                
-                <div>
-                  <Label>Preferred Date</Label>
-                  <Input
-                    type="date"
-                    value={newRequest.preferred_date}
-                    onChange={(e) => setNewRequest({ ...newRequest, preferred_date: e.target.value })}
-                  />
-                </div>
-                
-                <Button variant="default" onClick={handleCreateRequest} className="w-full" disabled={isSubmitting}>
-                  {isSubmitting ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Creating...</> : 'Create Request'}
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+        <div className="flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+          <Info className="h-4 w-4 shrink-0" />
+          <span>{t('agent.transportPage.readOnlyInfo')}</span>
+        </div>
+
         {/* Filters */}
         <Card>
           <CardContent className="py-4">
@@ -240,21 +76,21 @@ const AgentTransport = () => {
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search by farmer, village, or crop..."
+                  placeholder={t('agent.transportPage.searchPlaceholder')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-9"
                 />
               </div>
               <div className="flex flex-wrap gap-2">
-                {['all', 'requested', 'assigned', 'en_route', 'delivered'].map((status) => (
+                {['all', 'requested', 'assigned', 'in_progress', 'completed', 'cancelled'].map((status) => (
                   <Button
                     key={status}
                     variant={filterStatus === status ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setFilterStatus(status)}
                   >
-                    {status === 'all' ? 'All' : status.replace('_', ' ')}
+                    {statusLabel(status)}
                   </Button>
                 ))}
               </div>
@@ -262,127 +98,38 @@ const AgentTransport = () => {
           </CardContent>
         </Card>
 
-        {/* Transport Table */}
+        {/* Transport Data */}
         <Card>
           <CardContent className="p-0">
-            {isLoading ? (
-              <div className="p-6 space-y-4">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <Skeleton key={i} className="h-16 w-full" />
-                ))}
-              </div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Farmer</TableHead>
-                    <TableHead>Crop</TableHead>
-                    <TableHead>Quantity</TableHead>
-                    <TableHead>Village</TableHead>
-                    <TableHead>Preferred Date</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredRequests?.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={7} className="p-0">
-                        <EmptyState
-                          icon={Truck}
-                          title={'No transport requests found'}
-                          description={'Create a transport request to get started.'}
-                          actionLabel={'New Request'}
-                          onAction={() => setIsCreateOpen(true)}
-                        />
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    filteredRequests?.map((req) => (
-                      <TableRow key={req.id}>
-                        <TableCell className="font-medium">
-                          {(req as any).farmer?.full_name || 'Unknown'}
-                        </TableCell>
-                        <TableCell>
-                          {(req as any).crop ? (
-                            <Badge variant="outline" className="bg-green-50">
-                              {(req as any).crop.crop_name}
-                            </Badge>
-                          ) : (
-                            '-'
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <span className="flex items-center gap-1">
-                            <Package className="h-3 w-3" />
-                            {req.quantity} {req.quantity_unit}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <span className="flex items-center gap-1">
-                            <MapPin className="h-3 w-3" />
-                            {req.pickup_village || req.pickup_location}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          {req.preferred_date ? (
-                            <span className="flex items-center gap-1">
-                              <Calendar className="h-3 w-3" />
-                              {format(parseISO(req.preferred_date), 'MMM d')}
-                            </span>
-                          ) : (
-                            '-'
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={statusColors[req.status]}>
-                            {req.status.replace('_', ' ')}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {req.status === 'requested' && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleUpdateStatus(req.id, 'assigned')}
-                            >
-                              Assign
-                            </Button>
-                          )}
-                          {req.status === 'assigned' && (
-                            <Button
-                              size="sm"
-                              onClick={() => handleUpdateStatus(req.id, 'en_route')}
-                            >
-                              Start
-                            </Button>
-                          )}
-                          {req.status === 'en_route' && (
-                            <div className="flex gap-1">
-                              <Button
-                                size="sm"
-                                variant="default"
-                                onClick={() => handleUpdateStatus(req.id, 'delivered')}
-                              >
-                                Delivered
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="text-destructive border-destructive/40"
-                                onClick={() => handleUpdateStatus(req.id, 'cancelled')}
-                              >
-                                Cancel
-                              </Button>
-                            </div>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            )}
+            <ResponsiveDataView
+              data={filteredRequests}
+              columns={columns}
+              keyExtractor={(r) => r.id}
+              loading={isLoading && !loadingTimedOut}
+              emptyIcon={Truck}
+              emptyTitle={t('agent.transportPage.noRequests')}
+              emptyDescription={t('agent.transportPage.noRequestsDescription')}
+              renderMobileCard={(req: any) => (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium">{req.farmer?.full_name || t('agent.transportPage.unknown')}</span>
+                    <Badge className={statusColors[req.status]}>{statusLabel(req.status)}</Badge>
+                  </div>
+                  <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
+                    {req.crop && (
+                      <span className="flex items-center gap-1"><Package className="h-3 w-3" />{req.crop.crop_name}</span>
+                    )}
+                    <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{req.pickup_village || req.pickup_location}</span>
+                    {req.preferred_date && (
+                      <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />{format(parseISO(req.preferred_date), 'MMM d')}</span>
+                    )}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    {req.quantity} {req.quantity_unit}
+                  </div>
+                </div>
+              )}
+            />
           </CardContent>
         </Card>
       </div>

@@ -21,6 +21,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { ROUTES } from '@/lib/routes';
 import PageHeader from '@/components/shared/PageHeader';
 import { useLanguage } from '@/hooks/useLanguage';
 import CropPhotoUploadDialog from '@/components/crop-diary/CropPhotoUploadDialog';
@@ -56,7 +57,7 @@ const CropDiaryPage = () => {
 
   if (isLoading) {
     return (
-      <DashboardLayout title="Crop Diary">
+      <DashboardLayout title={t('nav.cropDiary')}>
         <div className="space-y-6">
           <Skeleton className="h-10 w-32" />
           <Skeleton className="h-48 w-full" />
@@ -71,13 +72,13 @@ const CropDiaryPage = () => {
       <DashboardLayout title={t('cropDiary.title')}>
         <div className="text-center py-12">
           <Sprout className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          <h2 className="text-xl font-semibold mb-2">Crop not found</h2>
+          <h2 className="text-xl font-semibold mb-2">{t('cropDiary.cropNotFound')}</h2>
           <p className="text-muted-foreground mb-4">
-            This crop doesn't exist or you don't have access to it.
+            {t('common.noData')}
           </p>
-          <Button onClick={() => navigate('/farmer/crops')}>
+          <Button onClick={() => navigate(ROUTES.FARMER.CROPS)}>
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Crops
+            {t('cropDiary.backToCrops')}
           </Button>
         </div>
       </DashboardLayout>
@@ -92,9 +93,9 @@ const CropDiaryPage = () => {
       <PageHeader title={t('cropDiary.title')}>
       <div className="space-y-6">
         {/* Back Button */}
-        <Button variant="ghost" onClick={() => navigate('/farmer/crops')} className="gap-2">
+        <Button variant="ghost" onClick={() => navigate(ROUTES.FARMER.CROPS)} className="gap-2">
           <ArrowLeft className="h-4 w-4" />
-          Back to Crops
+          {t('cropDiary.backToCrops')}
         </Button>
 
         {/* Crop Header Card */}
@@ -124,7 +125,7 @@ const CropDiaryPage = () => {
                   {crop.sowing_date && (
                     <div className="flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
-                      Sown: {format(new Date(crop.sowing_date), 'MMM d, yyyy')}
+                      {t('cropDiary.sown')}: {format(new Date(crop.sowing_date), 'MMM d, yyyy')}
                     </div>
                   )}
                   {crop.estimated_quantity && (
@@ -138,7 +139,7 @@ const CropDiaryPage = () => {
                 {/* Health Status Badge */}
                 <Badge className={`${healthConfig.color} gap-1`}>
                   <HealthIcon className="h-3 w-3" />
-                  {healthConfig.label}
+                  {t(`cropDiary.healthStatus.${crop.health_status ?? 'normal'}`)}
                 </Badge>
               </div>
 
@@ -146,7 +147,7 @@ const CropDiaryPage = () => {
                 {/* Growth Stage Selector */}
                 <div>
                   <label className="text-sm text-muted-foreground mb-1 block">
-                    Growth Stage
+                    {t('cropDiary.growthStage')}
                   </label>
                   <Select
                     value={crop.growth_stage ?? 'seedling'}
@@ -166,7 +167,7 @@ const CropDiaryPage = () => {
                         <SelectItem key={stage.value} value={stage.value}>
                           <span className="flex items-center gap-2">
                             <span>{stage.emoji}</span>
-                            {stage.label}
+                            {t(`cropDiary.growthStages.${stage.value}`)}
                           </span>
                         </SelectItem>
                       ))}
@@ -177,7 +178,7 @@ const CropDiaryPage = () => {
                 {/* Last photo info */}
                 {crop.last_photo_at && (
                   <p className="text-xs text-muted-foreground">
-                    Last photo: {format(new Date(crop.last_photo_at), 'MMM d, yyyy')}
+                    {t('cropDiary.lastPhoto')}: {format(new Date(crop.last_photo_at), 'MMM d, yyyy')}
                   </p>
                 )}
               </div>
@@ -187,11 +188,11 @@ const CropDiaryPage = () => {
             <div className="flex flex-wrap gap-2 mt-6 pt-4 border-t">
               <Button onClick={() => setPhotoDialogOpen(true)}>
                 <Camera className="h-4 w-4 mr-2" />
-                Upload Photo
+                {t('cropDiary.uploadPhoto')}
               </Button>
               <Button variant="outline" onClick={() => setActivityDialogOpen(true)}>
                 <ClipboardList className="h-4 w-4 mr-2" />
-                Log Activity
+                {t('cropDiary.logActivity')}
               </Button>
               <Button
                 variant="outline"
@@ -199,7 +200,7 @@ const CropDiaryPage = () => {
                 onClick={() => setDiseaseDialogOpen(true)}
               >
                 <AlertTriangle className="h-4 w-4 mr-2" />
-                Report Disease
+                {t('cropDiary.reportDisease')}
               </Button>
             </div>
           </CardContent>

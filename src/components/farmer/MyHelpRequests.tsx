@@ -7,41 +7,37 @@ import { useFarmerHelpRequests } from '@/hooks/useAgentAssignments';
 import { useLanguage } from '@/hooks/useLanguage';
 import { format, parseISO } from 'date-fns';
 
-const taskTypeLabels: Record<string, { en: string; kn: string }> = {
-  visit: { en: 'Visit Request', kn: 'ಭೇಟಿ ವಿನಂತಿ' },
-  verify_crop: { en: 'Crop Verification', kn: 'ಬೆಳೆ ಪರಿಶೀಲನೆ' },
-  harvest_check: { en: 'Harvest Check', kn: 'ಕೊಯ್ಲು ಪರಿಶೀಲನೆ' },
-  transport_assist: { en: 'Transport Help', kn: 'ಸಾರಿಗೆ ಸಹಾಯ' },
+const taskTypeKeys: Record<string, string> = {
+  visit: 'visit',
+  verify_crop: 'verify_crop',
+  harvest_check: 'harvest_check',
+  transport_assist: 'transport_assist',
 };
 
 const statusConfig: Record<
   string,
-  { icon: React.ComponentType<any>; color: string; label: { en: string; kn: string } }
+  { icon: React.ComponentType<any>; color: string }
 > = {
   pending: {
     icon: Clock,
     color: 'bg-amber-100 text-amber-800',
-    label: { en: 'Pending', kn: 'ಬಾಕಿ' },
   },
   in_progress: {
     icon: AlertCircle,
     color: 'bg-blue-100 text-blue-800',
-    label: { en: 'In Progress', kn: 'ಪ್ರಗತಿಯಲ್ಲಿದೆ' },
   },
   completed: {
     icon: CheckCircle,
     color: 'bg-green-100 text-green-800',
-    label: { en: 'Completed', kn: 'ಪೂರ್ಣಗೊಂಡಿದೆ' },
   },
   cancelled: {
     icon: XCircle,
     color: 'bg-gray-100 text-gray-800',
-    label: { en: 'Cancelled', kn: 'ರದ್ದಾಗಿದೆ' },
   },
 };
 
 export default function MyHelpRequests() {
-  const { language } = useLanguage();
+  const { t } = useLanguage();
   const { data: requests, isLoading } = useFarmerHelpRequests();
 
   if (isLoading) {
@@ -66,15 +62,13 @@ export default function MyHelpRequests() {
       <CardHeader className="pb-3">
         <CardTitle className="text-lg flex items-center gap-2">
           <ClipboardList className="h-5 w-5 text-primary" />
-          {language === 'kn' ? 'ನನ್ನ ವಿನಂತಿಗಳು' : 'My Requests'}
+          {t('farmer.helpRequests.title')}
         </CardTitle>
       </CardHeader>
       <CardContent>
         {!requests?.length ? (
           <p className="text-muted-foreground text-sm text-center py-6">
-            {language === 'kn'
-              ? 'ಯಾವುದೇ ವಿನಂತಿಗಳಿಲ್ಲ'
-              : 'No requests yet'}
+            {t('farmer.helpRequests.noRequests')}
           </p>
         ) : (
           <ScrollArea className="h-[300px] pr-4">
@@ -82,9 +76,8 @@ export default function MyHelpRequests() {
               {requests.map((request) => {
                 const status = statusConfig[request.task_status] || statusConfig.pending;
                 const StatusIcon = status.icon;
-                const taskLabel =
-                  taskTypeLabels[request.task_type] ||
-                  taskTypeLabels.visit_request;
+                const taskKey =
+                  taskTypeKeys[request.task_type] || 'visit';
 
                 return (
                   <div
@@ -97,12 +90,10 @@ export default function MyHelpRequests() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-medium">
-                          {language === 'kn' ? taskLabel.kn : taskLabel.en}
+                          {t(`farmer.helpRequests.taskTypes.${taskKey}`)}
                         </span>
                         <Badge variant="outline" className={status.color}>
-                          {language === 'kn'
-                            ? status.label.kn
-                            : status.label.en}
+                          {t(`farmer.helpRequests.status.${request.task_status}`)}
                         </Badge>
                       </div>
                       {request.notes && (

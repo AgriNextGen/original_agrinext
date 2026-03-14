@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '@/layouts/DashboardLayout';
+import PageShell from '@/components/layout/PageShell';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -8,29 +9,30 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertTriangle, CheckCircle, Clock, Search, Sparkles, X, MapPin } from 'lucide-react';
+import { AlertTriangle, CheckCircle, Clock, Search, Sparkles, X, MapPin, Inbox } from 'lucide-react';
+import EmptyState from '@/components/shared/EmptyState';
 import { useOpsInbox, useResolveOpsItem } from '@/hooks/useOpsInbox';
 import { useSmartSearch } from '@/hooks/useSmartSearch';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import GeoStateSelect from '@/components/geo/GeoStateSelect';
 import GeoDistrictSelect from '@/components/geo/GeoDistrictSelect';
 import { useLanguage } from '@/hooks/useLanguage';
 
-const ITEM_TYPE_TABS = [
-  { value: '', label: 'All' },
-  { value: 'ticket', label: 'Tickets' },
-  { value: 'stuck_trip', label: 'Stuck Trips' },
-  { value: 'stuck_order', label: 'Stuck Orders' },
-  { value: 'kyc_pending', label: 'KYC Pending' },
-  { value: 'payout_pending', label: 'Payouts' },
-  { value: 'dead_job', label: 'Dead Jobs' },
-  { value: 'security_alert', label: 'Security' },
+const ITEM_TYPE_TAB_KEYS = [
+  { value: '', key: 'all' },
+  { value: 'ticket', key: 'tickets' },
+  { value: 'stuck_trip', key: 'stuckTrips' },
+  { value: 'stuck_order', key: 'stuckOrders' },
+  { value: 'kyc_pending', key: 'kycPending' },
+  { value: 'payout_pending', key: 'payoutsPending' },
+  { value: 'dead_job', key: 'deadJobs' },
+  { value: 'security_alert', key: 'security' },
 ];
 
 const SEVERITY_COLORS: Record<string, string> = {
-  high: 'bg-red-100 text-red-800 border-red-200',
-  medium: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  low: 'bg-green-100 text-green-800 border-green-200',
+  high: 'bg-destructive/10 text-destructive border-destructive/20',
+  medium: 'bg-warning/10 text-warning border-warning/20',
+  low: 'bg-success/10 text-success border-success/20',
 };
 
 export default function OpsInbox() {
@@ -64,22 +66,18 @@ export default function OpsInbox() {
     if (!suggestedFilters) return;
     if (suggestedFilters.item_type) setActiveTab(suggestedFilters.item_type);
     setSuggestedFilters(null);
-    toast({ title: 'Filters applied', description: 'Search suggestion applied to inbox filters.' });
+    toast({ title: t('admin.opsInbox.filtersApplied'), description: t('admin.opsInbox.searchApplied') });
   };
 
   const handleResolve = (id: string) => {
     resolveItem.mutate({ id, status: 'resolved' }, {
-      onSuccess: () => toast({ title: 'Resolved' }),
+      onSuccess: () => toast({ title: t('admin.opsInbox.resolved') }),
     });
   };
 
   return (
     <DashboardLayout>
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Ops Inbox</h1>
-        </div>
-
+      <PageShell title={t('admin.opsInbox.title')}>
         {/* Smart Search */}
         <Card>
           <CardContent className="pt-4">
@@ -87,7 +85,7 @@ export default function OpsInbox() {
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Smart search: e.g. 'stuck orders in last week', 'urgent tickets'..."
+                  placeholder={t('admin.opsInbox.search')}
                   className="pl-9"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -96,18 +94,18 @@ export default function OpsInbox() {
               </div>
               <Button onClick={handleSmartSearch} disabled={isSearching || !searchQuery.trim()}>
                 <Sparkles className="h-4 w-4 mr-1" />
-                {isSearching ? 'Analyzing...' : 'AI Search'}
+                {isSearching ? t('admin.opsInbox.analyzing') : t('admin.opsInbox.aiSearch')}
               </Button>
             </div>
             {suggestedFilters && (
               <div className="mt-3 flex items-center gap-2 flex-wrap">
-                <span className="text-xs text-muted-foreground">AI suggested:</span>
+                <span className="text-xs text-muted-foreground">{t('admin.opsInbox.aiSuggested')}</span>
                 {Object.entries(suggestedFilters).map(([key, value]) => (
                   <Badge key={key} variant="secondary" className="text-xs">
                     {key}: {value}
                   </Badge>
                 ))}
-                <Button size="sm" variant="outline" onClick={applySmartFilters}>Apply</Button>
+                <Button size="sm" variant="outline" onClick={applySmartFilters}>{t('admin.opsInbox.apply')}</Button>
                 <Button size="sm" variant="ghost" onClick={() => setSuggestedFilters(null)}><X className="h-3 w-3" /></Button>
               </div>
             )}
@@ -123,7 +121,7 @@ export default function OpsInbox() {
                 <GeoStateSelect
                   value={geoStateId}
                   onValueChange={(v) => { setGeoStateId(v); setGeoDistrictId(''); }}
-                  placeholder="Filter by state"
+                  placeholder={t('admin.opsInbox.filterByState')}
                 />
               </div>
               <div className="w-44">
@@ -131,12 +129,12 @@ export default function OpsInbox() {
                   stateId={geoStateId || null}
                   value={geoDistrictId}
                   onValueChange={setGeoDistrictId}
-                  placeholder="Filter by district"
+                  placeholder={t('admin.opsInbox.filterByDistrict')}
                 />
               </div>
               {(geoStateId || geoDistrictId) && (
                 <Button size="sm" variant="ghost" onClick={() => { setGeoStateId(''); setGeoDistrictId(''); }}>
-                  <X className="h-3 w-3 mr-1" /> Clear geo
+                  <X className="h-3 w-3 mr-1" /> {t('admin.opsInbox.clearGeo')}
                 </Button>
               )}
             </div>
@@ -146,9 +144,9 @@ export default function OpsInbox() {
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="flex-wrap h-auto gap-1">
-            {ITEM_TYPE_TABS.map((tab) => (
+            {ITEM_TYPE_TAB_KEYS.map((tab) => (
               <TabsTrigger key={tab.value} value={tab.value} className="text-xs">
-                {tab.label}
+                {t(`admin.opsInbox.${tab.key}`)}
               </TabsTrigger>
             ))}
           </TabsList>
@@ -161,13 +159,7 @@ export default function OpsInbox() {
           ))}
 
           {!isLoading && items.length === 0 && (
-            <Card>
-              <CardContent className="py-12 text-center text-muted-foreground">
-                <CheckCircle className="mx-auto h-10 w-10 mb-2 text-green-500" />
-                <p className="font-medium">All clear!</p>
-                <p className="text-sm">No open items in the ops inbox.</p>
-              </CardContent>
-            </Card>
+            <EmptyState icon={CheckCircle} title={t('admin.opsInbox.noItems')} description={t('admin.opsInbox.noItemsDesc')} />
           )}
 
           {items.map((item) => (
@@ -180,7 +172,7 @@ export default function OpsInbox() {
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-2 min-w-0">
                     <AlertTriangle className={`h-4 w-4 flex-shrink-0 ${
-                      item.severity === 'high' ? 'text-red-500' : item.severity === 'medium' ? 'text-yellow-500' : 'text-green-500'
+                      item.severity === 'high' ? 'text-destructive' : item.severity === 'medium' ? 'text-warning' : 'text-success'
                     }`} />
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -188,7 +180,7 @@ export default function OpsInbox() {
                         <Badge className={`text-xs ${SEVERITY_COLORS[item.severity] || ''}`}>{item.severity}</Badge>
                         <span className="text-xs text-muted-foreground">{item.entity_type}/{item.entity_id.slice(0, 8)}</span>
                       </div>
-                      <p className="text-sm mt-1 truncate">{item.summary || 'No summary'}</p>
+                      <p className="text-sm mt-1 truncate">{item.summary || t('admin.opsInbox.noSummary')}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
@@ -218,7 +210,7 @@ export default function OpsInbox() {
             </Button>
           </div>
         )}
-      </div>
+      </PageShell>
     </DashboardLayout>
   );
 }

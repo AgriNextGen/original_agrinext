@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import DashboardLayout from '@/layouts/DashboardLayout';
+import PageShell from '@/components/layout/PageShell';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,7 +11,8 @@ import { ArrowLeft, Lock, Unlock, LogOut, AlertTriangle, Clock, Shield, Ticket, 
 import ReasonModal from '@/components/admin/ReasonModal';
 import SecurityEventsList from '@/components/admin/SecurityEventsList';
 import { useEntity360, useAiTimelineSummary, useLockUser, useUnlockUser, useOverrideTripStatus, useOverrideOrderStatus, useForceLogout, useSetAccountStatus, useResetRiskScore, useAddRiskScore } from '@/hooks/useEntity360';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/hooks/useLanguage';
 import { useQuery } from '@tanstack/react-query';
 import { rpcJson } from '@/lib/readApi';
 
@@ -32,6 +34,7 @@ export default function Entity360() {
   const { type, id } = useParams<{ type: string; id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [reasonModal, setReasonModal] = useState<{ action: string; open: boolean }>({ action: '', open: false });
 
   const { data, isLoading, error } = useEntity360(type || '', id || '');
@@ -67,12 +70,12 @@ export default function Entity360() {
     setReasonModal({ action: '', open: false });
 
     if (action === 'lock' && core?.id) {
-      lockUser.mutate({ userId: core.id, lock: true }, { onSuccess: () => toast({ title: 'User locked' }) });
+      lockUser.mutate({ userId: core.id, lock: true }, { onSuccess: () => toast({ title: t('admin.entity360.locked') }) });
     } else if (action === 'restrict' && core?.id) {
       const blockedUntil = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-      setAccountStatus.mutate({ userId: core.id, newStatus: 'restricted', reason, blockedUntil }, { onSuccess: () => toast({ title: 'User restricted for 24h' }) });
+      setAccountStatus.mutate({ userId: core.id, newStatus: 'restricted', reason, blockedUntil }, { onSuccess: () => toast({ title: t('admin.entity360.restricted') }) });
     } else if (action === 'unlock' && core?.id) {
-      unlockUser.mutate({ userId: core.id, reason }, { onSuccess: () => toast({ title: 'User unlocked' }) });
+      unlockUser.mutate({ userId: core.id, reason }, { onSuccess: () => toast({ title: t('admin.entity360.unlocked') }) });
     } else if (action === 'force_logout' && core?.id) {
       forceLogout.mutate({ userId: core.id }, { onSuccess: () => toast({ title: 'Session revoked' }) });
     } else if (action === 'override_trip' && id) {
@@ -84,23 +87,19 @@ export default function Entity360() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-4">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <h1 className="text-2xl font-bold capitalize">{type} Details</h1>
-          <Badge variant="outline" className="text-xs font-mono">{id?.slice(0, 8)}</Badge>
-        </div>
-
+      <PageShell
+        title={`${type} ${t('admin.entity360.title')}`}
+        breadcrumbs={<Button variant="ghost" size="sm" onClick={() => navigate(-1)}><ArrowLeft className="h-4 w-4" /></Button>}
+        actions={<Badge variant="outline" className="text-xs font-mono">{id?.slice(0, 8)}</Badge>}
+      >
         {isLoading && <div className="space-y-4">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-32 w-full" />)}</div>}
-        {error && <Card><CardContent className="py-8 text-center text-red-500">Failed to load entity data.</CardContent></Card>}
+        {error && <Card><CardContent className="py-8 text-center text-red-500">{t('admin.entity360.noUser')}</CardContent></Card>}
 
         {core && (
           <div className="grid gap-4 md:grid-cols-2">
             {/* Core Info */}
             <Card>
-              <CardHeader><CardTitle className="text-base">Core Info</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="text-base">{t('admin.entity360.userProfile')}</CardTitle></CardHeader>
               <CardContent>
                 <dl className="space-y-2 text-sm">
                   {Object.entries(core).filter(([k]) => !['roles'].includes(k)).map(([key, val]) => (
@@ -123,17 +122,17 @@ export default function Entity360() {
 
             {/* Actions */}
             <Card>
-              <CardHeader><CardTitle className="text-base">Admin Actions</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="text-base">{t('admin.entity360.actions')}</CardTitle></CardHeader>
               <CardContent className="space-y-2">
                 {type === 'user' && (
                   <>
                     {core.is_locked ? (
                       <Button variant="outline" className="w-full justify-start" onClick={() => setReasonModal({ action: 'unlock', open: true })}>
-                        <Unlock className="h-4 w-4 mr-2" /> Unlock User
+                        <Unlock className="h-4 w-4 mr-2" /> {t('admin.entity360.unlock')}
                       </Button>
                     ) : (
                       <Button variant="destructive" className="w-full justify-start" onClick={() => setReasonModal({ action: 'lock', open: true })}>
-                        <Lock className="h-4 w-4 mr-2" /> Lock User
+                        <Lock className="h-4 w-4 mr-2" /> {t('admin.entity360.lock')}
                       </Button>
                     )}
                     <Button variant="outline" className="w-full justify-start" onClick={() => setReasonModal({ action: 'force_logout', open: true })}>
@@ -156,7 +155,7 @@ export default function Entity360() {
                 {data?.related && Object.entries(data.related).filter(([, v]) => v).length > 0 && (
                   <>
                     <Separator className="my-3" />
-                    <p className="text-xs text-muted-foreground font-medium">Related Entities</p>
+                    <p className="text-xs text-muted-foreground font-medium">{t('admin.entity360.status')}</p>
                     {Object.entries(data.related).filter(([, v]) => v).map(([key, val]) => {
                       const linkedType = key.replace(/_id$/, '');
                       return (
@@ -179,7 +178,7 @@ export default function Entity360() {
             </Card>
             {/* Security Panel */}
             <Card>
-              <CardHeader><CardTitle className="text-base">Security</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="text-base">{t('admin.entity360.riskScore')}</CardTitle></CardHeader>
               <CardContent className="space-y-3">
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div>
@@ -200,9 +199,9 @@ export default function Entity360() {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <Button variant="outline" onClick={() => setReasonModal({ action: 'restrict', open: true })}>Restrict (24h)</Button>
-                  <Button variant="destructive" onClick={() => setReasonModal({ action: 'lock', open: true })}>Lock</Button>
-                  <Button variant="secondary" onClick={() => resetRisk.mutate({ userId: core.id, reason: 'Admin reset via entity360' })}>Reset risk</Button>
+                  <Button variant="outline" onClick={() => setReasonModal({ action: 'restrict', open: true })}>{t('admin.entity360.restrict')}</Button>
+                  <Button variant="destructive" onClick={() => setReasonModal({ action: 'lock', open: true })}>{t('admin.entity360.lock')}</Button>
+                  <Button variant="secondary" onClick={() => resetRisk.mutate({ userId: core.id, reason: 'Admin reset via entity360' })}>{t('admin.entity360.resetRisk')}</Button>
                   <Button variant="ghost" onClick={() => addRisk.mutate({ userId: core.id, delta: 5, reason: 'Manual increment' })}>+5 risk</Button>
                 </div>
               </CardContent>
@@ -372,7 +371,7 @@ export default function Entity360() {
           description="This action will be audited. Provide a reason."
           loading={lockUser.isPending || unlockUser.isPending || forceLogout.isPending || overrideTrip.isPending || overrideOrder.isPending}
         />
-      </div>
+      </PageShell>
     </DashboardLayout>
   );
 }

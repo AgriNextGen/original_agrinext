@@ -1,142 +1,77 @@
 # AgriNext Gen
 
-Multi-role agri-platform for farmer operations, agent workflows, logistics, marketplace trading, and admin governance. Built on React + Supabase.
+Multi-role agricultural supply-chain platform for Karnataka, India. Connects farmers, agents, logistics, buyers, and admins. Built on React + Supabase.
 
-## Architecture
-
-- **Frontend**: Vite, React 18, TypeScript, Tailwind, shadcn UI
-- **Backend**: Supabase (Postgres, Auth, Storage, Edge Functions)
-- **State**: TanStack Query + local component state
-
-See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for deployment details.
-
-## Local Setup
-
-### Prerequisites
-
-- Node.js 18+
-- npm
-- [Supabase CLI](https://supabase.com/docs/guides/cli) (optional, for local DB and migrations)
-
-### Install and Run
+## Quick Start
 
 ```sh
-# Clone and install
 git clone <YOUR_GIT_URL>
 cd original_agrinext
 npm install
-
-# Copy env template and set values
-cp .env.example .env
-# Edit .env: VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY
-
-# Start dev server
-npm run dev
+cp .env.example .env   # Edit with your Supabase keys
+npm run dev             # http://localhost:5173
 ```
 
-App runs at `http://localhost:5173`.
+## Environment Variables
 
-### Environment Variables
+See [`.env.example`](.env.example) for all variables. The minimum required:
 
 | Variable | Description |
 |----------|-------------|
 | `VITE_SUPABASE_URL` | Supabase project URL (e.g. `https://xxx.supabase.co`) |
-| `VITE_SUPABASE_PUBLISHABLE_KEY` | Anon/publishable key from Supabase Dashboard → Settings → API |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Anon/publishable key from Supabase Dashboard |
 
 ## Role Matrix
 
-| Role | Description | Key Routes |
-|------|-------------|------------|
-| `farmer` | Farm records, crops, listings, transport requests | `/farmer/*` |
-| `agent` | Field tasks, farmer assignments, crop verification | `/agent/*` |
-| `logistics` | Transport loads, trips, proof capture | `/logistics/*` |
-| `buyer` | Marketplace, orders | `/marketplace/*` |
-| `admin` | Monitoring, seed data, data health | `/admin/*` |
+| Role | Key Routes | Description |
+|------|------------|-------------|
+| `farmer` | `/farmer/*` | Farm records, crops, listings, transport requests |
+| `agent` | `/agent/*` | Field tasks, farmer assignments, crop verification |
+| `logistics` | `/logistics/*` | Transport loads, trips, proof capture |
+| `buyer` | `/marketplace/*` | Marketplace, orders |
+| `admin` | `/admin/*` | Monitoring, data health, ops governance |
 
-## Edge Function Catalog
+## Stack
 
-| Function | Purpose | Auth |
-|----------|---------|------|
-| `accept-load` | Transporter accepts transport request | JWT |
-| `update-trip-status` | Transporter updates trip status | JWT |
-| `agent-create-task` | Agent creates task | JWT |
-| `agent-update-task-status` | Agent updates task status | JWT |
-| `agent-update-crop-status` | Agent updates crop status | JWT |
-| `send-sms` | MSG91 SMS webhook for Phone OTP | Webhook (no JWT) |
-| `notify` | Notification queue | JWT |
-| `health` | Health check | Public |
-
-## Migrations and Deploy
-
-### Apply Migrations
-
-```sh
-# Link to your Supabase project (first time)
-supabase link --project-ref <PROJECT_REF>
-
-# Push migrations
-supabase db push
-```
-
-### Deploy Edge Functions
-
-```sh
-supabase functions deploy accept-load
-supabase functions deploy update-trip-status
-supabase functions deploy agent-create-task
-supabase functions deploy agent-update-task-status
-supabase functions deploy agent-update-crop-status
-supabase functions deploy send-sms --no-verify-jwt
-supabase functions deploy notify
-supabase functions deploy health --no-verify-jwt
-```
-
-### Production Build
-
-```sh
-npm run build
-# Output: dist/
-```
+- **Frontend**: Vite 5, React 18, TypeScript 5, Tailwind CSS, shadcn/ui
+- **Backend**: Supabase (Postgres 17, Auth, Edge Functions, Storage)
+- **State**: TanStack Query v5 + Dexie IndexedDB (offline)
+- **i18n**: English + Kannada (bilingual)
 
 ## Scripts
 
 | Script | Description |
 |--------|-------------|
 | `npm run dev` | Start dev server (port 5173) |
-| `npm run build` | Production build |
+| `npm run build` | Production build to `dist/` |
 | `npm run preview` | Preview production build |
 | `npm run lint` | Run ESLint |
+
+## Documentation
+
+All documentation is indexed at **[docs/INDEX.md](docs/INDEX.md)**.
+
+Key references:
+
+- [Architecture & Features](docs/ARCHITECTURE.md) -- codebase structure and conventions
+- [Auth Setup](docs/guides/AUTH_SETUP.md) -- phone login, SMTP, OAuth
+- [Staging Setup](docs/guides/STAGING_SETUP.md) -- dummy users for testing
+- [Deployment SOP](docs/all_imp_rules/DEPLOYMENT_SOP.md) -- production deployment
+- [CLAUDE.md](CLAUDE.md) -- AI development context
 
 ## Troubleshooting (Windows)
 
 ### `npm.ps1 cannot be loaded` (PowerShell execution policy)
 
-Run once in PowerShell:
-
 ```powershell
 Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 ```
 
-Verify:
-
-```powershell
-Get-ExecutionPolicy -List
-npm -v
-```
-
 ### `Port 5173 is already in use`
 
-`npm run dev` now runs a preflight script that frees `5173` automatically on Windows.
-
-Manual recovery commands:
+`npm run dev` runs a preflight script that frees 5173 automatically. Manual recovery:
 
 ```powershell
 netstat -ano | findstr LISTENING | findstr ":5173"
 Stop-Process -Id <PID> -Force
 ```
-
-## Documentation
-
-- [Auth Setup (Google, Phone OTP)](docs/AUTH_SETUP.md)
-- [Deployment Guide](docs/DEPLOYMENT.md)
-- [Staging dummy users (all roles)](docs/STAGING_DUMMY_USERS.md) — create farmer, agent, logistics, buyer, admin test accounts and log in to test features.

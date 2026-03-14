@@ -52,9 +52,9 @@ export async function signAndUpload(
   });
 
   if (error) throw new Error(`Sign upload failed: ${error.message}`);
-  if (data?.error) throw new Error(data.error);
+  if (!data?.success && data?.error) throw new Error(data.error.message ?? data.error);
 
-  const result = data as SignUploadResult & { file_id?: string };
+  const result = (data?.data ?? data) as SignUploadResult & { file_id?: string };
   
   const uploadRes = await supabase.storage
     .from(params.bucket)
@@ -70,7 +70,7 @@ export async function signAndUpload(
       await supabase.functions.invoke('storage-confirm-upload-v1', { body: { file_id: result.file_id } });
     } catch (e) {
       // Non-fatal: caller can cleanup via storage-delete-v1 if needed
-      console.warn('storage-confirm-upload-v1 failed:', e);
+      if (import.meta.env.DEV) console.warn('storage-confirm-upload-v1 failed:', e);
     }
   }
 

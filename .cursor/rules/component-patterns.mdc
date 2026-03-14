@@ -1,0 +1,53 @@
+---
+description: Component usage patterns and preferred imports for AgriNext Gen
+globs:
+  - "src/components/**"
+  - "src/pages/**"
+---
+
+# Component Patterns
+
+## Preferred Components
+
+When building UI, use these canonical shared components:
+
+| Need | Use | Path |
+|------|-----|------|
+| Empty state | `EmptyState` | `src/components/shared/EmptyState.tsx` |
+| Stat/KPI card | `KpiCard` | `src/components/dashboard/KpiCard.tsx` |
+| Page wrapper | `PageShell` | `src/components/layout/PageShell.tsx` |
+
+These legacy files have been removed:
+- `src/components/farmer/EmptyState.tsx` — merged into shared version
+- `src/components/shared/StatCard.tsx` — replaced by `KpiCard`
+- `src/components/StatsSection.tsx` — unused, deleted
+
+## Toast Import
+
+Always import toast from `@/hooks/use-toast`:
+
+```tsx
+import { useToast } from '@/hooks/use-toast';
+```
+
+Do NOT import from `@/components/ui/use-toast`.
+
+## shadcn/ui
+
+- NEVER edit files in `src/components/ui/` — these are auto-generated
+- Use shadcn components as-is; wrap in shared components for app-specific behavior
+- Use `cn()` from `src/lib/utils.ts` for all conditional Tailwind classes
+
+## Data Fetching
+
+- Components should NOT contain data-fetching logic
+- All data fetching goes in hooks (`src/hooks/`)
+- Pages import hooks; components receive data as props
+- Use `useQuery` / `useMutation` from TanStack Query — never `useEffect` + `fetch`
+
+## Null Safety
+
+- `strictNullChecks` is OFF in tsconfig — TypeScript will NOT warn about null access
+- Always null-check DB values: `value ?? 'fallback'`
+- Known nullable columns: `crops.health_status ?? 'normal'`, `crops.growth_stage ?? 'seedling'`
+- Missing null checks cause blank pages (no ErrorBoundary on most routes)

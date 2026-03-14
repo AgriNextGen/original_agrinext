@@ -1,23 +1,13 @@
 import {
   argValue,
-  requireEnv,
+  getSupabaseConfig,
+  assertStagingEnvironment,
   readJsonFile,
   writeJsonFile,
 } from "./common.mjs";
 
-function assertStageLikeUrl(url) {
-  const host = new URL(url).hostname.toLowerCase();
-  const ref = host.split(".")[0] ?? "";
-  const allowedRefs = ["rmtkkzfzdmpjlqexrbme"];
-  const allowUnsafe = process.env.ALLOW_NON_STAGING === "true";
-  if (!allowUnsafe && !allowedRefs.includes(ref) && !/(staging|stage|dev|test|sandbox)/i.test(host)) {
-    throw new Error(`Refusing to run on non-staging host: ${host}`);
-  }
-}
-
-const url = requireEnv("SUPABASE_URL", "VITE_SUPABASE_URL").replace(/^"|"$/g, "");
-const anonKey = requireEnv("SUPABASE_ANON_KEY", "VITE_SUPABASE_PUBLISHABLE_KEY").replace(/^"|"$/g, "");
-assertStageLikeUrl(url);
+const { url, anonKey } = getSupabaseConfig();
+assertStagingEnvironment();
 
 const ROLE_RPC = {
   farmer: { name: "farmer_dashboard_v1", payload: {} },

@@ -2,10 +2,19 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 const RoleSelect = () => {
   const [role, setRole] = useState<string>("farmer");
   const navigate = useNavigate();
+
+  const dashboardRoutes: Record<string, string> = {
+    farmer: "/farmer/dashboard",
+    buyer: "/marketplace/dashboard",
+    agent: "/agent/dashboard",
+    logistics: "/logistics/dashboard",
+    vendor: "/vendor/dashboard",
+  };
 
   const complete = async () => {
     const { data: session } = await supabase.auth.getSession();
@@ -17,10 +26,9 @@ const RoleSelect = () => {
     });
     const j = await res.json();
     if (res.ok) {
-      // redirect to dashboard
-      navigate(role === "farmer" ? "/farmer/dashboard" : role === "buyer" ? "/marketplace/dashboard" : role === "agent" ? "/agent/dashboard" : "/");
+      navigate(dashboardRoutes[role] || "/");
     } else {
-      alert(j.error?.message || "Failed to complete onboarding");
+      toast.error(j?.error?.message || "Failed to complete onboarding");
     }
   };
 
@@ -32,6 +40,7 @@ const RoleSelect = () => {
         <option value="agent">Agent</option>
         <option value="buyer">Buyer</option>
         <option value="logistics">Transporter</option>
+        <option value="vendor">Vendor</option>
       </select>
       <Button onClick={complete}>Continue</Button>
     </div>

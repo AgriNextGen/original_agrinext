@@ -2,6 +2,9 @@ name: apply-phase-e2-secure-schema
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   apply-migration:
     runs-on: ubuntu-latest
@@ -24,12 +27,12 @@ jobs:
 
       - name: Apply Phase E2 migration
         run: |
-          psql "$DATABASE_URL" -f supabase/migrations/202602201400_phase_e2_secure_schema.sql
+          psql "$DATABASE_URL" -f supabase/migrations/202602201401_phase_e2_secure_schema.sql
 
       - name: Apply RPC integration examples (non-destructive examples)
         run: |
           # This file contains CREATE OR REPLACE FUNCTION examples for audit integration.
-          psql "$DATABASE_URL" -f supabase/migrations/202602201410_rpc_integration_examples.sql || echo "RPC examples applied (or skipped)."
+          psql "$DATABASE_URL" -f supabase/migrations/202602201411_rpc_integration_examples.sql || echo "RPC examples applied (or skipped)."
 
       - name: "Smoke tests - basic secure function calls (examples)"
         run: |

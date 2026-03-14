@@ -123,7 +123,7 @@ export const useDistrictNeighbors = (district: string | null | undefined) => {
         .eq('district', district);
       
       if (error) {
-        console.error('Error fetching neighbors:', error);
+        if (import.meta.env.DEV) console.error('Error fetching neighbors:', error);
         return [];
       }
       
@@ -262,7 +262,7 @@ export const useNeighborPrices = (
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Error fetching neighbor prices:', error);
+        if (import.meta.env.DEV) console.error('Error fetching neighbor prices:', error);
         return {} as Record<string, NeighborPrice>;
       }
 

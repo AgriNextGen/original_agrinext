@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { useLanguage } from '@/hooks/useLanguage';
 import { toast } from 'sonner';
 
 // Safe fields that agents can directly update on farmer profiles
@@ -13,6 +14,7 @@ const SENSITIVE_FIELDS = ['total_land_area', 'district'] as const;
 export const useAgentQuickUpdate = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async ({
@@ -61,18 +63,20 @@ export const useAgentQuickUpdate = () => {
       queryClient.invalidateQueries({ queryKey: ['agent-farmer-detail', variables.farmerId] });
       queryClient.invalidateQueries({ queryKey: ['assigned-farmers'] });
       queryClient.invalidateQueries({ queryKey: ['all-farmers'] });
-      toast.success('Farmer profile updated');
+      toast.success(t('hookToasts.agentQuickUpdate.profileUpdated'));
     },
     onError: (error) => {
-      console.error('Quick update error:', error);
-      toast.error('Failed to update farmer profile');
+      if (import.meta.env.DEV) console.error('Quick update error:', error);
+      toast.error(t('hookToasts.agentQuickUpdate.profileUpdateFailed'));
     },
   });
 };
 
-// Create a sensitive update task (requires admin approval, via Edge Function)
+// Create a sensitive update task (requires admin approval, direct insert guarded by RLS)
 export const useCreateSensitiveUpdateTask = () => {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async ({
@@ -84,28 +88,34 @@ export const useCreateSensitiveUpdateTask = () => {
       proposedChanges: Record<string, unknown>;
       notes?: string;
     }) => {
-      const { data, error } = await supabase.functions.invoke('agent-create-task', {
-        body: {
+      if (!user?.id) throw new Error('Not authenticated');
+
+      const { data, error } = await supabase
+        .from('agent_tasks')
+        .insert({
+          agent_id: user.id,
           farmer_id: farmerId,
-          task_type: 'update_profile',
+          task_type: 'update_profile' as any,
           due_date: new Date().toISOString().split('T')[0],
           notes: notes || 'Profile update requiring approval',
           payload: proposedChanges,
-        },
-      });
+          task_status: 'pending',
+          created_by: user.id,
+          created_by_role: 'agent',
+        })
+        .select()
+        .single();
 
       if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-
-      return data.task;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['agent-tasks'] });
-      toast.success('Update request submitted for admin approval');
+      toast.success(t('hookToasts.agentQuickUpdate.approvalSubmitted'));
     },
     onError: (error) => {
-      console.error('Sensitive update error:', error);
-      toast.error('Failed to create update request');
+      if (import.meta.env.DEV) console.error('Sensitive update error:', error);
+      toast.error(t('hookToasts.agentQuickUpdate.approvalFailed'));
     },
   });
 };

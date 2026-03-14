@@ -57,7 +57,7 @@ const AgentNotesSection = () => {
         .limit(10);
 
       if (error) {
-        console.error('Error fetching agent notes:', error);
+        if (import.meta.env.DEV) console.error('Error fetching agent notes:', error);
         return [];
       }
 
@@ -99,7 +99,7 @@ const AgentNotesSection = () => {
           const { data } = await supabase.functions.invoke('storage-sign-read-v1', { body: { file_id: note.audio_path } });
           signedUrlStr = data?.signed_read_url || null;
         } catch (e) {
-          console.warn('storage-sign-read-v1 failed:', e);
+          if (import.meta.env.DEV) console.warn('storage-sign-read-v1 failed:', e);
         }
       }
 
@@ -119,13 +119,13 @@ const AgentNotesSection = () => {
       };
       audioRef.current.onerror = () => {
         setPlayingNoteId(null);
-        console.error('Audio playback error');
+        if (import.meta.env.DEV) console.error('Audio playback error');
       };
 
       await audioRef.current.play();
       setPlayingNoteId(note.id);
     } catch (error) {
-      console.error('Error playing audio:', error);
+      if (import.meta.env.DEV) console.error('Error playing audio:', error);
     } finally {
       setAudioLoading(null);
     }

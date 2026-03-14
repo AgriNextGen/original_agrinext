@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useLanguage } from '@/hooks/useLanguage';
 import { toast } from 'sonner';
 import imageCompression from 'browser-image-compression';
 import { FILE_SIZE_LIMITS, validateFileSize, isImageFile, isPdfFile } from '@/lib/error-utils';
@@ -72,7 +73,7 @@ export function useHarvestReadyCrops() {
           farmlands:land_id (district, village, name)
         `)
         .eq('farmer_id', user.id)
-        .in('status', ['growing', 'harvested'])
+        .in('status', ['ready', 'one_week'])
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -109,6 +110,7 @@ export function useListingAttachments(listingId: string | undefined) {
 export function useUploadTraceAttachment() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async ({
@@ -179,10 +181,10 @@ export function useUploadTraceAttachment() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['trace-attachments'] });
-      toast.success('Evidence uploaded successfully');
+      toast.success(t('hookToasts.traceability.evidenceUploaded'));
     },
     onError: (error: Error) => {
-      toast.error(`Upload failed: ${error.message}`);
+      toast.error(t('hookToasts.traceability.evidenceFailed') + ': ' + error.message);
     },
   });
 }

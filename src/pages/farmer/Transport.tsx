@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { useTransportRequests, useCrops, useFarmlands } from '@/hooks/useFarmerDashboard';
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/hooks/useLanguage';
-import { supabase } from '@/integrations/supabase/client';
+import { useCreateTransportRequest, useCancelTransportRequest } from '@/hooks/useFarmerTransportMutations';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +13,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import PageHeader from '@/components/shared/PageHeader';
+import KpiCard from '@/components/dashboard/KpiCard';
 import DataState from '@/components/ui/DataState';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Truck, MapPin, Calendar, Package, Clock, CheckCircle2, XCircle } from 'lucide-react';
@@ -22,6 +22,7 @@ import ConfirmDialog from '@/components/ui/confirm-dialog';
 import EmptyState from '@/components/shared/EmptyState';
 import HelpTooltip from '@/components/farmer/HelpTooltip';
 import GeoDistrictSelect from '@/components/geo/GeoDistrictSelect';
+import { TRANSPORT_STATUS_COLORS } from '@/lib/constants';
 
 const TransportPage = () => {
   const { data: requests, isLoading } = useTransportRequests();
@@ -30,7 +31,8 @@ const TransportPage = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { t } = useLanguage();
-  const queryClient = useQueryClient();
+  const createTransportRequest = useCreateTransportRequest();
+  const cancelTransportRequest = useCancelTransportRequest();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -52,21 +54,22 @@ const TransportPage = () => {
     dest_district_id: '',
   });
 
-  const statusConfig = {
-    requested: { label: t('enum.transport_status.requested'), color: 'bg-blue-100 text-blue-800', icon: Clock },
-    assigned: { label: t('enum.transport_status.assigned'), color: 'bg-purple-100 text-purple-800', icon: Truck },
-    en_route: { label: t('enum.transport_status.en_route'), color: 'bg-amber-100 text-amber-800', icon: Truck },
-    picked_up: { label: t('enum.transport_status.picked_up'), color: 'bg-emerald-100 text-emerald-800', icon: Package },
-    delivered: { label: t('enum.transport_status.delivered'), color: 'bg-primary/10 text-primary', icon: CheckCircle2 },
-    cancelled: { label: t('enum.transport_status.cancelled'), color: 'bg-destructive/10 text-destructive', icon: XCircle },
+  const statusConfig: Record<string, { label: string; color: string; icon: typeof Clock }> = {
+    open: { label: t('transport.requested'), color: TRANSPORT_STATUS_COLORS.open, icon: Clock },
+    requested: { label: t('transport.requested'), color: TRANSPORT_STATUS_COLORS.requested, icon: Clock },
+    assigned: { label: t('transport.assigned'), color: TRANSPORT_STATUS_COLORS.assigned, icon: Truck },
+    accepted: { label: t('transport.assigned'), color: TRANSPORT_STATUS_COLORS.accepted, icon: Truck },
+    in_progress: { label: t('transport.inTransit'), color: TRANSPORT_STATUS_COLORS.in_progress, icon: Truck },
+    completed: { label: t('transport.completed'), color: TRANSPORT_STATUS_COLORS.completed, icon: CheckCircle2 },
+    cancelled: { label: t('transport.cancelled'), color: TRANSPORT_STATUS_COLORS.cancelled, icon: XCircle },
   };
 
   const filteredRequests = requests?.filter(req => 
     statusFilter === 'all' || req.status === statusFilter
   );
 
-  const activeCount = requests?.filter(r => !['delivered', 'cancelled'].includes(r.status)).length || 0;
-  const completedCount = requests?.filter(r => r.status === 'delivered').length || 0;
+  const activeCount = requests?.filter(r => !['completed', 'cancelled'].includes(r.status)).length || 0;
+  const completedCount = requests?.filter(r => r.status === 'completed').length || 0;
 
   // Auto-fill pickup location from selected crop's farmland
   const handleCropSelect = (cropId: string) => {
@@ -91,8 +94,7 @@ const TransportPage = () => {
     setIsSubmitting(true);
 
     try {
-      const { error } = await supabase.from('transport_requests').insert({
-        farmer_id: user.id,
+      await createTransportRequest.mutateAsync({
         crop_id: formData.crop_id || null,
         quantity: parseFloat(formData.quantity),
         quantity_unit: formData.quantity_unit,
@@ -104,8 +106,6 @@ const TransportPage = () => {
         origin_district_id: formData.origin_district_id || null,
         dest_district_id: formData.dest_district_id || null,
       });
-
-      if (error) throw error;
 
       toast({ title: t('common.success'), description: t('farmer.transport.requestSuccess') });
       setIsDialogOpen(false);
@@ -121,7 +121,6 @@ const TransportPage = () => {
         origin_district_id: '',
         dest_district_id: '',
       });
-      queryClient.invalidateQueries({ queryKey: ['transport-requests', user.id] });
     } catch (error) {
       const message = error instanceof Error ? error.message : t('common.error');
       toast({ title: t('common.error'), description: message, variant: 'destructive' });
@@ -140,13 +139,8 @@ const TransportPage = () => {
     
     setIsCancelling(true);
     try {
-      const { error } = await supabase
-        .from('transport_requests')
-        .update({ status: 'cancelled' })
-        .eq('id', cancellingRequest.id);
-      if (error) throw error;
+      await cancelTransportRequest.mutateAsync(cancellingRequest.id);
       toast({ title: t('farmer.transport.cancelled'), description: t('farmer.transport.cancelSuccess') });
-      queryClient.invalidateQueries({ queryKey: ['transport-requests', user?.id] });
       setCancelConfirmOpen(false);
       setCancellingRequest(null);
     } catch (error) {
@@ -160,9 +154,9 @@ const TransportPage = () => {
   const filterButtons = [
     { value: 'all', label: t('common.all'), count: requests?.length },
     { value: 'requested', label: t('farmer.transport.pending'), count: requests?.filter(r => r.status === 'requested').length },
-    { value: 'assigned', label: t('enum.transport_status.assigned'), count: requests?.filter(r => r.status === 'assigned').length },
-    { value: 'en_route', label: t('enum.transport_status.en_route'), count: requests?.filter(r => r.status === 'en_route').length },
-    { value: 'delivered', label: t('enum.transport_status.delivered'), count: completedCount },
+    { value: 'assigned', label: t('transport.assigned'), count: requests?.filter(r => r.status === 'assigned').length },
+    { value: 'in_progress', label: t('transport.inTransit'), count: requests?.filter(r => r.status === 'in_progress').length },
+    { value: 'completed', label: t('transport.completed'), count: completedCount },
   ];
 
   return (
@@ -170,70 +164,21 @@ const TransportPage = () => {
       <PageHeader title={t('farmer.transport.title')}>
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-blue-100 text-blue-600">
-                  <Clock className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{activeCount}</p>
-                  <p className="text-xs text-muted-foreground">{t('farmer.transport.activeRequests')}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-emerald-100 text-emerald-600">
-                  <CheckCircle2 className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{completedCount}</p>
-                  <p className="text-xs text-muted-foreground">{t('farmer.transport.completed')}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-amber-100 text-amber-600">
-                  <Truck className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">
-                    {requests?.filter(r => r.status === 'en_route').length || 0}
-                  </p>
-                  <p className="text-xs text-muted-foreground">{t('farmer.transport.inTransit')}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                  <Package className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{requests?.length || 0}</p>
-                  <p className="text-xs text-muted-foreground">{t('farmer.transport.totalRequests')}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <KpiCard label={t('farmer.transport.activeRequests')} value={activeCount} icon={Clock} priority="info" />
+          <KpiCard label={t('farmer.transport.completed')} value={completedCount} icon={CheckCircle2} priority="success" />
+          <KpiCard label={t('farmer.transport.inTransit')} value={requests?.filter(r => r.status === 'in_progress').length || 0} icon={Truck} priority="warning" />
+          <KpiCard label={t('farmer.transport.totalRequests')} value={requests?.length || 0} icon={Package} priority="primary" />
         </div>
 
         {/* Header */}
         <div className="flex flex-col sm:flex-row gap-4 justify-between">
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-2 flex-wrap" role="group" aria-label={t('common.filter')}>
             {filterButtons.map((btn) => (
               <Button
                 key={btn.value}
                 variant={statusFilter === btn.value ? 'default' : 'outline'}
                 size="sm"
+                aria-pressed={statusFilter === btn.value}
                 onClick={() => setStatusFilter(btn.value)}
               >
                 {btn.label}
@@ -328,19 +273,19 @@ const TransportPage = () => {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label>{t('farmer.transport.pickupLocation')} District</Label>
+                    <Label>{t('transport.originDistrict')}</Label>
                     <GeoDistrictSelect
                       value={formData.origin_district_id}
                       onValueChange={(v) => setFormData({ ...formData, origin_district_id: v })}
-                      placeholder="Origin district"
+                      placeholder={t('transport.originDistrict')}
                     />
                   </div>
                   <div>
-                    <Label>Destination District</Label>
+                    <Label>{t('transport.destinationDistrict')}</Label>
                     <GeoDistrictSelect
                       value={formData.dest_district_id}
                       onValueChange={(v) => setFormData({ ...formData, dest_district_id: v })}
-                      placeholder="Dest district"
+                      placeholder={t('transport.destinationDistrict')}
                     />
                   </div>
                 </div>

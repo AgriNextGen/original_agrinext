@@ -1,0 +1,45 @@
+{
+  "loginSuccess": true,
+  "loads": {
+    "success": true,
+    "details": {},
+    "url": "http://localhost:5173/logistics/loads",
+    "title": "AgriNext Gen - Connecting India's Agricultural Ecosystem",
+    "bodyTextLength": 793,
+    "preview": "Skip to main content AgriNext Gen Transport ಲಾಜಿಸ್ಟಿಕ್ಸ್ ಪಾಲುದಾರ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್ ಲಭ್ಯ ಲೋಡ್‌ಗಳು ಸಕ್ರಿಯ ಪ್ರಯಾಣಗಳು ಪೂರ್ಣಗೊಂಡವು ನನ್ನ ವಾಹನಗಳು ಏಕೀಕೃತ ಲಾಜಿಸ್ಟಿಕ್ಸ್ ಮುಂದಿನ ಪ್ರಯಾಣಗಳು ಹಿಂತಿರುಗುವ ಲೋಡ್‌ಗಳು ಶಿಫಾರಸ",
+    "hasSpinner": false,
+    "hasEmptyState": false,
+    "hasError": false,
+    "hasSetupMessage": false,
+    "hasTableOrList": true,
+    "cardCount": 2
+  },
+  "trips": {
+    "success": true,
+    "details": {},
+    "url": "http://localhost:5173/logistics/trips",
+    "title": "AgriNext Gen - Connecting India's Agricultural Ecosystem",
+    "bodyTextLength": 157,
+    "preview": "Something went wrong An unexpected error occurred. Please try reloading the page. Cannot read properties of undefined (reading 'map') Reload Page Dashboard",
+    "hasSpinner": true,
+    "hasEmptyState": false,
+    "hasError": true,
+    "hasSetupMessage": false,
+    "hasTableOrList": false,
+    "cardCount": 0
+  },
+  "completed": {
+    "success": true,
+    "details": {},
+    "url": "http://localhost:5173/logistics/completed",
+    "title": "AgriNext Gen - Connecting India's Agricultural Ecosystem",
+    "bodyTextLength": 441,
+    "preview": "Skip to main content AgriNext Gen Transport ಲಾಜಿಸ್ಟಿಕ್ಸ್ ಪಾಲುದಾರ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್ ಲಭ್ಯ ಲೋಡ್‌ಗಳು ಸಕ್ರಿಯ ಪ್ರಯಾಣಗಳು ಪೂರ್ಣಗೊಂಡವು ನನ್ನ ವಾಹನಗಳು ಏಕೀಕೃತ ಲಾಜಿಸ್ಟಿಕ್ಸ್ ಮುಂದಿನ ಪ್ರಯಾಣಗಳು ಹಿಂತಿರುಗುವ ಲೋಡ್‌ಗಳು ಶಿಫಾರಸ",
+    "hasSpinner": false,
+    "hasEmptyState": false,
+    "hasError": false,
+    "hasSetupMessage": false,
+    "hasTableOrList": false,
+    "cardCount": 1
+  }
+}

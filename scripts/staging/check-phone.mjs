@@ -1,6 +1,6 @@
-const PAT = 'sbp_9ae4e5657d4827a0940c2e501ce756958b752572';
-const PROJECT = 'rmtkkzfzdmpjlqexrbme';
-const BASE = `https://api.supabase.com/v1/projects/${PROJECT}`;
+import { getMgmtApiConfig } from './common.mjs';
+
+const { pat: PAT, projectRef: PROJECT, base: BASE } = getMgmtApiConfig();
 
 async function q(sql) {
   const res = await fetch(`${BASE}/database/query`, {

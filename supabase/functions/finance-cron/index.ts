@@ -12,9 +12,9 @@ const corsHeaders = {
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
-  if (req.method !== "POST") return new Response(JSON.stringify({ error: "method_not_allowed" }), { status: 405, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  if (req.method !== "POST") return new Response(JSON.stringify({ success: false, error: { code: "METHOD_NOT_ALLOWED", message: "POST only" } }), { status: 405, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   const secret = req.headers.get("x-worker-secret") || "";
-  if (secret !== WORKER_SECRET) return new Response(JSON.stringify({ error: "forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  if (secret !== WORKER_SECRET) return new Response(JSON.stringify({ success: false, error: { code: "FORBIDDEN", message: "Invalid worker secret" } }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
   try {
@@ -31,9 +31,9 @@ Deno.serve(async (req: Request) => {
     await supabase.rpc("enqueue_job_v1", { p_job_type: "alerts_check_v1", p_payload: JSON.stringify({}), p_run_at: new Date().toISOString(), p_idempotency_key: `alerts_check:${Date.now()}` }).catch(()=>{});
     // Enqueue trust analytics rollup daily
     await supabase.rpc("enqueue_job_v1", { p_job_type: "analytics_rollup_daily_v1", p_payload: JSON.stringify({ day: (new Date()).toISOString().slice(0,10) }), p_run_at: new Date().toISOString(), p_idempotency_key: `analytics_trust:${Date.now()}` }).catch(()=>{});
-    return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ success: true, data: { enqueued: true } }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (err) {
     console.error("finance-cron error", err);
-    return new Response(JSON.stringify({ error: String(err) }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ success: false, error: { code: "INTERNAL", message: "Internal error" } }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 });

@@ -213,7 +213,7 @@ const EvidenceUploadSection = ({ listingId, cropId }: EvidenceUploadSectionProps
             const { data } = await supabase.functions.invoke('storage-sign-read-v1', { body: { file_id: path } });
             if (mounted && data?.signed_read_url) setUrl(data.signed_read_url);
           } catch (e) {
-            console.warn('storage-sign-read-v1 failed:', e);
+            if (import.meta.env.DEV) console.warn('storage-sign-read-v1 failed:', e);
           }
         })();
       } else {

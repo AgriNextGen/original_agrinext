@@ -22,10 +22,12 @@ import GeoStateSelect from '@/components/geo/GeoStateSelect';
 import GeoDistrictSelect from '@/components/geo/GeoDistrictSelect';
 import { toast } from 'sonner';
 import PageHeader from '@/components/shared/PageHeader';
+import { Skeleton } from '@/components/ui/skeleton';
+import { ROUTES } from '@/lib/routes';
 
 export default function AgentProfile() {
   const { user } = useAuth();
-  const { language } = useLanguage();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   const setProfileGeo = useSetProfileGeo();
 
@@ -96,100 +98,97 @@ export default function AgentProfile() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['agent-profile'] });
-      toast.success(language === 'kn' ? 'ಪ್ರೊಫೈಲ್ ನವೀಕರಿಸಲಾಗಿದೆ' : 'Profile updated successfully');
+      toast.success(t('agent.profile.profileUpdated'));
     },
     onError: (error) => {
-      toast.error(error.message || 'Failed to update profile');
+      toast.error(error.message || t('agent.profile.updateFailed'));
     },
   });
 
   const isValid = fullName.trim() && phone.trim();
 
-  if (isLoading) {
-    return (
-      <DashboardLayout title={language === 'kn' ? 'ನನ್ನ ಪ್ರೊಫೈಲ್' : 'My Profile'}>
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
-      </DashboardLayout>
-    );
-  }
-
   return (
-    <DashboardLayout title={language === 'kn' ? 'ನನ್ನ ಪ್ರೊಫೈಲ್' : 'My Profile'}>
-      <PageHeader title={language === 'kn' ? 'ನನ್ನ ಪ್ರೊಫೈಲ್' : 'My Profile'} subtitle={language === 'kn' ? 'ನಿಮ್ಮ ಪ್ರೊಫೈಲ್ ಮಾಹಿತಿ ನವೀಕರಿಸಿ' : 'Update your profile information'}>
+    <DashboardLayout title={t('agent.profile.title')}>
+      <PageHeader title={t('agent.profile.title')} subtitle={t('agent.profile.subtitle')}>
+      {isLoading ? (
+        <div className="max-w-2xl mx-auto space-y-6">
+          <Skeleton className="h-64 w-full" />
+          <Skeleton className="h-48 w-full" />
+        </div>
+      ) : (
       <div className="max-w-2xl mx-auto space-y-6">
 
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">
-              {language === 'kn' ? 'ಮೂಲ ಮಾಹಿತಿ' : 'Basic Information'}
+              {t('agent.profile.basicInfo')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label>
-                {language === 'kn' ? 'ಪೂರ್ಣ ಹೆಸರು' : 'Full Name'} <span className="text-destructive">*</span>
+                {t('agent.profile.fullName')} <span className="text-destructive">*</span>
               </Label>
               <Input
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                placeholder={language === 'kn' ? 'ನಿಮ್ಮ ಹೆಸರು' : 'Your full name'}
+                placeholder={t('agent.profile.fullNamePlaceholder')}
               />
             </div>
 
             <div className="space-y-2">
               <Label>
-                {language === 'kn' ? 'ಫೋನ್ ಸಂಖ್ಯೆ' : 'Phone Number'} <span className="text-destructive">*</span>
+                {t('agent.profile.phoneNumber')} <span className="text-destructive">*</span>
               </Label>
               <Input
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="9876543210"
+                readOnly
+                disabled
+                className="bg-muted"
                 type="tel"
               />
             </div>
 
             <div className="space-y-2">
-              <Label>{language === 'kn' ? 'ರಾಜ್ಯ' : 'State (Geo)'}</Label>
+              <Label>{t('agent.profile.state')}</Label>
               <GeoStateSelect
                 value={geoStateId}
                 onValueChange={(v) => { setGeoStateId(v); setGeoDistrictId(''); }}
-                placeholder={language === 'kn' ? 'ರಾಜ್ಯ ಆಯ್ಕೆಮಾಡಿ' : 'Select state'}
+                placeholder={t('agent.profile.selectState')}
               />
             </div>
 
             <div className="space-y-2">
-              <Label>{language === 'kn' ? 'ಜಿಲ್ಲೆ' : 'District (Geo)'}</Label>
+              <Label>{t('agent.profile.district')}</Label>
               <GeoDistrictSelect
                 stateId={geoStateId || null}
                 value={geoDistrictId}
                 onValueChange={setGeoDistrictId}
-                placeholder={language === 'kn' ? 'ಜಿಲ್ಲೆ ಆಯ್ಕೆಮಾಡಿ' : 'Select district'}
+                placeholder={t('agent.profile.selectDistrict')}
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>{language === 'kn' ? 'ತಾಲ್ಲೂಕು' : 'Taluk'}</Label>
+                <Label>{t('agent.profile.taluk')}</Label>
                 <Input
                   value={taluk}
                   onChange={(e) => setTaluk(e.target.value)}
-                  placeholder={language === 'kn' ? 'ತಾಲ್ಲೂಕು' : 'Taluk'}
+                  placeholder={t('agent.profile.taluk')}
                 />
               </div>
               <div className="space-y-2">
-                <Label>{language === 'kn' ? 'ಹಳ್ಳಿ' : 'Village'}</Label>
+                <Label>{t('agent.profile.village')}</Label>
                 <Input
                   value={village}
                   onChange={(e) => setVillage(e.target.value)}
-                  placeholder={language === 'kn' ? 'ಹಳ್ಳಿ' : 'Village'}
+                  placeholder={t('agent.profile.village')}
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label>{language === 'kn' ? 'ಆದ್ಯತೆ ಭಾಷೆ' : 'Preferred Language'}</Label>
+              <Label>{t('agent.profile.preferredLanguage')}</Label>
               <Select value={preferredLanguage} onValueChange={setPreferredLanguage}>
                 <SelectTrigger>
                   <SelectValue />
@@ -201,13 +200,13 @@ export default function AgentProfile() {
               </Select>
             </div>
 
-            <Link to="/agent/service-area" className="block">
+            <Link to={ROUTES.AGENT.SERVICE_AREA} className="block">
               <div className="flex items-center gap-2 p-3 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer">
                 <MapPin className="h-5 w-5 text-primary" />
                 <div>
-                  <p className="font-medium text-sm">{language === 'kn' ? 'ಸೇವಾ ಪ್ರದೇಶಗಳು' : 'Service Areas'}</p>
+                  <p className="font-medium text-sm">{t('agent.profile.serviceAreas')}</p>
                   <p className="text-xs text-muted-foreground">
-                    {language === 'kn' ? 'ನಿಮ್ಮ ಸೇವಾ ಜಿಲ್ಲೆಗಳನ್ನು ನಿರ್ವಹಿಸಿ' : 'Manage the districts you serve'}
+                    {t('agent.profile.manageServiceAreas')}
                   </p>
                 </div>
               </div>
@@ -221,18 +220,19 @@ export default function AgentProfile() {
               {updateProfile.isPending ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  {language === 'kn' ? 'ಉಳಿಸಲಾಗುತ್ತಿದೆ...' : 'Saving...'}
+                  {t('agent.profile.saving')}
                 </>
               ) : (
                 <>
                   <Save className="h-4 w-4 mr-2" />
-                  {language === 'kn' ? 'ಪ್ರೊಫೈಲ್ ಉಳಿಸಿ' : 'Save Profile'}
+                  {t('agent.profile.saveProfile')}
                 </>
               )}
             </Button>
           </CardContent>
         </Card>
       </div>
+      )}
       </PageHeader>
     </DashboardLayout>
   );

@@ -1,11 +1,6 @@
-import { createClient } from '@supabase/supabase-js';
+import { createAdminClient } from './common.mjs';
 
-const SUPABASE_URL = 'https://rmtkkzfzdmpjlqexrbme.supabase.co';
-const SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtdGtremZ6ZG1wamxxZXhyYm1lIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MTE3MTM0MywiZXhwIjoyMDg2NzQ3MzQzfQ.boHbegytdSBXEhCT_dkg8Bl98W5lyQupb2bGo0nSqR4';
-
-const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
-  auth: { autoRefreshToken: false, persistSession: false }
-});
+const supabase = createAdminClient();
 
 const p = new Promise(async (resolve) => {
   try {

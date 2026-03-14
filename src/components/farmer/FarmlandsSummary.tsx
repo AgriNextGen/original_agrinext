@@ -7,8 +7,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { LandPlot, MapPin, Plus, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { ROUTES } from '@/lib/routes';
+import { useLanguage } from '@/hooks/useLanguage';
 
 const FarmlandsSummary = () => {
+  const { t } = useLanguage();
   const { data: farmlands, isLoading } = useFarmlands();
   const navigate = useNavigate();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -23,7 +26,7 @@ const FarmlandsSummary = () => {
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2">
             <LandPlot className="h-5 w-5 text-primary" />
-            My Farmlands
+            {t('farmer.farmlands.myFarmlands')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -44,29 +47,29 @@ const FarmlandsSummary = () => {
           <div>
             <CardTitle className="flex items-center gap-2 text-lg">
               <LandPlot className="h-5 w-5 text-primary" />
-              My Farmlands
+              {t('farmer.farmlands.myFarmlands')}
             </CardTitle>
             <p className="text-xs text-muted-foreground mt-0.5">
-              {farmlands?.length || 0} plots • {totalArea.toFixed(1)} acres total
+              {farmlands?.length || 0} {t('farmer.farmlands.plots')} • {totalArea.toFixed(1)} {t('farmer.farmlands.acresTotal')}
             </p>
           </div>
-          <Button variant="outline" size="sm" onClick={() => navigate('/farmer/farmlands')}>
+          <Button variant="outline" size="sm" onClick={() => navigate(ROUTES.FARMER.FARMLANDS)}>
             <Plus className="h-4 w-4 mr-1" />
-            Add
+            {t('common.add')}
           </Button>
         </CardHeader>
         <CardContent className="pt-0">
           {displayedFarmlands.length === 0 ? (
             <div className="text-center py-4">
               <LandPlot className="h-6 w-6 mx-auto text-muted-foreground/50 mb-2" />
-              <p className="text-muted-foreground text-sm">No farmlands added yet</p>
-              <Button 
-                variant="outline" 
-                className="mt-3" 
+              <p className="text-muted-foreground text-sm">{t('farmer.farmlands.noFarmlandsYet')}</p>
+              <Button
+                variant="outline"
+                className="mt-3"
                 size="sm"
-                onClick={() => navigate('/farmer/farmlands')}
+                onClick={() => navigate(ROUTES.FARMER.FARMLANDS)}
               >
-                Add Your First Farmland
+                {t('farmer.farmlands.addFirstFarmland')}
               </Button>
             </div>
           ) : (
@@ -77,7 +80,7 @@ const FarmlandsSummary = () => {
                   <div
                     key={land.id}
                     className="flex items-center justify-between p-2 rounded-lg bg-muted/30 border border-border/50 cursor-pointer hover:bg-muted/50 transition-colors"
-                    onClick={() => navigate('/farmer/farmlands')}
+                    onClick={() => navigate(ROUTES.FARMER.FARMLANDS)}
                   >
                     <div className="flex items-center gap-2">
                       <div className="p-1.5 rounded-lg bg-amber-100 text-amber-600">
@@ -107,7 +110,7 @@ const FarmlandsSummary = () => {
                     variant="ghost" 
                     className="w-full mt-2 h-8 text-muted-foreground hover:text-foreground text-xs"
                   >
-                    {isExpanded ? 'Show less' : `+${displayedFarmlands.length - 2} more plots`}
+                    {isExpanded ? t('farmer.farmlands.showLess') : `+${displayedFarmlands.length - 2} ${t('farmer.farmlands.morePlots')}`}
                     <ChevronDown className={`h-3 w-3 ml-1 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
                   </Button>
                 </CollapsibleTrigger>
@@ -120,7 +123,7 @@ const FarmlandsSummary = () => {
                     <div
                       key={land.id}
                       className="bg-muted/30 border border-border/50 rounded-lg p-2 hover:bg-muted/50 transition-colors cursor-pointer"
-                      onClick={() => navigate('/farmer/farmlands')}
+                      onClick={() => navigate(ROUTES.FARMER.FARMLANDS)}
                     >
                       <div className="flex items-center gap-2">
                         <div className="p-1.5 rounded-lg bg-amber-100 text-amber-600">
@@ -153,9 +156,9 @@ const FarmlandsSummary = () => {
                     <Button 
                       variant="ghost" 
                       className="w-full h-8 text-muted-foreground hover:text-foreground text-xs"
-                      onClick={() => navigate('/farmer/farmlands')}
+                      onClick={() => navigate(ROUTES.FARMER.FARMLANDS)}
                     >
-                      View all farmlands ({farmlands.length})
+                      {t('farmer.farmlands.viewAllFarmlands')} ({farmlands.length})
                     </Button>
                   )}
                 </div>

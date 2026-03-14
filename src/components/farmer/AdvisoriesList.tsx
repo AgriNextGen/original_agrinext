@@ -23,6 +23,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
+import { useLanguage } from '@/hooks/useLanguage';
 
 const categoryConfig: Record<string, { icon: React.ElementType; color: string }> = {
   price: { icon: TrendingUp, color: 'text-emerald-600 bg-emerald-100' },
@@ -35,6 +36,7 @@ const categoryConfig: Record<string, { icon: React.ElementType; color: string }>
 };
 
 const AdvisoriesList = () => {
+  const { t } = useLanguage();
   const { data: notifications, isLoading } = useFarmerNotifications();
   const { data: profile } = useFarmerProfile();
   const hasValidDistrict = useIsDistrictValid(profile?.district);
@@ -57,7 +59,7 @@ const AdvisoriesList = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Bell className="h-5 w-5 text-primary" />
-            Advisories & Alerts
+            {t('farmer.advisories.title')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -78,10 +80,10 @@ const AdvisoriesList = () => {
             <div className="flex items-center justify-between cursor-pointer group">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Bell className="h-5 w-5 text-primary" />
-                Advisories & Alerts
+                {t('farmer.advisories.title')}
                 {unreadCount > 0 && (
                   <Badge className="ml-2 bg-primary text-primary-foreground">
-                    {unreadCount} new
+                    {unreadCount} {t('farmer.advisories.newCount')}
                   </Badge>
                 )}
               </CardTitle>
@@ -96,7 +98,7 @@ const AdvisoriesList = () => {
             <Alert className="mb-4 border-amber-200 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-800">
               <AlertCircle className="h-4 w-4 text-amber-600" />
               <AlertDescription className="text-amber-800 dark:text-amber-200 text-sm">
-                Set your district to see local advisories and alerts
+                {t('farmer.advisories.setDistrictAlert')}
               </AlertDescription>
             </Alert>
           )}
@@ -105,7 +107,7 @@ const AdvisoriesList = () => {
           {!isExpanded && (
             <div className="space-y-2">
               {!notifications || notifications.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No notifications yet</p>
+                <p className="text-sm text-muted-foreground">{t('farmer.advisories.noNotificationsYet')}</p>
               ) : latestNotification ? (
                 <div className={`flex gap-3 p-2 rounded-lg ${
                   latestNotification.is_read 
@@ -128,7 +130,7 @@ const AdvisoriesList = () => {
                 </div>
               ) : null}
               {notifications && notifications.length > 1 && (
-                <p className="text-xs text-muted-foreground">+{notifications.length - 1} more notifications</p>
+                <p className="text-xs text-muted-foreground">+{notifications.length - 1} {t('farmer.advisories.moreNotifications')}</p>
               )}
             </div>
           )}
@@ -138,7 +140,7 @@ const AdvisoriesList = () => {
             {!notifications || notifications.length === 0 ? (
               <div className="text-center py-6">
                 <Bell className="h-10 w-10 mx-auto text-muted-foreground/50 mb-3" />
-                <p className="text-muted-foreground text-sm">No notifications yet</p>
+                <p className="text-muted-foreground text-sm">{t('farmer.advisories.noNotificationsYet')}</p>
               </div>
             ) : (
               <div className="space-y-3 pt-2">
@@ -191,7 +193,7 @@ const AdvisoriesList = () => {
                     className="w-full text-muted-foreground hover:text-foreground"
                     onClick={() => window.location.href = '/farmer/notifications'}
                   >
-                    View all notifications
+                    {t('farmer.advisories.viewAll')}
                     <ChevronRight className="h-4 w-4 ml-1" />
                   </Button>
                 )}

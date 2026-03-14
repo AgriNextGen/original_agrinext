@@ -1,0 +1,13 @@
+-- AgriNext Gen — Local Development Seed Data
+-- This file is loaded after migrations on `supabase db reset`.
+-- Referenced in supabase/config.toml [db.seed] sql_paths.
+--
+-- NOTE: For staging/production test data, use the npm staging scripts:
+--   npm run staging:provision-dummy-users
+--   npm run staging:seed-dummy-data
+--
+-- This seed file is intentionally minimal for local dev.
+-- Add reference data here (districts, crop types, etc.) as needed.
+
+-- Example: ensure Karnataka is seeded as a default region if a regions table exists
+-- INSERT INTO public.regions (name, code) VALUES ('Karnataka', 'KA') ON CONFLICT DO NOTHING;

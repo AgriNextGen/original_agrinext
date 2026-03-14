@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useLanguage } from '@/hooks/useLanguage';
 import { toast } from 'sonner';
 
 export interface AdminUser {
@@ -41,6 +42,7 @@ export const useAdminProfile = () => {
 export const useCreateAdminProfile = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { t } = useLanguage();
   
   return useMutation({
     mutationFn: async (data: Partial<AdminUser>) => {
@@ -64,32 +66,29 @@ export const useCreateAdminProfile = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-profile'] });
-      toast.success('Admin profile created!');
+      toast.success(t('hookToasts.adminDashboard.profileCreated'));
     },
     onError: (error) => {
-      toast.error('Failed to create profile: ' + error.message);
+      toast.error(t('hookToasts.adminDashboard.profileFailed') + ': ' + error.message);
     },
   });
 };
 
-// Dashboard Stats
+// Dashboard Stats (maps to admin_dashboard_v1 RPC return fields)
 export const useAdminDashboardStats = () => {
   return useQuery({
     queryKey: ['admin-dashboard-stats'],
     queryFn: async () => {
       const { data } = await supabase.rpc('admin_dashboard_v1', { p_days: 1 });
       return {
-        totalFarmers: data?.new_signups || 0,
-        totalBuyers: data?.new_signups || 0,
-        activeTransporters: data?.active_users || 0,
-        totalCrops: 0,
-        harvestReady: 0,
-        oneWeekAway: 0,
-        pendingTransport: 0,
-        activeTransport: 0,
-        newOrdersToday: data?.payment_failures || 0,
-        pendingOrders: 0,
-        raw: data
+        newSignups: data?.new_signups ?? 0,
+        activeUsers: data?.active_users ?? 0,
+        supportTicketsOpen: data?.support_tickets_open ?? 0,
+        stuckTrips: data?.stuck_trips ?? 0,
+        paymentFailures: data?.payment_failures ?? 0,
+        rateLimitBlocks: data?.rate_limit_blocks ?? 0,
+        kycPendingPayouts: data?.kyc_pending_payout_count ?? 0,
+        raw: data,
       };
     },
   });
@@ -341,53 +340,67 @@ export const useAllMarketOrders = () => {
   });
 };
 
-// Update transport request status
+// Update transport request status (admin-only, audit trigger fires on status change)
 export const useUpdateTransportStatus = () => {
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
   
   return useMutation({
     mutationFn: async ({ id, status, transporter_id }: { id: string; status: string; transporter_id?: string }) => {
-      const updateData: Record<string, unknown> = { status };
+      const updateData: Record<string, unknown> = {
+        status,
+        updated_at: new Date().toISOString(),
+      };
       if (transporter_id !== undefined) {
         updateData.transporter_id = transporter_id;
       }
       
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('transport_requests')
         .update(updateData)
-        .eq('id', id);
+        .eq('id', id)
+        .select()
+        .single();
       
       if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-all-transport'] });
-      toast.success('Transport request updated!');
+      toast.success(t('hookToasts.adminDashboard.transportUpdated'));
     },
     onError: (error) => {
-      toast.error('Update failed: ' + error.message);
+      toast.error(t('hookToasts.adminDashboard.transportFailed') + ': ' + error.message);
     },
   });
 };
 
-// Update market order status
+// Update market order status via RPC (state machine + audit trail)
 export const useUpdateOrderStatus = () => {
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
   
   return useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      const { error } = await supabase
-        .from('market_orders')
-        .update({ status })
-        .eq('id', id);
+      const { data, error } = await supabase.rpc('update_order_status_v1', {
+        p_order_id: id,
+        p_new_status: status,
+        p_proof_file_id: null,
+      } as any);
       
       if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-all-orders'] });
-      toast.success('Order status updated!');
+      toast.success(t('hookToasts.adminDashboard.orderUpdated'));
     },
     onError: (error) => {
-      toast.error('Update failed: ' + error.message);
+      if (error.message?.includes('Invalid transition')) {
+        toast.error(t('hookToasts.adminDashboard.transitionNotAllowed'));
+      } else {
+        toast.error(t('hookToasts.adminDashboard.orderFailed') + ': ' + error.message);
+      }
     },
   });
 };

@@ -1,10 +1,28 @@
+/**
+ * @function storage-sign-upload-v1
+ * @description Generate a signed URL for uploading files to Supabase private Storage.
+ *   Used by frontend before every file upload (crop photos, proof media, KYC docs).
+ *   Validates bucket allowlist and file size before issuing the URL.
+ *
+ * @auth verify_jwt = true (JWT required)
+ *
+ * @request POST /functions/v1/storage-sign-upload-v1
+ *   { bucket: string, path: string, content_type: string, file_size_bytes: number }
+ *
+ * @response
+ *   200: { success: true, data: { signed_url: string, token: string, path: string } }
+ *   400: { error: { code: "invalid_bucket"|"file_too_large"|"invalid_content_type" } }
+ *   401: { error: { code: "unauthorized" } }
+ *
+ * @guards JWT, bucket allowlist, max file size, content type check
+ * @buckets crop-media (private), trip-proofs (private), kyc-docs (private, secure schema)
+ */
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { getRequestIdFromHeaders, makeResponseWithRequestId, logStructured } from "../_shared/request_context.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const WORKER_SECRET = Deno.env.get("WORKER_SECRET")!;
 
 const corsHeaders = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "content-type, authorization" };
 
@@ -24,17 +42,17 @@ Deno.serve(async (req: Request) => {
 
     const authHeader = req.headers.get('Authorization') || '';
     const token = authHeader.replace('Bearer ', '') || null;
-    if (!token) return makeResponseWithRequestId(JSON.stringify({ error: 'Unauthorized' }), reqId, { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (!token) return makeResponseWithRequestId(JSON.stringify({ success: false, error: { code: "UNAUTHORIZED", message: "Missing authorization" } }), reqId, { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
     // Validate user
     const { data: userRes } = await supabaseAdmin.auth.getUser(token);
     const user = userRes?.user ?? null;
-    if (!user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (!user) return new Response(JSON.stringify({ success: false, error: { code: "UNAUTHORIZED", message: "Invalid token" } }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
     const body = await req.json().catch(() => ({}));
     const { bucket, content_type, size_bytes, entity } = body || {};
     if (!bucket || !content_type || !size_bytes || !entity || !entity.type || !entity.id) {
-      return new Response(JSON.stringify({ error: 'missing_params' }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ success: false, error: { code: "VALIDATION_ERROR", message: "Missing required parameters: bucket, content_type, size_bytes, entity" } }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     // Rate limit per user for signed URLs (window: 1 hour, limit 200)
@@ -58,7 +76,7 @@ Deno.serve(async (req: Request) => {
           p_metadata: { bucket, content_type, size_bytes, entity }
         }).catch(()=>{});
         logStructured({ request_id: reqId, endpoint: "storage-sign-upload-v1", status: "rate_limited", user: user.id, rlKey });
-        return makeResponseWithRequestId(JSON.stringify({ error: 'rate_limited' }), reqId, { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        return makeResponseWithRequestId(JSON.stringify({ success: false, error: { code: "RATE_LIMITED", message: "Upload rate limit exceeded" } }), reqId, { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
     } catch (e) {
       console.error('consume_rate_limit error', e);
@@ -87,7 +105,7 @@ Deno.serve(async (req: Request) => {
     if (insertRes.error) {
       console.error('files insert error', insertRes.error);
       logStructured({ request_id: reqId, endpoint: "storage-sign-upload-v1", status: "files_insert_failed", error: insertRes.error });
-      return makeResponseWithRequestId(JSON.stringify({ error: 'files_insert_failed' }), reqId, { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return makeResponseWithRequestId(JSON.stringify({ success: false, error: { code: "INTERNAL", message: "Failed to register file" } }), reqId, { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     const file_id = insertRes.data?.id;
@@ -117,17 +135,15 @@ Deno.serve(async (req: Request) => {
     } catch (e) { /* best-effort */ }
 
     return makeResponseWithRequestId(JSON.stringify({
-      file_id,
-      bucket: bucketName,
-      path: object_path,
-      token: signedUrl
+      success: true,
+      data: { file_id, bucket: bucketName, path: object_path, token: signedUrl }
     }), reqId, { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
   } catch (err) {
     const reqId = getRequestIdFromHeaders(req.headers);
     console.error('storage-sign-upload-v1 error', err);
     logStructured({ request_id: reqId, endpoint: "storage-sign-upload-v1", status: "error", error: err instanceof Error ? err.message : String(err) });
-    return makeResponseWithRequestId(JSON.stringify({ error: err instanceof Error ? err.message : 'internal' }), reqId, { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return makeResponseWithRequestId(JSON.stringify({ success: false, error: { code: "INTERNAL", message: "Internal error" } }), reqId, { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 });
 

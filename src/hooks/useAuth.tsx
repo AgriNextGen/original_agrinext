@@ -105,7 +105,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       if (error) {
-        console.warn("user_profiles lookup failed, falling back to legacy role tables:", error.message);
+        if (import.meta.env.DEV) console.warn("user_profiles lookup failed, falling back to legacy role tables:", error.message);
       }
 
       const [{ data: roleRows, error: roleError }, { data: profileRow, error: profileError }] = await Promise.all([
@@ -114,10 +114,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       ]);
 
       if (roleError) {
-        console.warn("Legacy user_roles lookup failed:", roleError.message);
+        if (import.meta.env.DEV) console.warn("Legacy user_roles lookup failed:", roleError.message);
       }
       if (profileError) {
-        console.warn("Legacy profiles lookup failed:", profileError.message);
+        if (import.meta.env.DEV) console.warn("Legacy profiles lookup failed:", profileError.message);
       }
 
       const firstRole = roleRows?.[0]?.role ?? null;
@@ -134,16 +134,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return;
       }
 
-      setProfiles([]);
-      setRealRole(null);
-      setUserRole(null);
+      if (!realRole) {
+        setProfiles([]);
+        setRealRole(null);
+        setUserRole(null);
+      }
     } catch (error) {
-      console.error("Error fetching user profiles:", error);
-      setProfiles([]);
-      setRealRole(null);
-      setUserRole(null);
+      if (import.meta.env.DEV) console.error("Error fetching user profiles:", error);
     }
-  }, [applyProfilesState]);
+  }, [applyProfilesState, realRole]);
 
   const refreshRole = useCallback(async () => {
     if (user?.id) {
@@ -168,17 +167,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           return;
         }
         const json = await res.json();
-        if (json?.ok) {
-          const { active_role, real_role, override, expires_at } = json;
-          setRealRole(real_role ?? null);
-          setActiveRole(active_role ?? null);
-          setIsDevOverride(!!override);
-          setDevExpiresAt(expires_at ?? null);
-          // Set legacy userRole to activeRole so existing UI follows override
-          setUserRole(active_role ?? real_role ?? null);
+        if (json?.success && json?.data) {
+          const activeRole = json.data.role ?? json.data.active_role ?? null;
+          const isOverride = json.data.isDevOverride ?? json.data.override ?? false;
+          const expiresAt = json.data.expires_at ?? null;
+          if (json.data.real_role) setRealRole(json.data.real_role);
+          setActiveRole(activeRole);
+          setIsDevOverride(!!isOverride);
+          setDevExpiresAt(expiresAt);
+          setUserRole(activeRole ?? realRole ?? null);
         }
       } catch (err) {
-        console.error("fetchDevActiveRole error:", err);
+        if (import.meta.env.DEV) console.error("fetchDevActiveRole error:", err);
       }
     },
     []
@@ -198,23 +198,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const res = await fetch(url, {
         method: "POST",
         headers,
-        body: JSON.stringify({ active_role: role }),
+        body: JSON.stringify({ targetRole: role }),
       });
       if (!res.ok) {
-        console.warn("switchActiveRole failed", await res.text());
+        if (import.meta.env.DEV) console.warn("switchActiveRole failed", await res.text());
         return;
       }
       const json = await res.json();
-      if (json?.ok) {
-        const { active_role, real_role, expires_at } = json;
-        setRealRole(real_role ?? null);
-        setActiveRole(active_role ?? null);
-        setIsDevOverride(!!active_role && active_role !== real_role);
-        setDevExpiresAt(expires_at ?? null);
-        setUserRole(active_role ?? real_role ?? null);
+      if (json?.success && json?.data) {
+        const switchedRole = json.data.activeRole ?? role;
+        setActiveRole(switchedRole);
+        setIsDevOverride(!!switchedRole && switchedRole !== realRole);
+        setUserRole(switchedRole ?? realRole ?? null);
       }
     } catch (err) {
-      console.error("switchActiveRole error:", err);
+      if (import.meta.env.DEV) console.error("switchActiveRole error:", err);
     }
   }, [session?.access_token]);
 
@@ -239,7 +237,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           await fetchDevActiveRole(session.access_token ?? undefined);
         }
       } catch (error) {
-        console.error("Auth initialization error:", error);
+        if (import.meta.env.DEV) console.error("Auth initialization error:", error);
       } finally {
         if (mounted) {
           setLoading(false);
@@ -249,21 +247,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     initializeAuth();
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return;
 
       setSession(session);
       setUser(session?.user ?? null);
 
       if (session?.user) {
-        // After login, load profiles
-        setTimeout(() => {
-          if (mounted) {
-            fetchUserProfiles(session.user.id);
-            fetchDevActiveRole(session.access_token ?? undefined);
-          }
-        }, 100);
+        if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+          setTimeout(() => {
+            if (mounted) {
+              fetchUserProfiles(session.user.id);
+              fetchDevActiveRole(session.access_token ?? undefined);
+            }
+          }, 100);
+        }
       } else {
         setRealRole(null);
         setActiveRole(null);
@@ -294,7 +292,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         localStorage.removeItem("agrinext_active_profile");
       } catch {}
     } catch (error) {
-      console.error("Sign out error:", error);
+      if (import.meta.env.DEV) console.error("Sign out error:", error);
     }
   }, []);
 

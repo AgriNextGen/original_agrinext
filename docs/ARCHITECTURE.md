@@ -1,80 +1,220 @@
-# Architecture
+# Architecture & Features Guide
 
-## Scope and Stack
-- Frontend is `Vite + React 18 + TypeScript`, not Next.js (`package.json`, `vite.config.ts`).
-- Routing uses React Router with role-protected routes (`src/App.tsx`).
-- State/query layer uses TanStack Query (`src/App.tsx`, `src/lib/readApi.ts`).
-- UI stack is Tailwind + Radix/shadcn primitives (`tailwind.config.ts`, `src/components/ui/*`).
-- Backend is Supabase (Auth, PostgREST, Storage, Edge Functions) via JS client (`src/integrations/supabase/client.ts`).
+> For AI agents and developers. Full project context is in `/CLAUDE.md`.
+> DB/RLS/Edge rules are in `/docs/all_imp_rules/`.
 
-## High-Level Repo Map
-- `src/pages/*`: role dashboards and feature pages.
-- `src/hooks/*`: auth/session, dashboard query hooks, domain operations.
-- `src/integrations/supabase/*`: typed Supabase client and generated DB types.
-- `supabase/migrations/*`: SQL-first schema/RLS/function evolution.
-- `supabase/functions/*`: Edge functions (phone signup/login, storage signing, worker flows).
-- `scripts/staging/*`: staging verification, dummy provisioning, seeding, smoke tests, rollback.
+---
 
-## Architecture Decisions (Observed)
-- Client app authenticates with Supabase auth session and role checks (`src/hooks/useAuth.tsx`, `src/components/ProtectedRoute.tsx`).
-- Phone signup and login are implemented through Edge Functions (`signup-by-phone`, `login-by-phone`) and client session token handoff (`src/pages/Signup.tsx`, `src/pages/Login.tsx`).
-- Synthetic auth email is derived from normalized phone for deterministic phone-password auth (`src/lib/auth.ts`, `supabase/functions/signup-by-phone/index.ts`).
-- Data reads/writes are mostly direct Supabase client calls and RPC calls (`src/lib/readApi.ts`, role hooks/pages).
-- Role routing is explicit and centralized (`src/App.tsx`, `src/pages/Login.tsx`, `src/pages/Signup.tsx`).
+## Product Features
 
-## Current Data Access Pattern
-- Browser-side typed client: `createClient<Database>()` using `VITE_SUPABASE_URL` and publishable key (`src/integrations/supabase/client.ts`).
-- RPC wrapper for read/mutate operations: `rpcJson`/`rpcMutate` (`src/lib/readApi.ts`).
-- Edge functions invoked by `fetch` for privileged flows (examples: `signup-by-phone`, `login-by-phone`).
-- Staging automation uses service-role only in Node scripts under `scripts/staging/*`.
+### Core Platform
 
-## Current Auth Pattern
-- Signup: `POST /functions/v1/signup-by-phone` (server-side user creation + guardrails), then `supabase.auth.setSession(...)` (`src/pages/Signup.tsx`, `supabase/functions/signup-by-phone/index.ts`).
-- Login by phone/password: call `functions/v1/login-by-phone`, then `supabase.auth.setSession` (`src/pages/Login.tsx`).
-- Session/role bootstrap in `AuthProvider` by reading `user_profiles` (`src/hooks/useAuth.tsx`).
-- Route guarding by `ProtectedRoute` role checks (`src/components/ProtectedRoute.tsx`).
+- Public pages: landing/about/contact
+- Auth: signup with role selection, phone/password login via edge function, OAuth callback support
+- Role dashboards and modules:
+  - **Farmer**: crops, farmlands, listings, transport, orders, earnings
+  - **Agent**: today/tasks/farmers/transport/profile/service area
+  - **Logistics**: loads/trips/completed/vehicles/profile/service area
+  - **Buyer**: marketplace dashboard/browse/orders/profile
+  - **Admin**: dashboard + ops, data health, tickets, disputes, finance, jobs, AI pages
 
-## Migration and Type Strategy
-- SQL migrations live in `supabase/migrations/*.sql`.
-- Generated TypeScript contract lives at `src/integrations/supabase/types.ts`.
-- Signup hardening migrations:
-  - `supabase/migrations/202602281230_signup_guardrails.sql`
-  - `supabase/migrations/202602281240_dashboard_rpc_compat.sql`
-- Workflow evidence currently includes targeted GitHub workflow using `psql` + `DATABASE_URL` secrets (`.github/workflows/apply-phase-e2.yml`).
-- Type generation command is not explicitly codified in this repo (`UNKNOWN`); file header indicates generated output.
+### Staging & Operations
 
-## Risks / Unknowns
-- MCP catalog access for full live schema/RLS introspection is currently unavailable in this session (`UNKNOWN`).
-- Non-public schemas (`secure`, `audit`, `analytics`) are not REST-exposed and need SQL-level verification for contract certainty (`artifacts/staging/baseline-live.json`).
-- Worktree has many unrelated migration diffs; keep feature changes isolated to avoid accidental drift.
+- Server-side phone signup (`signup-by-phone` edge function)
+- Dummy user provisioning (`scripts/staging/provision-dummy-users.mjs`)
+- Rich role-wise seed data (`scripts/staging/seed-dummy-data.mjs`)
+- Smoke test suite (`scripts/staging/smoke-phone-auth.mjs`)
+- One-command execution (`scripts/staging/run-all.mjs`)
+- Weather widget backend (`get-weather` Edge Function with Open-Meteo + `web_cache`)
 
-## Core Runtime Stabilization Additions
+---
 
-### Weather Data Flow (Farmer Dashboard)
-- UI caller: `src/components/farmer/WeatherWidget.tsx`
-- Backend: `supabase/functions/get-weather/index.ts`
-- Auth model:
-  - browser passes session bearer token
-  - edge function validates token manually (`/auth/v1/user`)
-  - function uses service-role for profile lookup + cache writes
-- Provider pipeline:
-  - profile location (`pincode` / `village+district` / `district` / `location`)
-  - Open-Meteo geocoding (lat/lon)
-  - Open-Meteo current weather + daily summary
-  - optional Gemini short summary enhancement (best-effort only)
-- Cache layer:
-  - `public.web_cache` with `topic='weather'`
-  - fresh TTL 30 minutes, stale-serve up to 2 hours on upstream failure
+## Directory Structure
 
-### Market Data Compatibility Layer
-- `src/hooks/useMarketData.tsx` now normalizes live staging schema to UI contract:
-  - `market_prices_agg.avg_price -> modal_price`
-  - `market_prices_agg.date -> fetched_at`
-  - synthetic `state='Karnataka'`, default `unit='qtl'`
-- `price_forecasts` is treated as optional until a real backend table/pipeline is present.
+```
+src/
+├── App.tsx              # Root: providers + all 100+ routes
+├── main.tsx             # ReactDOM.createRoot entry
+├── index.css            # Global Tailwind base styles
+│
+├── pages/               # One file per route, organised by role
+├── components/          # Reusable UI components, organised by domain
+├── hooks/               # Custom React hooks (data + logic)
+├── lib/                 # Pure utilities, API helpers, constants
+├── types/               # App-level TypeScript types (not Supabase auto-gen)
+├── i18n/                # Translation files (en + kn) and engine
+├── offline/             # Dexie IndexedDB + offline sync
+├── layouts/             # DashboardLayout wrapper
+└── integrations/        # Third-party clients (Supabase, Google Maps)
+```
 
-### Runtime Verification Tooling
-- Added targeted staging smoke scripts for:
-  - weather function (`scripts/staging/smoke-weather.mjs`)
-  - buyer compact orders RPC (`scripts/staging/smoke-buyer-orders.mjs`)
-  - combined core runtime checks (`scripts/staging/smoke-runtime-core.mjs`)
+---
+
+## Pages (`src/pages/`)
+
+Organised strictly by role. Each role folder maps to the routes in `App.tsx`.
+
+```
+pages/
+├── farmer/          # 11 pages  → /farmer/*
+├── agent/           # 8 pages   → /agent/*
+├── logistics/       # 7 pages   → /logistics/*
+├── marketplace/     # 5 pages   → /marketplace/*
+├── admin/           # 21 pages  → /admin/*
+├── Auth/            # Login, Signup, OAuthCallback
+├── Onboard/         # RoleSelect (first-time setup)
+├── common/          # PendingSync, UploadsManager (shared across roles)
+├── trace/           # ListingTrace (public, no auth required)
+├── Index.tsx        # Landing page (/)
+├── Login.tsx        # → /login
+├── Signup.tsx       # → /signup
+├── About.tsx        # → /about
+├── Contact.tsx      # → /contact
+└── NotFound.tsx     # 404 fallback
+```
+
+**Rule:** Pages fetch data via hooks. Pages do NOT contain data-fetching logic directly.
+
+---
+
+## Components (`src/components/`)
+
+```
+components/
+├── ui/              # shadcn/ui primitives — DO NOT EDIT
+├── farmer/          # Farmer-specific UI (dialogs, widgets, sections, soil-reports)
+├── agent/           # Agent-specific UI
+├── logistics/       # Logistics-specific UI
+├── admin/           # Admin-specific UI
+├── crop-diary/      # Crop diary feature (CropActivityTimeline, CropPhotoGallery)
+├── listings/        # Listing traceability (CropSourceSelector, ListingTraceQR)
+├── geo/             # GeoDistrictSelect, GeoMarketSelect, GeoStateSelect
+├── layout/          # PageShell (generic page wrapper with title/actions)
+├── shared/          # Cross-role components (EmptyState, PageHeader)
+├── dev/             # DevConsole (guarded by VITE_DEV_TOOLS_ENABLED)
+└── marketing/       # Landing page sections (HeroSection, FeaturesSection)
+```
+
+**Rules:**
+- `src/components/ui/` -- never edit, auto-generated by shadcn
+- New shared components go in `src/components/shared/`
+- Role-specific components go in their role folder
+- Always use `cn()` from `src/lib/utils.ts` for conditional Tailwind
+
+---
+
+## Hooks (`src/hooks/`)
+
+All data fetching and business logic lives here. Pages import hooks, not raw Supabase.
+
+| Hook | Purpose |
+|------|---------|
+| `useAuth.tsx` | Auth state: user, session, role, dev override |
+| `useLanguage.tsx` | i18n: `t()` function, language toggle |
+| `useCropDiary.tsx` | Crop diary: activities, photos, entries |
+| `useSoilReports.tsx` | Soil report data + upload |
+| `useFarmerEarnings.tsx` | Earnings calculations |
+| `useMarketData.tsx` | Market price feed |
+| `useTrips.tsx` | Logistics trip data |
+| `useTraceability.tsx` | Traceability QR + listing trace |
+| `useGeoCapture.tsx` | GPS location capture |
+| `useKarnatakaDistricts.tsx` | Karnataka district/market data |
+| `useRealtimeSubscriptions.tsx` | Supabase realtime channels |
+| `use{Role}Dashboard.tsx` | Per-role dashboard aggregated data |
+| `useAgentAssignments.tsx` | Agent-farmer assignment management |
+| `use-mobile.tsx` | `isMobile` breakpoint detection |
+
+**Pattern:**
+```tsx
+export function useCrops(farmerId: string) {
+  return useQuery({
+    queryKey: ['crops', farmerId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('crops')
+        .select('id, crop_type, health_status, growth_stage, ...')
+        .eq('farmer_id', farmerId);
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+```
+
+---
+
+## Lib (`src/lib/`)
+
+| File | Purpose |
+|------|---------|
+| `utils.ts` | `cn()` helper (merges Tailwind classes) |
+| `auth.ts` | Auth utilities (phone normalisation) |
+| `readApi.ts` | Supabase RPC query wrappers |
+| `routes.ts` | **Type-safe route constants** -- use `ROUTES.FARMER.DASHBOARD` not strings |
+| `constants.ts` | App-wide constants: roles, localStorage keys, config |
+| `storage-upload.ts` | Supabase Storage upload with progress |
+| `offlineQueue.ts` | Queued mutations (executed when back online) |
+| `marketplaceApi.ts` | Marketplace-specific API helpers |
+| `error-utils.ts` | Error handling utilities |
+
+---
+
+## Types (`src/types/`)
+
+| File | What it contains |
+|------|-----------------|
+| `domain.ts` | Role enums, crop status enums, trip status enums, order status enums |
+| `api.ts` | RPC response shapes, Edge Function request/response types |
+
+> `src/integrations/supabase/types.ts` (257KB) is auto-generated. Never edit it.
+
+---
+
+## i18n (`src/i18n/`)
+
+| File | Purpose |
+|------|---------|
+| `en.ts` | English translations -- **source of truth** |
+| `kn.ts` | Kannada translations |
+| `index.ts` | Translation engine (Kannada encoding repair, missing key warnings) |
+| `aliases.ts` | Key aliases for backward compatibility |
+
+**Rule:** Add to **both** `en.ts` and `kn.ts` every time. Never add to one without the other.
+
+---
+
+## Offline (`src/offline/`)
+
+| File | Purpose |
+|------|---------|
+| `idb.ts` | Dexie IndexedDB schema definition |
+| `queryPersister.ts` | Persists React Query cache to IndexedDB |
+| `actionQueue.ts` | Stores mutations when offline; replays when online |
+| `uploadQueue.ts` | Queues file uploads when offline |
+| `network.ts` | `useOnline()` hook + network status events |
+
+---
+
+## How to Add a New Page
+
+1. Create `src/pages/{role}/MyPage.tsx`
+2. Add route in `App.tsx` in the role's `<Routes>` block
+3. Add `ROUTES.{ROLE}.MY_PAGE = '/role/my-page'` in `src/lib/routes.ts`
+4. Add nav link in the role's sidebar/nav
+5. Add i18n keys in `en.ts` + `kn.ts`
+6. Create a hook in `src/hooks/useMyFeature.tsx` if needed
+
+## How to Add a New Component
+
+1. Role-specific -> `src/components/{role}/MyComponent.tsx`; Shared -> `src/components/shared/MyComponent.tsx`
+2. Use `cn()` for Tailwind classes
+3. Keep data fetching out of components -- use hooks
+4. Export as named export: `export function MyComponent() {}`
+
+## How to Add DB Changes
+
+1. Write migration: `supabase/migrations/YYYYMMDDHHmm_feature.sql`
+2. Test: `supabase db reset`
+3. Regenerate types: `supabase gen types typescript --local > src/integrations/supabase/types.ts`
+4. Update `src/types/domain.ts` if new enums/statuses added
+5. Implement hooks + UI

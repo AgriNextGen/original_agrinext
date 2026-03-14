@@ -1,0 +1,38 @@
+[
+  {
+    "page": "Buyer Dashboard",
+    "url": "http://localhost:5173/login",
+    "hasContent": true,
+    "screenshot": "04-buyer-after-login.png"
+  },
+  {
+    "page": "Buyer Browse",
+    "url": "http://localhost:5173/login",
+    "hasContent": true,
+    "screenshot": "05-buyer-browse.png"
+  },
+  {
+    "page": "Buyer Orders",
+    "url": "http://localhost:5173/login",
+    "hasContent": true,
+    "screenshot": "05-buyer-orders.png"
+  },
+  {
+    "page": "Admin Dashboard",
+    "url": "http://localhost:5173/login",
+    "hasContent": true,
+    "screenshot": "08-admin-after-login.png"
+  },
+  {
+    "page": "Admin Disputes",
+    "url": "http://localhost:5173/login",
+    "hasContent": true,
+    "screenshot": "09-admin-disputes.png"
+  },
+  {
+    "page": "Admin System Health",
+    "url": "http://localhost:5173/login",
+    "hasContent": true,
+    "screenshot": "09-admin-system-health.png"
+  }
+]

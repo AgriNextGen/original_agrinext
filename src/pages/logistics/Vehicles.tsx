@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import DashboardLayout from '@/layouts/DashboardLayout';
+import PageShell from '@/components/layout/PageShell';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -21,145 +22,124 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Truck, Plus, Edit, Trash2 } from 'lucide-react';
+import EmptyState from '@/components/shared/EmptyState';
 import { useVehicles, useTransporterProfile } from '@/hooks/useLogisticsDashboard';
-import { supabase } from '@/integrations/supabase/client';
-import { useQueryClient } from '@tanstack/react-query';
+import { useCreateVehicle, useUpdateVehicle, useDeleteVehicle } from '@/hooks/useVehicleMutations';
 import { toast } from 'sonner';
-
-const vehicleTypes = [
-  { value: 'truck', label: 'Truck' },
-  { value: 'pickup', label: 'Pickup' },
-  { value: 'mini_truck', label: 'Mini Truck' },
-  { value: 'tempo', label: 'Tempo' },
-  { value: 'tractor', label: 'Tractor Trolley' },
-];
+import { useLanguage } from '@/hooks/useLanguage';
 
 const Vehicles = () => {
   const { data: vehicles, isLoading } = useVehicles();
   const { data: transporter } = useTransporterProfile();
-  const queryClient = useQueryClient();
+  const createVehicle = useCreateVehicle();
+  const updateVehicle = useUpdateVehicle();
+  const deleteVehicleMut = useDeleteVehicle();
+  const { t } = useLanguage();
+
+  const vehicleTypes = [
+    { value: 'truck', label: t('logisticsComponents.vehicleTypes.truck') },
+    { value: 'pickup', label: t('logisticsComponents.vehicleTypes.pickup') },
+    { value: 'mini_truck', label: t('logisticsComponents.vehicleTypes.miniTruck') },
+    { value: 'tempo', label: t('logisticsComponents.vehicleTypes.tempo') },
+    { value: 'tractor', label: t('logisticsComponents.vehicleTypes.tractorTrolley') },
+  ];
   
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState<{ id: string } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     vehicle_type: 'truck',
-    capacity: '',
-    number_plate: '',
+    capacity_kg: '',
+    registration_number: '',
   });
 
   const handleEditClick = (vehicle: any) => {
     setEditingVehicle({ id: vehicle.id });
     setFormData({
       vehicle_type: vehicle.vehicle_type,
-      capacity: String(vehicle.capacity),
-      number_plate: vehicle.number_plate,
+      capacity_kg: String(vehicle.capacity_kg ?? ''),
+      registration_number: vehicle.registration_number ?? '',
     });
     setIsDialogOpen(true);
   };
 
   const handleSubmit = async () => {
     if (!transporter?.id) {
-      toast.error('Transporter profile not found');
+      toast.error(t('logistics.profileNotFound') || 'Transporter profile not found');
       return;
     }
 
-    if (!formData.number_plate || !formData.capacity) {
-      toast.error('Please fill in all required fields');
+    if (!formData.registration_number || !formData.capacity_kg) {
+      toast.error(t('validation.fillRequired') || 'Please fill in all required fields');
       return;
     }
 
     setIsSubmitting(true);
     try {
+      const vehicleData = {
+        vehicle_type: formData.vehicle_type,
+        capacity_kg: parseFloat(formData.capacity_kg),
+        registration_number: formData.registration_number,
+      };
+
       if (editingVehicle) {
-        const { error } = await supabase.from('vehicles').update({
-          vehicle_type: formData.vehicle_type,
-          capacity: parseFloat(formData.capacity),
-          number_plate: formData.number_plate.toUpperCase(),
-        }).eq('id', editingVehicle.id);
-        if (error) throw error;
-        toast.success('Vehicle updated successfully!');
+        await updateVehicle.mutateAsync({ id: editingVehicle.id, data: vehicleData });
+        toast.success(t('logistics.vehicleUpdated') || 'Vehicle updated successfully!');
       } else {
-        const { error } = await supabase.from('vehicles').insert({
-          transporter_id: transporter.id,
-          vehicle_type: formData.vehicle_type,
-          capacity: parseFloat(formData.capacity),
-          number_plate: formData.number_plate.toUpperCase(),
-        });
-        if (error) throw error;
-        toast.success('Vehicle added successfully!');
+        await createVehicle.mutateAsync({ ...vehicleData, transporter_id: transporter.id });
+        toast.success(t('logistics.vehicleAdded') || 'Vehicle added successfully!');
       }
 
-      queryClient.invalidateQueries({ queryKey: ['vehicles'] });
       setIsDialogOpen(false);
       setEditingVehicle(null);
-      setFormData({ vehicle_type: 'truck', capacity: '', number_plate: '' });
+      setFormData({ vehicle_type: 'truck', capacity_kg: '', registration_number: '' });
     } catch (error: any) {
-      toast.error((editingVehicle ? 'Failed to update vehicle: ' : 'Failed to add vehicle: ') + error.message);
+      toast.error((editingVehicle ? (t('logistics.failedUpdateVehicle') || 'Failed to update vehicle: ') : (t('logistics.failedAddVehicle') || 'Failed to add vehicle: ')) + error.message);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleDelete = async (vehicleId: string) => {
-    if (!confirm('Are you sure you want to delete this vehicle?')) return;
+    if (!confirm(t('logistics.confirmDeleteVehicle') || 'Are you sure you want to delete this vehicle?')) return;
 
     try {
-      const { error } = await supabase.from('vehicles').delete().eq('id', vehicleId);
-      if (error) throw error;
-
-      toast.success('Vehicle deleted');
-      queryClient.invalidateQueries({ queryKey: ['vehicles'] });
+      await deleteVehicleMut.mutateAsync(vehicleId);
+      toast.success(t('logistics.vehicleDeleted') || 'Vehicle deleted');
     } catch (error: any) {
-      toast.error('Failed to delete vehicle: ' + error.message);
+      toast.error((t('logistics.failedDeleteVehicle') || 'Failed to delete vehicle: ') + error.message);
     }
   };
 
   if (isLoading) {
     return (
-      <DashboardLayout title="My Vehicles">
-        <div className="space-y-6">
+      <DashboardLayout title={t('nav.myVehicles')}>
+        <PageShell title={t('nav.myVehicles')}>
           <Skeleton className="h-10 w-48" />
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {[1, 2, 3].map(i => <Skeleton key={i} className="h-40" />)}
           </div>
-        </div>
+        </PageShell>
       </DashboardLayout>
     );
   }
 
   return (
-    <DashboardLayout title="My Vehicles">
-      <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">My Vehicles</h1>
-          <p className="text-muted-foreground">
-            Manage your fleet of vehicles
-          </p>
-        </div>
-        <Button onClick={() => { setEditingVehicle(null); setFormData({ vehicle_type: 'truck', capacity: '', number_plate: '' }); setIsDialogOpen(true); }}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Vehicle
-        </Button>
-      </div>
-
+    <DashboardLayout title={t('nav.myVehicles')}>
+      <PageShell
+        title={t('nav.myVehicles')}
+        subtitle={t('logistics.manageFleet') || 'Manage your fleet of vehicles'}
+        actions={<Button onClick={() => { setEditingVehicle(null); setFormData({ vehicle_type: 'truck', capacity_kg: '', registration_number: '' }); setIsDialogOpen(true); }}><Plus className="h-4 w-4 mr-2" />{t('logistics.addVehicle') || 'Add Vehicle'}</Button>}
+      >
       {/* Vehicles Grid */}
       {!vehicles || vehicles.length === 0 ? (
-        <Card>
-          <CardContent className="py-12">
-            <div className="text-center text-muted-foreground">
-              <Truck className="h-16 w-16 mx-auto mb-4 opacity-50" />
-              <p className="text-lg">No vehicles added yet</p>
-              <p className="text-sm mb-4">Add your first vehicle to start accepting loads</p>
-              <Button onClick={() => { setEditingVehicle(null); setFormData({ vehicle_type: 'truck', capacity: '', number_plate: '' }); setIsDialogOpen(true); }}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Vehicle
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={Truck}
+          title={t('logistics.noVehiclesYet') || 'No vehicles added yet'}
+          description={t('logistics.addFirstVehicle') || 'Add your first vehicle to start accepting loads'}
+          actionLabel={t('logistics.addVehicle') || 'Add Vehicle'}
+          onAction={() => { setEditingVehicle(null); setFormData({ vehicle_type: 'truck', capacity_kg: '', registration_number: '' }); setIsDialogOpen(true); }}
+        />
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {vehicles.map((vehicle) => (
@@ -168,28 +148,26 @@ const Vehicles = () => {
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-lg flex items-center gap-2">
                     <Truck className="h-5 w-5 text-primary" />
-                    {vehicle.number_plate}
+                    {vehicle.registration_number || 'No Reg.'}
                   </CardTitle>
-                  <Badge variant={vehicle.is_active ? 'default' : 'secondary'}>
-                    {vehicle.is_active ? 'Active' : 'Inactive'}
-                  </Badge>
+                  <Badge variant="default">{t('logistics.registered') || 'Registered'}</Badge>
                 </div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Type:</span>
-                    <span className="font-medium capitalize">{vehicle.vehicle_type.replace('_', ' ')}</span>
+                    <span className="text-muted-foreground">{t('logistics.type') || 'Type'}:</span>
+                    <span className="font-medium capitalize">{vehicle.vehicle_type?.replace('_', ' ') ?? 'Unknown'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Capacity:</span>
-                    <span className="font-medium">{vehicle.capacity} tons</span>
+                    <span className="text-muted-foreground">{t('logistics.capacity') || 'Capacity'}:</span>
+                    <span className="font-medium">{vehicle.capacity_kg ?? 0} kg</span>
                   </div>
                 </div>
                 <div className="flex gap-2 mt-4">
                   <Button variant="outline" size="sm" className="flex-1" onClick={() => handleEditClick(vehicle)}>
                     <Edit className="h-4 w-4 mr-1" />
-                    Edit
+                    {t('common.edit')}
                   </Button>
                   <Button 
                     variant="outline" 
@@ -207,24 +185,24 @@ const Vehicles = () => {
       )}
 
       {/* Add Vehicle Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={(open) => { if (!open) { setEditingVehicle(null); setFormData({ vehicle_type: 'truck', capacity: '', number_plate: '' }); } setIsDialogOpen(open); }}>
+      <Dialog open={isDialogOpen} onOpenChange={(open) => { if (!open) { setEditingVehicle(null); setFormData({ vehicle_type: 'truck', capacity_kg: '', registration_number: '' }); } setIsDialogOpen(open); }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editingVehicle ? 'Edit Vehicle' : 'Add New Vehicle'}</DialogTitle>
+            <DialogTitle>{editingVehicle ? (t('logistics.editVehicle') || 'Edit Vehicle') : (t('logistics.addNewVehicle') || 'Add New Vehicle')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="number_plate">Number Plate *</Label>
+              <Label htmlFor="registration_number">{t('logistics.registrationNumber') || 'Registration Number'} *</Label>
               <Input
-                id="number_plate"
+                id="registration_number"
                 placeholder="e.g., KA-01-AB-1234"
-                value={formData.number_plate}
-                onChange={(e) => setFormData(prev => ({ ...prev, number_plate: e.target.value }))}
+                value={formData.registration_number}
+                onChange={(e) => setFormData(prev => ({ ...prev, registration_number: e.target.value }))}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="vehicle_type">Vehicle Type</Label>
+              <Label htmlFor="vehicle_type">{t('logistics.vehicleType') || 'Vehicle Type'}</Label>
               <Select 
                 value={formData.vehicle_type} 
                 onValueChange={(value) => setFormData(prev => ({ ...prev, vehicle_type: value }))}
@@ -243,27 +221,27 @@ const Vehicles = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="capacity">Capacity (tons) *</Label>
+              <Label htmlFor="capacity_kg">{t('logistics.capacityKg') || 'Capacity (kg)'} *</Label>
               <Input
-                id="capacity"
+                id="capacity_kg"
                 type="number"
-                placeholder="e.g., 10"
-                value={formData.capacity}
-                onChange={(e) => setFormData(prev => ({ ...prev, capacity: e.target.value }))}
+                placeholder="e.g., 5000"
+                value={formData.capacity_kg}
+                onChange={(e) => setFormData(prev => ({ ...prev, capacity_kg: e.target.value }))}
               />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button onClick={handleSubmit} disabled={isSubmitting}>
-              {isSubmitting ? (editingVehicle ? 'Saving...' : 'Adding...') : (editingVehicle ? 'Save Changes' : 'Add Vehicle')}
+              {isSubmitting ? (t('common.saving') || 'Saving...') : (editingVehicle ? (t('common.save_changes') || 'Save Changes') : (t('logistics.addVehicle') || 'Add Vehicle'))}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      </div>
+      </PageShell>
     </DashboardLayout>
   );
 };

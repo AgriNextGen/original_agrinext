@@ -70,7 +70,7 @@ const CropActivityLogDialog = ({ cropId, open, onOpenChange }: CropActivityLogDi
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
+          <div className="space-y-2">
             <Label>Activity Type</Label>
             <Select value={activityType} onValueChange={(v) => setActivityType(v as CropActivityLog['activity_type'])}>
               <SelectTrigger>
@@ -91,7 +91,7 @@ const CropActivityLogDialog = ({ cropId, open, onOpenChange }: CropActivityLogDi
 
           {showProductFields && (
             <>
-              <div>
+              <div className="space-y-2">
                 <Label>Product Name</Label>
                 <Input
                   value={productName}
@@ -100,7 +100,7 @@ const CropActivityLogDialog = ({ cropId, open, onOpenChange }: CropActivityLogDi
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <div>
+                <div className="space-y-2">
                   <Label>Dosage</Label>
                   <Input
                     value={dosage}
@@ -108,7 +108,7 @@ const CropActivityLogDialog = ({ cropId, open, onOpenChange }: CropActivityLogDi
                     placeholder="e.g., 50kg/acre"
                   />
                 </div>
-                <div>
+                <div className="space-y-2">
                   <Label>Cost (₹)</Label>
                   <Input
                     type="number"
@@ -121,7 +121,7 @@ const CropActivityLogDialog = ({ cropId, open, onOpenChange }: CropActivityLogDi
             </>
           )}
 
-          <div>
+          <div className="space-y-2">
             <Label>Notes</Label>
             <Textarea
               value={notes}

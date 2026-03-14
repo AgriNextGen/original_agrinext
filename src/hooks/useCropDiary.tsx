@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useLanguage } from '@/hooks/useLanguage';
 import { toast } from 'sonner';
 import { signAndUpload } from '@/lib/storage-upload';
 
@@ -158,6 +159,7 @@ export const useSignedUrl = () => {
 export const useUploadCropMedia = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async ({
@@ -226,10 +228,10 @@ export const useUploadCropMedia = () => {
       queryClient.invalidateQueries({ queryKey: ['crop-activity-logs', variables.cropId] });
       queryClient.invalidateQueries({ queryKey: ['crop-detail', variables.cropId] });
       queryClient.invalidateQueries({ queryKey: ['crops'] });
-      toast.success('Photo uploaded successfully!');
+      toast.success(t('hookToasts.cropDiary.photoUploaded'));
     },
     onError: (error) => {
-      toast.error('Failed to upload photo: ' + error.message);
+      toast.error(t('hookToasts.cropDiary.photoUploadFailed') + ': ' + error.message);
     },
   });
 };
@@ -238,6 +240,7 @@ export const useUploadCropMedia = () => {
 export const useAddActivityLog = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async ({
@@ -275,10 +278,10 @@ export const useAddActivityLog = () => {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['crop-activity-logs', variables.cropId] });
-      toast.success('Activity logged successfully!');
+      toast.success(t('hookToasts.cropDiary.activityLogged'));
     },
     onError: (error) => {
-      toast.error('Failed to log activity: ' + error.message);
+      toast.error(t('hookToasts.cropDiary.activityFailed') + ': ' + error.message);
     },
   });
 };
@@ -287,6 +290,7 @@ export const useAddActivityLog = () => {
 export const useUpdateGrowthStage = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async ({
@@ -320,10 +324,10 @@ export const useUpdateGrowthStage = () => {
       queryClient.invalidateQueries({ queryKey: ['crop-detail', variables.cropId] });
       queryClient.invalidateQueries({ queryKey: ['crop-activity-logs', variables.cropId] });
       queryClient.invalidateQueries({ queryKey: ['crops'] });
-      toast.success('Growth stage updated!');
+      toast.success(t('hookToasts.cropDiary.growthStageUpdated'));
     },
     onError: (error) => {
-      toast.error('Failed to update: ' + error.message);
+      toast.error(t('hookToasts.cropDiary.growthStageFailed') + ': ' + error.message);
     },
   });
 };
@@ -332,6 +336,7 @@ export const useUpdateGrowthStage = () => {
 export const useReportDisease = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async ({
@@ -411,10 +416,10 @@ export const useReportDisease = () => {
       queryClient.invalidateQueries({ queryKey: ['crop-activity-logs', variables.cropId] });
       queryClient.invalidateQueries({ queryKey: ['crop-media', variables.cropId] });
       queryClient.invalidateQueries({ queryKey: ['crops'] });
-      toast.success('Disease reported successfully!');
+      toast.success(t('hookToasts.cropDiary.diseaseReported'));
     },
     onError: (error) => {
-      toast.error('Failed to report disease: ' + error.message);
+      toast.error(t('hookToasts.cropDiary.diseaseFailed') + ': ' + error.message);
     },
   });
 };
@@ -422,6 +427,7 @@ export const useReportDisease = () => {
 // Delete media
 export const useDeleteCropMedia = () => {
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async ({ mediaId, filePath, cropId }: { mediaId: string; filePath: string; cropId: string }) => {
@@ -430,9 +436,9 @@ export const useDeleteCropMedia = () => {
         const { error: delErr } = await supabase.functions.invoke('storage-delete-v1', {
           body: { bucket: 'crop-media', path: filePath },
         });
-        if (delErr) console.warn('storage-delete-v1 warning:', delErr);
+        if (delErr && import.meta.env.DEV) console.warn('storage-delete-v1 warning:', delErr);
       } catch (e) {
-        console.warn('storage-delete-v1 failed:', e);
+        if (import.meta.env.DEV) console.warn('storage-delete-v1 failed:', e);
       }
 
       // Delete from database
@@ -444,10 +450,10 @@ export const useDeleteCropMedia = () => {
     onSuccess: (cropId) => {
       queryClient.invalidateQueries({ queryKey: ['crop-media', cropId] });
       queryClient.invalidateQueries({ queryKey: ['crop-activity-logs', cropId] });
-      toast.success('Photo deleted!');
+      toast.success(t('hookToasts.cropDiary.photoDeleted'));
     },
     onError: (error) => {
-      toast.error('Failed to delete: ' + error.message);
+      toast.error(t('hookToasts.cropDiary.photoDeleteFailed') + ': ' + error.message);
     },
   });
 };

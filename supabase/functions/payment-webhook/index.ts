@@ -1,3 +1,23 @@
+/**
+ * @function payment-webhook
+ * @description Receives and processes Razorpay payment events.
+ *   Verifies HMAC-SHA256 signature before processing any event.
+ *   Idempotent: safe to receive the same event multiple times.
+ *
+ * @auth verify_jwt = false (webhook — no JWT, signature-verified instead)
+ *
+ * @request POST /functions/v1/payment-webhook
+ *   Headers: x-razorpay-signature (HMAC-SHA256 of body using RAZORPAY_WEBHOOK_SECRET)
+ *   Body: Razorpay webhook event payload
+ *
+ * @response
+ *   200: { success: true }
+ *   400: { error: { code: "invalid_signature"|"invalid_payload" } }
+ *   500: { error: { code: "processing_error" } }
+ *
+ * @guards HMAC-SHA256 signature verification (RAZORPAY_WEBHOOK_SECRET), idempotency key per event
+ * @secrets RAZORPAY_WEBHOOK_SECRET (set in Supabase Edge Function secrets)
+ */
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { getRequiredEnv } from "../_shared/env.ts";
@@ -43,7 +63,7 @@ Deno.serve(async (req: Request) => {
 
     const signature = req.headers.get('x-razorpay-signature') || req.headers.get('X-Razorpay-Signature') || '';
     const verified = await verifyRazorpaySignature(body, signature, RAZORPAY_WEBHOOK_SECRET);
-    if (!verified) return makeResponseWithRequestId(JSON.stringify({ error: 'Invalid signature' }), reqId, { status: 403, headers: { ...corsHeaders, "Content-Type":"application/json" } });
+    if (!verified) return makeResponseWithRequestId(JSON.stringify({ success: false, error: { code: "INVALID_SIGNATURE", message: "Invalid webhook signature" } }), reqId, { status: 403, headers: { ...corsHeaders, "Content-Type":"application/json" } });
 
     const eventId = json?.id ?? json?.entity_id ?? (new Date().toISOString());
     const eventType = json?.event ?? json?.event_type ?? 'payment_webhook';
@@ -92,7 +112,7 @@ Deno.serve(async (req: Request) => {
         console.error('failed to mark webhook event failed', uerr);
       }
       // return 200 to provider to avoid infinite retries from provider
-      return new Response(JSON.stringify({ ok: false, error: rpc.error.message }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ success: false, error: { code: "PROCESSING_ERROR", message: rpc.error.message } }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     // success
@@ -120,9 +140,9 @@ Deno.serve(async (req: Request) => {
       } catch(e){ console.error('log security event failed', e); }
     } catch (e) { console.error('mark processed err', e); }
 
-    return new Response(JSON.stringify({ success: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ success: true, data: { processed: true } }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (err) {
     console.error('payment-webhook error:', err);
-    return new Response(JSON.stringify({ error: err instanceof Error ? err.message : 'internal' }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ success: false, error: { code: "INTERNAL", message: "Internal error" } }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 });

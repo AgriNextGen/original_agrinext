@@ -10,24 +10,24 @@ Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   try {
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (!authHeader) return new Response(JSON.stringify({ success: false, error: { code: "UNAUTHORIZED", message: "Missing authorization" } }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     const { data: { user } } = await supabase.auth.getUser(authHeader.replace("Bearer ", ""));
-    if (!user) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (!user) return new Response(JSON.stringify({ success: false, error: { code: "UNAUTHORIZED", message: "Invalid token" } }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
     const { data: adminRow } = await supabase.from("admin_users").select("id").eq("user_id", user.id).maybeSingle();
-    if (!adminRow) return new Response(JSON.stringify({ error: "forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (!adminRow) return new Response(JSON.stringify({ success: false, error: { code: "FORBIDDEN", message: "Admin access required" } }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
     const url = new URL(req.url);
     const days = Number(url.searchParams.get('days') || '30');
 
     const rpc = await supabase.rpc('admin_finance_summary_v1', { p_days: days });
-    if (rpc.error) return new Response(JSON.stringify({ error: rpc.error.message }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (rpc.error) return new Response(JSON.stringify({ success: false, error: { code: "RPC_ERROR", message: rpc.error.message } }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
-    return new Response(JSON.stringify(rpc.data), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ success: true, data: rpc.data }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (err) {
     console.error('admin-finance-summary error:', err);
-    return new Response(JSON.stringify({ error: err instanceof Error ? err.message : 'internal' }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ success: false, error: { code: "INTERNAL", message: "Internal error" } }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 });

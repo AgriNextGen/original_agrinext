@@ -1,0 +1,47 @@
+---
+description: File organization and naming conventions for AgriNext Gen
+globs:
+  - "src/**"
+---
+
+# File Organization Rules
+
+## Component Placement
+
+- **Role-specific components** go in `src/components/{role}/` (farmer, agent, logistics, admin)
+- **Cross-role shared components** go in `src/components/shared/`
+- **shadcn/ui primitives** in `src/components/ui/` — NEVER edit these files
+- **Feature-specific components** go in `src/components/{feature}/` (crop-diary, listings, geo)
+
+## Page Placement
+
+- Pages go in `src/pages/{role}/` matching the role's route prefix
+- Public pages (Index, About, Contact) go in `src/pages/` root
+- Auth pages go in `src/pages/Auth/`
+
+## Hooks
+
+- ALL hooks go in `src/hooks/` — never inside component files
+- Name: `use{Feature}.tsx` (e.g., `useCropDiary.tsx`, `useTrips.tsx`)
+- Every data hook uses `useQuery` / `useMutation` from TanStack Query
+
+## Naming Conventions
+
+- **Files**: PascalCase for components/pages, camelCase for utilities
+- **One component per file**: File name = component name
+- **Exports**: Named exports preferred (`export function MyComponent`)
+
+## Route Constants
+
+- Always use `ROUTES` from `src/lib/routes.ts` — never string literals for routes
+- When adding a new page, add the route constant first
+
+## Tailwind
+
+- Always use `cn()` from `src/lib/utils.ts` for conditional/merged classes
+- Follow spacing from `docs/ui/ui-guidelines.md`
+
+## i18n
+
+- ALWAYS add keys to BOTH `src/i18n/en.ts` AND `src/i18n/kn.ts` simultaneously
+- Use `useLanguage()` hook and `t('key.path')` — never hardcode user-visible strings

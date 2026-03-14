@@ -37,7 +37,7 @@ const CropPhotoGallery = ({ cropId }: CropPhotoGalleryProps) => {
             const url = await signedUrlMutation.mutateAsync(item.file_path);
             newThumbnails[item.id] = url;
           } catch (e) {
-            console.error('Failed to load thumbnail:', e);
+            if (import.meta.env.DEV) console.error('Failed to load thumbnail:', e);
           }
         }
       }

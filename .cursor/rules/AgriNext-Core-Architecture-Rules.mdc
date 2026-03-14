@@ -26,3 +26,82 @@ Non-negotiable rules:
 6. No destructive migrations.
 7. Follow API_CONTRACTS response format.
 8. Follow DEPLOYMENT_SOP for environment separation.
+
+---
+
+## Commit Message Convention (MANDATORY)
+
+Format: `type(scope): short description`
+
+Types: feat | fix | migration | chore | docs | refactor | test | security
+
+Examples:
+- feat(farmer): add crop diary photo gallery
+- fix(crop-diary): null healthStatus crash on blank health_status column
+- migration: p1b fix crop diary null defaults
+- security(rls): enable RLS on 18 missing tables
+
+NEVER use: "new imp", "new update", "bug fix", "changes" — these are useless for git blame.
+
+---
+
+## Component Conventions
+
+- One component per file. File name = PascalCase component name.
+- Hooks in `src/hooks/`, never inside component files.
+- Domain components go in their role folder (farmer/, agent/, etc.).
+- Cross-role components go in `src/components/shared/`.
+- Never edit `src/components/ui/` — shadcn/ui auto-generated.
+- Always use `cn()` from `src/lib/utils.ts` for Tailwind classes.
+- Use `ROUTES` constants from `src/lib/routes.ts` — never string literals for routes.
+
+---
+
+## Migration Rules
+
+Naming: `YYYYMMDDHHmm_descriptive_name.sql`
+Severity prefixes: `p0_` = crash/security, `p1a_/p1b_` = high priority, `phase_/stage_` = feature
+
+Critical: NEVER DROP production columns. Always:
+1. Backfill NULLs first
+2. Then SET DEFAULT
+3. Then SET NOT NULL (only if truly required)
+
+Nullable column fix pattern:
+```sql
+UPDATE table SET col = 'default_val' WHERE col IS NULL;
+ALTER TABLE table ALTER COLUMN col SET DEFAULT 'default_val';
+```
+
+---
+
+## i18n Rules
+
+ALWAYS add keys to BOTH `src/i18n/en.ts` AND `src/i18n/kn.ts` simultaneously.
+Use `useLanguage()` hook → `t('key.path')`.
+Never hardcode user-visible strings in components.
+
+---
+
+## Known Pitfalls
+
+1. `strictNullChecks: false` in tsconfig — TypeScript WILL NOT warn about null access.
+   Always manually null-check DB values: `value ?? 'fallback'`
+
+2. `crops.health_status` and `crops.growth_stage` are nullable — use `?? 'normal'` and `?? 'seedling'`.
+
+3. Auth uses phone NOT email — never call `supabase.auth.signUp({ email })` from frontend.
+
+4. `src/integrations/supabase/types.ts` (257KB) is auto-generated — never edit manually.
+
+5. No ErrorBoundary on most pages — a null access = blank page. Always null-check.
+
+---
+
+## Edge Function Rules
+
+- Always check `supabase/functions/_shared/` for existing utilities before writing new code.
+- Use `errors.ts` for all error responses — never return raw error messages.
+- Use `request_context.ts` for JWT parsing and user ID extraction.
+- Use `cors.ts` for CORS headers — never hardcode them.
+- `dev-*` functions are DEV ONLY — never call from production UI paths.

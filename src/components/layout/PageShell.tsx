@@ -38,7 +38,7 @@ const PageShell = ({
         </div>
         {actions ? <div className="flex items-center gap-2">{actions}</div> : null}
       </header>
-      <div className={cn(densityClasses[density])}>{children}</div>
+      <div>{children}</div>
     </section>
   );
 };

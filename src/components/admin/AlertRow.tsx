@@ -3,11 +3,11 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const AlertRow: React.FC<{ alert: any; onChange?: () => void }> = ({ alert, onChange }) => {
   const ack = async () => {
-    await supabase.rpc("admin.alerts_ack_v1", { p_alert_id: alert.id, p_ack_by: null }).catch(() => {});
+    await (supabase as any).schema("admin").rpc("alerts_ack_v1", { p_alert_id: alert.id, p_ack_by: null }).catch(() => {});
     onChange?.();
   };
   const resolve = async () => {
-    await supabase.rpc("admin.alerts_resolve_v1", { p_alert_id: alert.id }).catch(() => {});
+    await (supabase as any).schema("admin").rpc("alerts_resolve_v1", { p_alert_id: alert.id }).catch(() => {});
     onChange?.();
   };
 

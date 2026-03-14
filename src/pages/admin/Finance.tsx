@@ -1,6 +1,11 @@
 import DashboardLayout from '@/layouts/DashboardLayout';
 import PageShell from '@/components/layout/PageShell';
-import { useEffect, useState } from 'react';
+import DataState from '@/components/ui/DataState';
+import KpiCard from '@/components/dashboard/KpiCard';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { DollarSign, RotateCcw, Banknote } from 'lucide-react';
+import { useLanguage } from '@/hooks/useLanguage';
 
 type FinanceSummary = {
   paid_gmv: number;
@@ -13,51 +18,41 @@ type FinanceSummary = {
 };
 
 export default function AdminFinance() {
-  const [data, setData] = useState<FinanceSummary | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    (async () => {
-      setLoading(true);
-      try {
-        const res = await fetch('/.netlify/functions/admin-finance-summary');
-        const json = await res.json();
-        setData(json);
-      } catch (e) {
-        console.error('finance fetch', e);
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, []);
+  const { t } = useLanguage();
+  const { data, isLoading: loading } = useQuery<FinanceSummary>({
+    queryKey: ['admin', 'finance-summary'],
+    queryFn: async () => {
+      const { data: result, error } = await supabase.functions.invoke('admin-finance-summary');
+      if (error) throw error;
+      return result;
+    },
+  });
 
   return (
-    <DashboardLayout title="Finance">
-      <PageShell title="Finance" subtitle="Payments & settlement summary">
-        <div className="space-y-4">
-          {loading && <div>Loading...</div>}
-          {!loading && data && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="p-4 border rounded">
-                <h4 className="text-sm text-muted-foreground">Paid GMV (last 30d)</h4>
-                <div className="text-2xl font-semibold">₹{Number(data.paid_gmv || 0).toLocaleString('en-IN')}</div>
-                <div className="text-xs text-muted-foreground">{data.paid_orders_count} paid orders</div>
-              </div>
-              <div className="p-4 border rounded">
-                <h4 className="text-sm text-muted-foreground">Refunds</h4>
-                <div className="text-2xl font-semibold">₹{Number(data.refund_amount || 0).toLocaleString('en-IN')}</div>
-                <div className="text-xs text-muted-foreground">{data.refund_count} refunds</div>
-              </div>
-              <div className="p-4 border rounded">
-                <h4 className="text-sm text-muted-foreground">Payouts</h4>
-                <div className="text-lg">Pending KYC: {data.payout_pending_kyc}</div>
-                <div className="text-lg">Queued: {data.payout_queued}</div>
-                <div className="text-lg">Success: {data.payout_success}</div>
-              </div>
-            </div>
-          )}
-          {!loading && !data && <div>No data</div>}
-        </div>
+    <DashboardLayout title={t('admin.finance.title')}>
+      <PageShell title={t('admin.finance.title')} subtitle={t('admin.finance.subtitle')}>
+        <DataState loading={loading} empty={!loading && !data} emptyTitle={t('admin.finance.title')} emptyMessage={t('admin.finance.subtitle')}>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <KpiCard
+              label={t('admin.finance.revenue')}
+              value={`₹${Number(data?.paid_gmv || 0).toLocaleString('en-IN')}`}
+              icon={DollarSign}
+              priority="success"
+            />
+            <KpiCard
+              label={t('admin.refunds.title')}
+              value={`₹${Number(data?.refund_amount || 0).toLocaleString('en-IN')}`}
+              icon={RotateCcw}
+              priority="warning"
+            />
+            <KpiCard
+              label={t('admin.finance.payouts')}
+              value={`${data?.payout_success ?? 0} ${t('admin.finance.completed')}`}
+              icon={Banknote}
+              priority="info"
+            />
+          </div>
+        </DataState>
       </PageShell>
     </DashboardLayout>
   );

@@ -1,73 +1,64 @@
 import DashboardLayout from '@/layouts/DashboardLayout';
 import PageShell from '@/components/layout/PageShell';
+import DataState from '@/components/ui/DataState';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/hooks/useLanguage';
 import AssignModal from '@/components/admin/AssignModal';
-import { rpcJson } from '@/lib/readApi';
 
 const PAGE_SIZE = 20;
 
 export default function DisputesPage() {
-  const [items, setItems] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [admins, setAdmins] = useState<any[]>([]);
+  const { t } = useLanguage();
+  const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [entityFilter, setEntityFilter] = useState<string | null>(null);
   const [page, setPage] = useState(0);
-  const [totalCount, setTotalCount] = useState<number | null>(null);
   const [assignModal, setAssignModal] = useState<{ open: boolean; disputeId: string | null }>({ open: false, disputeId: null });
   const { toast } = useToast();
 
-  const loadAdmins = async () => {
-    try {
+  const { data: admins = [] } = useQuery({
+    queryKey: ['admin', 'admin-users'],
+    queryFn: async () => {
       const { data, error } = await supabase.from('admin_users').select('id, user_id, name').order('name');
       if (error) throw error;
-      setAdmins(data || []);
-    } catch (e: any) {
-      console.error('load admins err', e);
-    }
-  };
+      return data ?? [];
+    },
+  });
 
-  const load = async (p = 0) => {
-    setLoading(true);
-    try {
+  const { data: items = [], isLoading: loading } = useQuery({
+    queryKey: ['admin', 'disputes', statusFilter, categoryFilter, entityFilter, page],
+    queryFn: async () => {
       let query = supabase.from('disputes').select('*').order('created_at', { ascending: false });
       if (statusFilter) query = query.eq('status', statusFilter);
       if (categoryFilter) query = query.eq('category', categoryFilter);
       if (entityFilter) query = query.eq('entity_type', entityFilter);
-      const from = p * PAGE_SIZE;
+      const from = page * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
       const { data, error } = await query.range(from, to);
       if (error) throw error;
-      setItems(data || []);
-      setPage(p);
-    } catch (e: any) {
-      console.error('load disputes err', e);
-      toast({ title: 'Failed to load disputes', description: e?.message || String(e) });
-    } finally {
-      setLoading(false);
-    }
-  };
+      return data ?? [];
+    },
+  });
 
-  useEffect(() => { loadAdmins(); load(0); }, []);
-
-  useEffect(() => { load(0); }, [statusFilter, categoryFilter, entityFilter]);
+  const invalidateDisputes = () => queryClient.invalidateQueries({ queryKey: ['admin', 'disputes'] });
 
   const assign = async (id: string, adminUserId: string) => {
     if (!adminUserId) return;
     try {
-      const { error } = await supabase.rpc('admin.assign_dispute_v1', { p_dispute_id: id, p_admin_id: adminUserId });
+      const { error } = await (supabase as any).schema('admin').rpc('assign_dispute_v1', { p_dispute_id: id, p_admin_id: adminUserId });
       if (error) throw error;
-      toast({ title: 'Assigned' });
-      load(page);
+      toast({ title: t('admin.disputes.assigned') });
+      invalidateDisputes();
     } catch (e: any) {
-      console.error(e);
-      toast({ title: 'Failed to assign', description: e?.message || String(e) });
+      if (import.meta.env.DEV) console.error(e);
+      toast({ title: t('admin.disputes.failedAssign'), description: e?.message || String(e) });
     }
   };
 
@@ -75,19 +66,19 @@ export default function DisputesPage() {
     const res = prompt('Enter resolution (refund,no_refund,partial_refund,replacement,payout_hold,warning,ban):', 'no_refund');
     if (!res) return;
     try {
-      const { error } = await supabase.rpc('admin.set_dispute_status_v1', { p_dispute_id: id, p_status: 'resolved', p_resolution: res, p_note: null });
+      const { error } = await (supabase as any).schema('admin').rpc('set_dispute_status_v1', { p_dispute_id: id, p_status: 'resolved', p_resolution: res, p_note: null });
       if (error) throw error;
-      toast({ title: 'Resolved' });
-      load(page);
+      toast({ title: t('admin.disputes.resolved') });
+      invalidateDisputes();
     } catch (e: any) {
-      console.error(e);
-      toast({ title: 'Failed to resolve', description: e?.message || String(e) });
+      if (import.meta.env.DEV) console.error(e);
+      toast({ title: t('admin.disputes.failedResolve'), description: e?.message || String(e) });
     }
   };
 
   return (
     <DashboardLayout>
-      <PageShell title="Disputes" subtitle="Manage disputes and hold payouts">
+      <PageShell title={t('admin.disputes.title')} subtitle={t('admin.disputes.subtitle')}>
         <div className="space-y-4">
           <div className="flex gap-2 items-center">
             <select className="border p-2 rounded" value={statusFilter ?? ''} onChange={(e) => setStatusFilter(e.target.value || null)}>
@@ -115,11 +106,10 @@ export default function DisputesPage() {
               <option value='payment'>payment</option>
             </select>
             <div className="flex-1" />
-            <Button onClick={() => load(0)}>Refresh</Button>
+            <Button onClick={() => invalidateDisputes()}>{t('admin.systemHealth.refresh')}</Button>
           </div>
 
-          {loading && <div>Loading...</div>}
-          {!loading && items.length === 0 && <Card><CardContent>No disputes found</CardContent></Card>}
+          <DataState loading={loading} empty={!loading && items.length === 0} emptyTitle={t('admin.disputes.noDisputes')} emptyMessage={t('admin.disputes.noDisputes')}>
           <div className="grid gap-3">
             {items.map((d) => (
               <Card key={d.id}>
@@ -136,8 +126,8 @@ export default function DisputesPage() {
                   <div className="mb-2 text-sm text-muted-foreground">Entity: {d.entity_type} {d.entity_id}</div>
                   <div className="mb-3">{d.description}</div>
                   <div className="flex gap-2 items-center">
-                    <Button size="sm" variant="outline" onClick={() => setAssignModal({ open: true, disputeId: d.id })}>Assign</Button>
-                    <Button size="sm" variant="default" onClick={() => resolve(d.id)}>Resolve</Button>
+                    <Button size="sm" variant="outline" onClick={() => setAssignModal({ open: true, disputeId: d.id })}>{t('admin.disputes.assign')}</Button>
+                    <Button size="sm" variant="default" onClick={() => resolve(d.id)}>{t('admin.disputes.resolve')}</Button>
                     <Button size="sm" variant="ghost" onClick={() => navigator.clipboard.writeText(d.id)}>Copy ID</Button>
                   </div>
                 </CardContent>
@@ -148,11 +138,19 @@ export default function DisputesPage() {
           <div className="flex items-center justify-between">
             <div />
             <div className="flex gap-2">
-              <Button disabled={page === 0} onClick={() => load(page - 1)}>Previous</Button>
-              <Button onClick={() => load(page + 1)}>Next</Button>
+              <Button disabled={page === 0} onClick={() => setPage(p => p - 1)}>Previous</Button>
+              <Button onClick={() => setPage(p => p + 1)}>Next</Button>
             </div>
           </div>
+          </DataState>
         </div>
+
+        <AssignModal
+          open={assignModal.open}
+          disputeId={assignModal.disputeId}
+          onClose={() => setAssignModal({ open: false, disputeId: null })}
+          onAssigned={invalidateDisputes}
+        />
       </PageShell>
     </DashboardLayout>
   );

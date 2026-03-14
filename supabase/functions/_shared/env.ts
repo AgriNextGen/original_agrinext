@@ -1,3 +1,12 @@
+/**
+ * Safe environment variable helpers for Deno Edge Functions.
+ *
+ * Usage:
+ *   const apiKey = getRequiredEnv("GEMINI_API_KEY");   // throws EnvError if missing
+ *   const secret = getOptionalEnv("DEV_TOOLS_SECRET"); // returns null if missing
+ *
+ * Set secrets in Supabase Dashboard → Project Settings → Edge Functions → Secrets.
+ */
 export class EnvError extends Error {
   code: "missing_secret" = "missing_secret";
   secret: string;
