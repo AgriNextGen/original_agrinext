@@ -62,7 +62,7 @@ describe('Vendor Reverse Logistics Participation', () => {
     const result = await ReverseLogisticsService.findCandidates('ut-001');
 
     expect(result).toBeDefined();
-    expect(mockRpc).toHaveBeenCalled();
+    expect(mockRpc).toHaveBeenCalledWith('find_reverse_load_candidates_v1', { p_unified_trip_id: 'ut-001' });
   });
 });
 

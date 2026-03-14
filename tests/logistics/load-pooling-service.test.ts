@@ -162,8 +162,6 @@ describe('LoadPoolingService', () => {
 
   describe('calculatePoolWeight', () => {
     it('should sum member shipment weights', async () => {
-      // Service now reads total_weight_kg directly from load_pools table
-      // and gets member count via a separate count query.
       mockFrom
         .mockReturnValueOnce(chainable({ data: { total_weight_kg: 800 }, error: null }))
         .mockReturnValueOnce(chainable({ data: null, error: null, count: 2 }));
