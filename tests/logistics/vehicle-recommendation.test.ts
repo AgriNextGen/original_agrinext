@@ -8,8 +8,10 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-const mockRpc = vi.fn();
-const mockFrom = vi.fn();
+const { mockRpc, mockFrom } = vi.hoisted(() => ({
+  mockRpc: vi.fn(),
+  mockFrom: vi.fn(),
+}));
 
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
@@ -64,7 +66,8 @@ describe('Recommendation Scoring Algorithm', () => {
       const vehicleCapacity = 10000;
       const ratio = poolWeight / vehicleCapacity;
       const score = Math.max(0, 100 - Math.abs(1 - ratio) * 100);
-      expect(score).toBe(0);
+      // ratio = 0.01, |1 - 0.01| * 100 = 99, score = max(0, 1) = 1
+      expect(score).toBe(1);
     });
 
     it('should score 0 for zero weight pool', () => {
@@ -105,7 +108,8 @@ describe('Recommendation Scoring Algorithm', () => {
         WEIGHTS.RELIABILITY * reliability +
         WEIGHTS.REVERSE_LOAD * reverse;
 
-      expect(expected).toBeCloseTo(76);
+      // 0.30*90 + 0.25*80 + 0.20*70 + 0.15*60 + 0.10*50 = 27+20+14+9+5 = 75
+      expect(expected).toBeCloseTo(75);
     });
 
     it('should return 0 when all factors are 0', () => {

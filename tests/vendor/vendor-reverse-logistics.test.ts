@@ -8,8 +8,10 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-const mockRpc = vi.fn();
-const mockFrom = vi.fn();
+const { mockRpc, mockFrom } = vi.hoisted(() => ({
+  mockRpc: vi.fn(),
+  mockFrom: vi.fn(),
+}));
 
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
@@ -55,16 +57,20 @@ describe('Vendor Reverse Logistics Participation', () => {
       },
     ];
 
-    mockRpc.mockResolvedValueOnce({ data: candidates, error: null });
+    mockRpc.mockResolvedValueOnce({ data: { candidates, count: 1, remaining_capacity_kg: 500 }, error: null });
 
-    const result = await ReverseLogisticsService.scanReverseOpportunities();
+    const result = await ReverseLogisticsService.findCandidates('ut-001');
 
     expect(result).toBeDefined();
-    expect(mockRpc).toHaveBeenCalled();
+    expect(mockRpc).toHaveBeenCalledWith('find_reverse_load_candidates_v1', { p_unified_trip_id: 'ut-001' });
   });
 });
 
 describe('Vendor Shipment Pipeline Integration', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it('should flow vendor shipment through logistics: create → pool → book', async () => {
     mockRpc
       .mockResolvedValueOnce({

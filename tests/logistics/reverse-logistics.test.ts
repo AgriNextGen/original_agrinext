@@ -8,8 +8,10 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-const mockRpc = vi.fn();
-const mockFrom = vi.fn();
+const { mockRpc, mockFrom } = vi.hoisted(() => ({
+  mockRpc: vi.fn(),
+  mockFrom: vi.fn(),
+}));
 
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
@@ -27,6 +29,7 @@ function chainable(result: { data: unknown; error: unknown }) {
   chain.eq = vi.fn().mockReturnValue(self());
   chain.in = vi.fn().mockReturnValue(self());
   chain.not = vi.fn().mockReturnValue(self());
+  chain.gte = vi.fn().mockReturnValue(self());
   chain.order = vi.fn().mockReturnValue(self());
   chain.limit = vi.fn().mockReturnValue(self());
   chain.maybeSingle = vi.fn().mockResolvedValue(result);

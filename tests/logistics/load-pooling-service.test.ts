@@ -8,8 +8,10 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-const mockRpc = vi.fn();
-const mockFrom = vi.fn();
+const { mockRpc, mockFrom } = vi.hoisted(() => ({
+  mockRpc: vi.fn(),
+  mockFrom: vi.fn(),
+}));
 
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
@@ -20,7 +22,7 @@ vi.mock('@/integrations/supabase/client', () => ({
 
 import { LoadPoolingService } from '@/services/logistics/LoadPoolingService';
 
-function chainable(result: { data: unknown; error: unknown }) {
+function chainable(result: { data: unknown; error: unknown; count?: number }) {
   const chain: Record<string, unknown> = {};
   const self = () => chain;
   chain.select = vi.fn().mockReturnValue(self());
@@ -78,7 +80,7 @@ describe('LoadPoolingService', () => {
 
       await expect(
         LoadPoolingService.createPool({ route_cluster_id: 'bad', capacity_target_kg: 1000 })
-      ).rejects.toThrow('createPool failed');
+      ).rejects.toThrow('create_load_pool failed');
     });
   });
 
@@ -101,7 +103,7 @@ describe('LoadPoolingService', () => {
 
       await expect(
         LoadPoolingService.addShipment('sr-booked', 'lp-001')
-      ).rejects.toThrow('addShipment failed');
+      ).rejects.toThrow('add_shipment_to_pool failed');
     });
   });
 
@@ -160,18 +162,9 @@ describe('LoadPoolingService', () => {
 
   describe('calculatePoolWeight', () => {
     it('should sum member shipment weights', async () => {
-      const members = [
-        { shipment_request_id: 'sr-001' },
-        { shipment_request_id: 'sr-002' },
-      ];
-      const shipments = [
-        { weight_estimate_kg: 300 },
-        { weight_estimate_kg: 500 },
-      ];
-
       mockFrom
-        .mockReturnValueOnce(chainable({ data: members, error: null }))
-        .mockReturnValueOnce(chainable({ data: shipments, error: null }));
+        .mockReturnValueOnce(chainable({ data: { total_weight_kg: 800 }, error: null }))
+        .mockReturnValueOnce(chainable({ data: null, error: null, count: 2 }));
 
       const result = await LoadPoolingService.calculatePoolWeight('lp-001');
       expect(result.total_weight_kg).toBe(800);
@@ -179,7 +172,9 @@ describe('LoadPoolingService', () => {
     });
 
     it('should return zero for empty pool', async () => {
-      mockFrom.mockReturnValueOnce(chainable({ data: [], error: null }));
+      mockFrom
+        .mockReturnValueOnce(chainable({ data: { total_weight_kg: 0 }, error: null }))
+        .mockReturnValueOnce(chainable({ data: null, error: null, count: 0 }));
 
       const result = await LoadPoolingService.calculatePoolWeight('lp-empty');
       expect(result.total_weight_kg).toBe(0);
@@ -187,12 +182,9 @@ describe('LoadPoolingService', () => {
     });
 
     it('should handle null weights', async () => {
-      const members = [{ shipment_request_id: 'sr-001' }];
-      const shipments = [{ weight_estimate_kg: null }];
-
       mockFrom
-        .mockReturnValueOnce(chainable({ data: members, error: null }))
-        .mockReturnValueOnce(chainable({ data: shipments, error: null }));
+        .mockReturnValueOnce(chainable({ data: { total_weight_kg: null }, error: null }))
+        .mockReturnValueOnce(chainable({ data: null, error: null, count: 1 }));
 
       const result = await LoadPoolingService.calculatePoolWeight('lp-null');
       expect(result.total_weight_kg).toBe(0);
