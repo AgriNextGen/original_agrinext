@@ -19,10 +19,10 @@ export default function DevConsole() {
       body: JSON.stringify({ acting_as_user_id: targetUser, acting_as_role: role, note: "dev console" }),
     });
     const j = await res.json();
-    if (res.ok) {
-      setActingSessionId(j.acting_session_id);
+    if (res.ok && j?.success && j?.data) {
+      setActingSessionId(j.data.acting_session_id ?? null);
     } else {
-      alert(j.error?.message || "Failed");
+      alert(j?.error?.message || "Failed");
     }
   };
 
@@ -42,7 +42,7 @@ export default function DevConsole() {
       setActingSessionId(null);
       alert("Revoked");
     } else {
-      alert(j.error?.message || "Failed");
+      alert(j?.error?.message || "Failed");
     }
   };
 

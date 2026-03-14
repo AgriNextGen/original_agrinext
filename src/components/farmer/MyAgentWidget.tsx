@@ -36,14 +36,14 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
 const taskTypes = [
-  { value: 'visit', label: 'Request Visit', labelKn: 'ಭೇಟಿ ವಿನಂತಿ' },
-  { value: 'verify_crop', label: 'Crop Verification', labelKn: 'ಬೆಳೆ ಪರಿಶೀಲನೆ' },
-  { value: 'harvest_check', label: 'Harvest Check', labelKn: 'ಕೊಯ್ಲು ಪರಿಶೀಲನೆ' },
-  { value: 'transport_assist', label: 'Transport Help', labelKn: 'ಸಾರಿಗೆ ಸಹಾಯ' },
+  { value: 'visit' },
+  { value: 'verify_crop' },
+  { value: 'harvest_check' },
+  { value: 'transport_assist' },
 ];
 
 export default function MyAgentWidget() {
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const { data: agent, isLoading } = useFarmerAgent();
   const createHelpRequest = useCreateHelpRequest();
 
@@ -61,7 +61,7 @@ export default function MyAgentWidget() {
   const handleWhatsApp = () => {
     if (agent?.agent_phone) {
       const phone = agent.agent_phone.replace(/[^0-9]/g, '');
-      const message = encodeURIComponent('Hello, I need help with my farm.');
+      const message = encodeURIComponent(t('farmer.myAgent.whatsappMessage'));
       window.open(`https://wa.me/91${phone}?text=${message}`, '_blank');
     }
   };
@@ -106,14 +106,12 @@ export default function MyAgentWidget() {
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
             <User className="h-5 w-5" />
-            {language === 'kn' ? 'ನನ್ನ ಏಜೆಂಟ್' : 'My Agent'}
+            {t('farmer.myAgent.title')}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground text-sm">
-            {language === 'kn'
-              ? 'ನಿಮಗೆ ಇನ್ನೂ ಏಜೆಂಟ್ ನಿಯೋಜಿಸಲಾಗಿಲ್ಲ.'
-              : 'No agent assigned to you yet.'}
+            {t('farmer.myAgent.noAgent')}
           </p>
         </CardContent>
       </Card>
@@ -125,7 +123,7 @@ export default function MyAgentWidget() {
       <CardHeader className="pb-3">
         <CardTitle className="text-lg flex items-center gap-2">
           <User className="h-5 w-5 text-primary" />
-          {language === 'kn' ? 'ನನ್ನ ಏಜೆಂಟ್' : 'My Agent'}
+          {t('farmer.myAgent.title')}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -136,7 +134,7 @@ export default function MyAgentWidget() {
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold truncate">
-              {agent.agent_name || (language === 'kn' ? 'ಏಜೆಂಟ್' : 'Agent')}
+              {agent.agent_name || t('farmer.myAgent.agent')}
             </h3>
             {agent.agent_phone && (
               <p className="text-sm text-muted-foreground flex items-center gap-1">
@@ -162,7 +160,7 @@ export default function MyAgentWidget() {
             disabled={!agent.agent_phone}
           >
             <Phone className="h-4 w-4 mr-1" />
-            {language === 'kn' ? 'ಕರೆ ಮಾಡಿ' : 'Call'}
+            {t('farmer.myAgent.call')}
           </Button>
 
           <Button
@@ -180,36 +178,32 @@ export default function MyAgentWidget() {
             <DialogTrigger asChild>
               <Button size="sm" className="ml-auto">
                 <HelpCircle className="h-4 w-4 mr-1" />
-                {language === 'kn' ? 'ಸಹಾಯ ವಿನಂತಿಸಿ' : 'Request Help'}
+                {t('farmer.myAgent.requestHelp')}
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>
-                  {language === 'kn' ? 'ಸಹಾಯ ವಿನಂತಿಸಿ' : 'Request Help'}
+                  {t('farmer.myAgent.requestHelp')}
                 </DialogTitle>
                 <DialogDescription>
-                  {language === 'kn'
-                    ? 'ನಿಮ್ಮ ಏಜೆಂಟ್‌ಗೆ ಸಹಾಯ ವಿನಂತಿ ಕಳುಹಿಸಿ'
-                    : 'Send a help request to your agent'}
+                  {t('farmer.myAgent.helpDialogDescription')}
                 </DialogDescription>
               </DialogHeader>
 
               <div className="space-y-4">
                 <div>
-                  <Label>{language === 'kn' ? 'ಸಹಾಯದ ಪ್ರಕಾರ' : 'Type of Help'}</Label>
+                  <Label>{t('farmer.myAgent.typeOfHelp')}</Label>
                   <Select value={taskType} onValueChange={setTaskType}>
                     <SelectTrigger>
                       <SelectValue
-                        placeholder={
-                          language === 'kn' ? 'ಆಯ್ಕೆ ಮಾಡಿ...' : 'Select type...'
-                        }
+                        placeholder={t('farmer.myAgent.selectType')}
                       />
                     </SelectTrigger>
                     <SelectContent>
                       {taskTypes.map((type) => (
                         <SelectItem key={type.value} value={type.value}>
-                          {language === 'kn' ? type.labelKn : type.label}
+                          {t(`farmer.myAgent.taskTypes.${type.value}`)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -217,22 +211,18 @@ export default function MyAgentWidget() {
                 </div>
 
                 <div>
-                  <Label>{language === 'kn' ? 'ಟಿಪ್ಪಣಿಗಳು' : 'Notes'} ({t('common.optional')})</Label>
+                  <Label>{t('farmer.myAgent.notes')} ({t('common.optional')})</Label>
                   <Textarea
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    placeholder={
-                      language === 'kn'
-                        ? 'ನಿಮ್ಮ ಸಮಸ್ಯೆಯನ್ನು ವಿವರಿಸಿ...'
-                        : 'Describe your issue...'
-                    }
+                    placeholder={t('farmer.myAgent.notesPlaceholder')}
                     rows={3}
                   />
                 </div>
 
                 <div>
                   <Label>
-                    {language === 'kn' ? 'ಆದ್ಯತೆಯ ದಿನಾಂಕ' : 'Preferred Date'} ({t('common.optional')})
+                    {t('farmer.myAgent.preferredDate')} ({t('common.optional')})
                   </Label>
                   <Popover>
                     <PopoverTrigger asChild>
@@ -246,9 +236,7 @@ export default function MyAgentWidget() {
                         <CalendarIcon className="mr-2 h-4 w-4" />
                         {preferredDate
                           ? format(preferredDate, 'PPP')
-                          : language === 'kn'
-                          ? 'ದಿನಾಂಕ ಆಯ್ಕೆಮಾಡಿ'
-                          : 'Pick a date'}
+                          : t('farmer.myAgent.pickDate')}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
@@ -271,10 +259,10 @@ export default function MyAgentWidget() {
                   {createHelpRequest.isPending ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      {language === 'kn' ? 'ಕಳುಹಿಸಲಾಗುತ್ತಿದೆ...' : 'Sending...'}
+                      {t('farmer.myAgent.sending')}
                     </>
                   ) : (
-                    language === 'kn' ? 'ವಿನಂತಿ ಕಳುಹಿಸಿ' : 'Send Request'
+                    t('farmer.myAgent.sendRequest')
                   )}
                 </Button>
               </div>

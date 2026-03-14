@@ -230,7 +230,7 @@ const VoiceAssistant = () => {
       };
 
       recognitionRef.current.onerror = (event) => {
-        console.error('Speech recognition error:', event.error);
+        if (import.meta.env.DEV) console.error('Speech recognition error:', event.error);
         setIsListening(false);
         if (event.error === 'not-allowed') {
           toast.error(t('errors.voice.microphoneDenied'));
@@ -284,7 +284,7 @@ const VoiceAssistant = () => {
       recognitionRef.current.start();
       setIsListening(true);
     } catch (error) {
-      console.error('Microphone error:', error);
+      if (import.meta.env.DEV) console.error('Microphone error:', error);
       toast.error(t('errors.voice.couldNotAccessMicrophone'));
     }
   };
@@ -337,7 +337,7 @@ const VoiceAssistant = () => {
       window.speechSynthesis.speak(utterance);
       return true;
     } catch (error) {
-      console.error('Browser speech synthesis error:', error);
+      if (import.meta.env.DEV) console.error('Browser speech synthesis error:', error);
       setPlayingMessageId(null);
       return false;
     }
@@ -385,7 +385,7 @@ const VoiceAssistant = () => {
 
       return resolvedUrl;
     } catch (error) {
-      console.error('TTS fetch error:', error);
+      if (import.meta.env.DEV) console.error('TTS fetch error:', error);
       setMessages((prev) => prev.map((msg) => (
         msg.id === messageId
           ? { ...msg, audioLoading: false }
@@ -432,7 +432,7 @@ const VoiceAssistant = () => {
         await audioRef.current.play();
         return;
       } catch (error) {
-        console.error('Audio play error:', error);
+        if (import.meta.env.DEV) console.error('Audio play error:', error);
       }
     }
 
@@ -464,7 +464,7 @@ const VoiceAssistant = () => {
     };
 
     setMessages((prev) => [...prev, assistantMessage]);
-    console.error('Assistant fallback triggered for message:', messageText);
+    if (import.meta.env.DEV) console.error('Assistant fallback triggered for message:', messageText);
   }, [selectedLanguage, t]);
 
   const handleSendMessage = async (text?: string) => {
@@ -547,7 +547,7 @@ const VoiceAssistant = () => {
         }
       }
     } catch (error) {
-      console.error('Assistant error:', error);
+      if (import.meta.env.DEV) console.error('Assistant error:', error);
       toast.error(t('errors.ai.assistantUnavailable'));
       appendAssistantFallback(messageText);
     } finally {

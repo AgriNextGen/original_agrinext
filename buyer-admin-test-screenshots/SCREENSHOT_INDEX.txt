@@ -1,0 +1,25 @@
+﻿# Screenshot Quick Reference
+
+## Buyer Flow
+1. 01-login-page.png - Initial login page
+2. 02-buyer-selected.png - Buyer role selected
+3. 03-buyer-credentials-filled.png - Credentials entered
+4. 04-buyer-after-login.png - After clicking Sign In
+5. 05-buyer-browse.png - Browse page (SHOWS LOGIN!)
+6. 05-buyer-orders.png - Orders page (SHOWS LOGIN!)
+7. 05-buyer-profile.png - Profile page (SHOWS LOGIN!)
+
+## Admin Flow
+1. 06-admin-selected.png - Admin role selected
+2. 07-admin-credentials-filled.png - Credentials entered
+3. 08-admin-after-login.png - After clicking Sign In
+4. 09-admin-transporters.png - Transporters page (SHOWS LOGIN!)
+5. 09-admin-agents.png - Agents page (SHOWS LOGIN!)
+6. 09-admin-buyers.png - Buyers page (SHOWS LOGIN!)
+7. 09-admin-finance.png - Finance page (SHOWS LOGIN!)
+8. 09-admin-crops.png - Crops page (SHOWS LOGIN!)
+9. 09-admin-transport.png - Transport page (SHOWS LOGIN!)
+10. 09-admin-orders.png - Orders page (SHOWS LOGIN!)
+
+## Key Finding
+ALL authenticated pages redirect back to login screen.

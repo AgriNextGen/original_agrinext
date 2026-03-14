@@ -165,7 +165,7 @@
        
        onTraceCodeGenerated?.(newCode);
      } catch (err) {
-       console.error('Error generating trace code:', err);
+       if (import.meta.env.DEV) console.error('Error generating trace code:', err);
        toast({
          title: 'Generation Failed',
          description: 'Could not generate trace code',
@@ -197,7 +197,7 @@
        
        onStatusChange?.(newStatus);
      } catch (err) {
-       console.error('Error updating trace status:', err);
+       if (import.meta.env.DEV) console.error('Error updating trace status:', err);
        toast({
          title: 'Update Failed',
          description: 'Could not update trace status',

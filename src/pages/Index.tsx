@@ -1,29 +1,27 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
-import FeaturesSection from "@/components/FeaturesSection";
-import HowItWorksSection from "@/components/HowItWorksSection";
-import TrustSignalsSection from "@/components/TrustSignalsSection";
+import ProblemSection from "@/components/ProblemSection";
+import PlatformSection from "@/components/PlatformSection";
+import RoleValueSection from "@/components/RoleValueSection";
+import WorkflowSection from "@/components/WorkflowSection";
+import TrustBanner from "@/components/TrustBanner";
+import ImpactSection from "@/components/ImpactSection";
 import CTASection from "@/components/CTASection";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-
-const roleRoutes: Record<string, string> = {
-  farmer: "/farmer/dashboard",
-  buyer: "/marketplace/dashboard",
-  agent: "/agent/dashboard",
-  logistics: "/logistics/dashboard",
-  admin: "/admin/dashboard",
-};
+import { useLanguage } from "@/hooks/useLanguage";
+import { ROUTES, ROLE_DASHBOARD_ROUTES } from "@/lib/routes";
 
 const Index = () => {
   const { user, userRole, loading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
-  // Parse OAuth errors from URL hash and redirect authenticated users
   useEffect(() => {
     const hash = window.location.hash;
     if (hash) {
@@ -33,28 +31,33 @@ const Index = () => {
       if (errorCode || errorDesc) {
         window.history.replaceState(null, "", window.location.pathname + window.location.search);
         toast({
-          title: "Authentication failed",
-          description: errorDesc || "Please try again.",
+          title: t('auth.loginFailed'),
+          description: errorDesc || t('auth.unexpectedError'),
           variant: "destructive",
         });
-        navigate("/login", { replace: true });
+        navigate(ROUTES.LOGIN, { replace: true });
         return;
       }
     }
 
-    if (!loading && user && userRole && roleRoutes[userRole]) {
-      navigate(roleRoutes[userRole], { replace: true });
+    if (!loading && user && userRole && ROLE_DASHBOARD_ROUTES[userRole]) {
+      navigate(ROLE_DASHBOARD_ROUTES[userRole], { replace: true });
     }
   }, [user, userRole, loading, navigate, toast]);
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <HeroSection />
-      <HowItWorksSection />
-      <FeaturesSection />
-      <TrustSignalsSection />
-      <CTASection />
+      <main>
+        <HeroSection />
+        <ProblemSection />
+        <PlatformSection />
+        <RoleValueSection />
+        <WorkflowSection />
+        <TrustBanner />
+        <ImpactSection />
+        <CTASection />
+      </main>
       <Footer />
     </div>
   );

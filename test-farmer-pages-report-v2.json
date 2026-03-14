@@ -1,0 +1,112 @@
+{
+  "testDate": "2026-03-14T08:20:59.583Z",
+  "summary": {
+    "total": 6,
+    "passed": 6,
+    "failed": 0,
+    "redirectedToLogin": 0
+  },
+  "results": [
+    {
+      "name": "Transport",
+      "url": "/farmer/transport",
+      "actualUrl": "http://localhost:5173/farmer/transport",
+      "status": "rendered",
+      "screenshot": "test-farmer-v2-transport.png",
+      "errors": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 403 ()",
+        "Failed to load resource: the server responded with a status of 403 ()",
+        "Failed to load resource: the server responded with a status of 403 ()",
+        "Failed to load resource: the server responded with a status of 403 ()"
+      ],
+      "visibleContent": true,
+      "redirectedToLogin": false
+    },
+    {
+      "name": "Crops",
+      "url": "/farmer/crops",
+      "actualUrl": "http://localhost:5173/farmer/crops",
+      "status": "rendered",
+      "screenshot": "test-farmer-v2-crops.png",
+      "errors": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 403 ()",
+        "Failed to load resource: the server responded with a status of 403 ()",
+        "Failed to load resource: the server responded with a status of 403 ()",
+        "Failed to load resource: the server responded with a status of 403 ()",
+        "Failed to load resource: the server responded with a status of 403 ()"
+      ],
+      "visibleContent": true,
+      "redirectedToLogin": false
+    },
+    {
+      "name": "Settings",
+      "url": "/farmer/settings",
+      "actualUrl": "http://localhost:5173/farmer/settings",
+      "status": "rendered",
+      "screenshot": "test-farmer-v2-settings.png",
+      "errors": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 403 ()",
+        "Failed to load resource: the server responded with a status of 403 ()",
+        "Failed to load resource: the server responded with a status of 403 ()",
+        "Failed to load resource: the server responded with a status of 403 ()",
+        "Failed to load resource: the server responded with a status of 403 ()"
+      ],
+      "visibleContent": true,
+      "redirectedToLogin": false
+    },
+    {
+      "name": "Orders",
+      "url": "/farmer/orders",
+      "actualUrl": "http://localhost:5173/farmer/orders",
+      "status": "rendered",
+      "screenshot": "test-farmer-v2-orders.png",
+      "errors": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 403 ()",
+        "Failed to load resource: the server responded with a status of 403 ()",
+        "Failed to load resource: the server responded with a status of 403 ()",
+        "Failed to load resource: the server responded with a status of 403 ()",
+        "Failed to load resource: the server responded with a status of 403 ()"
+      ],
+      "visibleContent": true,
+      "redirectedToLogin": false
+    },
+    {
+      "name": "My Day",
+      "url": "/farmer/my-day",
+      "actualUrl": "http://localhost:5173/farmer/my-day",
+      "status": "rendered",
+      "screenshot": "test-farmer-v2-my-day.png",
+      "errors": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 403 ()"
+      ],
+      "visibleContent": true,
+      "redirectedToLogin": false
+    },
+    {
+      "name": "Notifications",
+      "url": "/farmer/notifications",
+      "actualUrl": "http://localhost:5173/farmer/notifications",
+      "status": "rendered",
+      "screenshot": "test-farmer-v2-notifications.png",
+      "errors": [],
+      "consoleErrors": [
+        "fetchDevActiveRole error: TypeError: Failed to fetch\n    at http://localhost:5173/src/hooks/useAuth.tsx:144:31\n    at http://localhost:5173/src/hooks/useAuth.tsx:233:29",
+        "fetchDevActiveRole error: TypeError: Failed to fetch\n    at http://localhost:5173/src/hooks/useAuth.tsx:144:31\n    at http://localhost:5173/src/hooks/useAuth.tsx:233:29",
+        "fetchDevActiveRole error: TypeError: Failed to fetch\n    at http://localhost:5173/src/hooks/useAuth.tsx:144:31\n    at initializeAuth (http://localhost:5173/src/hooks/useAuth.tsx:213:27)",
+        "fetchDevActiveRole error: TypeError: Failed to fetch\n    at http://localhost:5173/src/hooks/useAuth.tsx:144:31\n    at initializeAuth (http://localhost:5173/src/hooks/useAuth.tsx:213:27)",
+        "Failed to load resource: the server responded with a status of 403 ()",
+        "Failed to load resource: the server responded with a status of 403 ()",
+        "Failed to load resource: the server responded with a status of 403 ()",
+        "Failed to load resource: the server responded with a status of 403 ()",
+        "Failed to load resource: the server responded with a status of 403 ()"
+      ],
+      "visibleContent": true,
+      "redirectedToLogin": false
+    }
+  ]
+}

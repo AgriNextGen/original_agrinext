@@ -1,0 +1,49 @@
+---
+description: Supabase Edge Function and migration patterns for AgriNext Gen
+globs:
+  - "supabase/**"
+---
+
+# Supabase Patterns
+
+## Edge Functions
+
+- Runtime: Deno. Imports use `jsr:` prefix.
+- ALWAYS check `supabase/functions/_shared/` for existing utilities before writing new code:
+  - `cors.ts` — CORS headers
+  - `errors.ts` — `successResponse()` and `errorResponse()` helpers (canonical response format)
+  - `env.ts` — `getRequiredEnv()` for safe env var loading
+  - `request_context.ts` — JWT parsing and user ID extraction
+  - `gemini_client.ts` — Google Gemini API client
+- Standard response format (ALL Edge Functions MUST use this):
+  ```json
+  { "success": true, "data": { ... } }
+  { "success": false, "error": { "code": "ERROR_CODE", "message": "Human readable" } }
+  ```
+- Use `successResponse(data)` and `errorResponse(code, message, status)` from `_shared/errors.ts`
+- NEVER expose `service_role` key to frontend — only Edge Functions use it
+- Use `service_role` client for server-side DB writes in Edge Functions, never the anon key
+- `dev-*` functions are DEV ONLY — never call from production UI paths
+
+## Migration Rules
+
+- Naming: `YYYYMMDDHHmm_descriptive_name.sql`
+- Severity prefixes: `p0_` = crash/security, `p1a_`/`p1b_` = high priority, `phase_`/`stage_` = feature
+- NEVER DROP production columns. Always:
+  1. Backfill NULLs first
+  2. Then SET DEFAULT
+  3. Then SET NOT NULL (only if truly required)
+- One migration per logical change — don't bundle unrelated changes
+- Test with `supabase db reset` locally before pushing
+- Regenerate types after: `supabase gen types typescript --local > src/integrations/supabase/types.ts`
+
+## RLS
+
+- ALL tables must have RLS enabled — no exceptions
+- Use helper functions like `auth.uid()` and `get_current_profile_id()`
+- Full policy matrix: `docs/all_imp_rules/ENTERPRISE_RLS_POLICY_MATRIX.md`
+
+## State Transitions
+
+- All state transitions must go through RPC or Edge Functions
+- Never use raw `.update()` for state fields from the frontend

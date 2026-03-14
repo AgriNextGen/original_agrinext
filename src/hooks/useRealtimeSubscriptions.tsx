@@ -26,7 +26,7 @@ export const useRealtimeSubscriptions = () => {
           filter: `farmer_id=eq.${user.id}`,
         },
         () => {
-          console.log('Crops updated - refreshing data');
+          if (import.meta.env.DEV) console.log('Crops updated - refreshing data');
           queryClient.invalidateQueries({ queryKey: ['crops', user.id] });
         }
       )
@@ -44,7 +44,7 @@ export const useRealtimeSubscriptions = () => {
           filter: `farmer_id=eq.${user.id}`,
         },
         () => {
-          console.log('Farmlands updated - refreshing data');
+          if (import.meta.env.DEV) console.log('Farmlands updated - refreshing data');
           queryClient.invalidateQueries({ queryKey: ['farmlands', user.id] });
         }
       )
@@ -62,7 +62,7 @@ export const useRealtimeSubscriptions = () => {
           filter: `farmer_id=eq.${user.id}`,
         },
         () => {
-          console.log('Transport requests updated - refreshing data');
+          if (import.meta.env.DEV) console.log('Transport requests updated - refreshing data');
           queryClient.invalidateQueries({ queryKey: ['transport-requests', user.id] });
         }
       )
@@ -80,7 +80,7 @@ export const useRealtimeSubscriptions = () => {
           filter: `user_id=eq.${user.id}`,
         },
         () => {
-          console.log('Notifications updated - refreshing data');
+          if (import.meta.env.DEV) console.log('Notifications updated - refreshing data');
           queryClient.invalidateQueries({ queryKey: ['farmer-notifications', user.id] });
         }
       )
@@ -98,7 +98,7 @@ export const useRealtimeSubscriptions = () => {
           filter: `farmer_id=eq.${user.id}`,
         },
         () => {
-          console.log('Market orders updated - refreshing data');
+          if (import.meta.env.DEV) console.log('Market orders updated - refreshing data');
           queryClient.invalidateQueries({ queryKey: ['farmer-orders', user.id] });
         }
       )

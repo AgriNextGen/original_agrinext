@@ -3,12 +3,13 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Leaf, Lock, ArrowRight, Loader2, AlertCircle, Eye, EyeOff, Phone, Users, ShoppingBag, ClipboardList, Truck } from "lucide-react";
+import { Leaf, Lock, ArrowRight, Loader2, AlertCircle, Eye, EyeOff, Phone, Users, ShoppingBag, ClipboardList, Truck, Shield, Store } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/hooks/useLanguage";
 import { normalizePhone } from "@/lib/auth";
+import { ROLE_DASHBOARD_ROUTES } from "@/lib/routes";
 import type { Database } from "@/integrations/supabase/types";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
@@ -19,19 +20,13 @@ type LoginByPhoneError = {
   retry_after_seconds?: number;
 };
 
-const roleRoutes: Record<string, string> = {
-  farmer: "/farmer/dashboard",
-  buyer: "/marketplace/dashboard",
-  agent: "/agent/dashboard",
-  logistics: "/logistics/dashboard",
-  admin: "/admin/dashboard",
-};
-
 const LOGIN_ROLES: { id: AppRole; labelKey: string; icon: typeof Users }[] = [
   { id: "farmer", labelKey: "roles.farmer", icon: Users },
   { id: "buyer", labelKey: "roles.buyer", icon: ShoppingBag },
   { id: "agent", labelKey: "roles.agent", icon: ClipboardList },
   { id: "logistics", labelKey: "roles.logistics", icon: Truck },
+  { id: "vendor", labelKey: "roles.vendor", icon: Store },
+  { id: "admin", labelKey: "roles.admin", icon: Shield },
 ];
 
 function formatCooldown(seconds: number): string {
@@ -81,13 +76,21 @@ const Login = () => {
   const { user, userRole } = useAuth();
 
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const supabaseAnonKey =
+    import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
   // Show error from redirect (e.g. ProtectedRoute timeout)
   useEffect(() => {
-    const stateError = (location.state as { error?: string } | null)?.error;
-    if (stateError) {
-      setError(stateError);
-      toast({ title: t("auth.login_failed"), description: stateError, variant: "destructive" });
+    const state = location.state as { error?: string; loginTimestamp?: number } | null;
+    if (state?.error) {
+      setError(state.error);
+      toast({ title: t("auth.login_failed"), description: state.error, variant: "destructive" });
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+    if (state?.loginTimestamp && Date.now() - state.loginTimestamp > 15000) {
+      const msg = t("auth.login_timeout") || "Login took too long. Please try again.";
+      setError(msg);
+      toast({ title: t("auth.login_failed"), description: msg, variant: "destructive" });
       navigate(location.pathname, { replace: true, state: {} });
     }
   }, [location.state, toast, t, navigate, location.pathname]);
@@ -95,7 +98,7 @@ const Login = () => {
   // Redirect if already logged in
   useEffect(() => {
     if (user && userRole) {
-      navigate(roleRoutes[userRole] || "/");
+      navigate(ROLE_DASHBOARD_ROUTES[userRole] || "/");
     }
   }, [user, userRole, navigate]);
 
@@ -152,13 +155,52 @@ const Login = () => {
       setIsLoading(true);
 
       try {
-        const res = await fetch(`${supabaseUrl}/functions/v1/login-by-phone`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ phone: normalizedPhone, password, role: selectedRole }),
-        });
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
 
-        const data = await res.json().catch(() => ({}));
+        let res: Response;
+        try {
+          res = await fetch(`${supabaseUrl}/functions/v1/login-by-phone`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...(supabaseAnonKey ? { apikey: supabaseAnonKey } : {}),
+            },
+            body: JSON.stringify({ phone: normalizedPhone, password, role: selectedRole }),
+            signal: controller.signal,
+          });
+        } catch (fetchErr) {
+          clearTimeout(timeoutId);
+          const isTimeout = fetchErr instanceof DOMException && fetchErr.name === "AbortError";
+          const msg = isTimeout
+            ? t("auth.login_timeout") || "Login is taking too long. Please check your connection and try again."
+            : t("auth.network_error") || "Could not reach the server. Please check your internet connection.";
+          setError(msg);
+          toast({ title: t("auth.login_failed"), description: msg, variant: "destructive" });
+          return;
+        } finally {
+          clearTimeout(timeoutId);
+        }
+
+        let data: any;
+        const contentType = res.headers.get("content-type") ?? "";
+        try {
+          data = contentType.includes("application/json") ? await res.json() : null;
+        } catch {
+          data = null;
+        }
+        if (data == null || typeof data !== "object") {
+          const serverMsg =
+            res.status >= 500
+              ? (t("auth.server_unavailable") ||
+                "Server is temporarily unavailable. Please try again in a few minutes.")
+              : res.status === 404
+                ? (t("auth.login_endpoint_unavailable") || "Login service is not available. Please contact support.")
+                : (t("auth.invalid_credentials") || "Invalid credentials.");
+          setError(serverMsg);
+          toast({ title: t("auth.login_failed"), description: serverMsg, variant: "destructive" });
+          return;
+        }
 
         if (!res.ok) {
           const parsedLockout = parseLockoutUntilMs(data);
@@ -171,15 +213,16 @@ const Login = () => {
           return;
         }
 
-        if (!data.access_token || !data.refresh_token) {
+        const tokens = data?.data ?? data;
+        if (!tokens?.access_token || !tokens?.refresh_token) {
           setError(t("auth.invalid_credentials"));
           toast({ title: t("auth.login_failed"), description: t("auth.invalid_credentials"), variant: "destructive" });
           return;
         }
 
         const { error: sessionError } = await supabase.auth.setSession({
-          access_token: data.access_token,
-          refresh_token: data.refresh_token,
+          access_token: tokens.access_token,
+          refresh_token: tokens.refresh_token,
         });
 
         if (sessionError) {
@@ -190,15 +233,17 @@ const Login = () => {
 
         toast({ title: t("auth.welcome_back"), description: t("auth.login_success") });
         setLockoutUntilMs(null);
-        navigate(roleRoutes[selectedRole] || "/");
+        
+        const destination = ROLE_DASHBOARD_ROUTES[selectedRole] || "/";
+        navigate(destination, { state: { loginTimestamp: Date.now() } });
       } catch {
-        setError(t("common.error"));
-        toast({ title: t("common.error"), description: t("common.error"), variant: "destructive" });
+        setError(t("auth.network_error") || "Something went wrong. Please try again.");
+        toast({ title: t("common.error"), description: t("auth.network_error") || "Something went wrong.", variant: "destructive" });
       } finally {
         setIsLoading(false);
       }
     },
-    [selectedRole, phone, password, supabaseUrl, toast, t, navigate, lockoutRemainingSeconds]
+    [selectedRole, phone, password, supabaseUrl, supabaseAnonKey, toast, t, navigate, lockoutRemainingSeconds]
   );
 
   return (
@@ -310,29 +355,37 @@ const Login = () => {
               </div>
             </div>
 
-            <Button
-              type="submit"
-              variant="hero"
-              className="w-full"
-              size="lg"
-              disabled={isLoading || lockoutRemainingSeconds > 0}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  {t("auth.signing_in")}
-                </>
-              ) : lockoutRemainingSeconds > 0 ? (
-                <>
-                  Try again in {formatCooldown(lockoutRemainingSeconds)}
-                </>
-              ) : (
-                <>
-                  {t("auth.sign_in")}
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </>
+            <div className="relative">
+              <Button
+                type="submit"
+                variant="hero"
+                className="w-full"
+                size="lg"
+                disabled={isLoading || lockoutRemainingSeconds > 0}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    {t("auth.signing_in")}
+                  </>
+                ) : lockoutRemainingSeconds > 0 ? (
+                  <>
+                    Try again in {formatCooldown(lockoutRemainingSeconds)}
+                  </>
+                ) : (
+                  <>
+                    {t("auth.sign_in")}
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </>
+                )}
+              </Button>
+              {isLoading && (
+                <div className="absolute bottom-0 left-0 right-0 h-1 overflow-hidden rounded-b-lg">
+                  <div className="h-full bg-primary-foreground/40 animate-[login-progress_12s_ease-in-out_forwards]" style={{ width: '0%', animation: 'login-progress 12s ease-in-out forwards' }} />
+                  <style>{`@keyframes login-progress { 0% { width: 0%; } 60% { width: 70%; } 90% { width: 88%; } 100% { width: 95%; } }`}</style>
+                </div>
               )}
-            </Button>
+            </div>
           </form>
 
           {/* Google OAuth */}
@@ -389,17 +442,64 @@ const Login = () => {
         </div>
       </div>
 
-      {/* Right Side - Image/Branding */}
+      {/* Right Side - Agricultural Branding */}
       <div className="hidden lg:flex w-1/2 bg-gradient-hero items-center justify-center p-12 relative overflow-hidden">
-        <div className="absolute top-20 right-20 w-40 h-40 rounded-full border-2 border-primary-foreground/20" />
-        <div className="absolute bottom-20 left-20 w-60 h-60 rounded-full border-2 border-primary-foreground/10" />
-        <div className="absolute top-1/3 left-1/4 w-20 h-20 rounded-full bg-primary-foreground/10" />
-        <div className="text-center text-primary-foreground relative z-10">
-          <h2 className="text-4xl font-display font-bold mb-4">Welcome to AgriNext Gen</h2>
-          <p className="text-primary-foreground/80 text-lg max-w-md">
-            Connect with buyers, manage your farm, and grow your agricultural business with India's leading agtech
-            platform.
+        {/* Decorative agricultural elements */}
+        <div className="absolute top-10 right-16 w-48 h-48 rounded-full border border-primary-foreground/10" />
+        <div className="absolute bottom-16 left-12 w-72 h-72 rounded-full border border-primary-foreground/5" />
+        <div className="absolute top-1/4 left-1/3 w-24 h-24 rounded-full bg-primary-foreground/5" />
+        <div className="absolute bottom-1/3 right-1/4 w-16 h-16 rounded-full bg-primary-foreground/8" />
+
+        <div className="text-center text-primary-foreground relative z-10 max-w-lg">
+          {/* Agricultural icon cluster */}
+          <div className="flex justify-center gap-4 mb-8">
+            <div className="w-14 h-14 rounded-2xl bg-primary-foreground/15 flex items-center justify-center backdrop-blur-sm">
+              <Leaf className="w-7 h-7" />
+            </div>
+            <div className="w-14 h-14 rounded-2xl bg-primary-foreground/15 flex items-center justify-center backdrop-blur-sm mt-4">
+              <Users className="w-7 h-7" />
+            </div>
+            <div className="w-14 h-14 rounded-2xl bg-primary-foreground/15 flex items-center justify-center backdrop-blur-sm">
+              <Truck className="w-7 h-7" />
+            </div>
+          </div>
+
+          <h2 className="text-4xl font-display font-bold mb-4">
+            {({
+              farmer: t('auth.heroTitleFarmer'),
+              buyer: t('auth.heroTitleBuyer'),
+              agent: t('auth.heroTitleAgent'),
+              logistics: t('auth.heroTitleLogistics'),
+              vendor: t('auth.heroTitleVendor'),
+              admin: t('auth.heroTitleAdmin'),
+            } as Record<string, string>)[selectedRole] ?? t('auth.welcomeToAgriNextGen')}
+          </h2>
+          <p className="text-primary-foreground/80 text-lg mb-8">
+            {({
+              farmer: t('auth.heroSubtitleFarmer'),
+              buyer: t('auth.heroSubtitleBuyer'),
+              agent: t('auth.heroSubtitleAgent'),
+              logistics: t('auth.heroSubtitleLogistics'),
+              vendor: t('auth.heroSubtitleVendor'),
+              admin: t('auth.heroSubtitleAdmin'),
+            } as Record<string, string>)[selectedRole] ?? t('auth.connectWithBuyers')}
           </p>
+
+          {/* Trust stats */}
+          <div className="grid grid-cols-3 gap-4 mt-8 pt-8 border-t border-primary-foreground/15">
+            <div>
+              <p className="text-2xl font-bold">500+</p>
+              <p className="text-xs text-primary-foreground/60 mt-1">{t('roles.farmer')}s</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold">50+</p>
+              <p className="text-xs text-primary-foreground/60 mt-1">{t('nav.group.marketLogistics')}</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold">100+</p>
+              <p className="text-xs text-primary-foreground/60 mt-1">{t('nav.orders')}</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

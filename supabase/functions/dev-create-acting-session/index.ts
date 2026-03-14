@@ -10,42 +10,42 @@ const corsHeaders = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
-  if (req.method !== "POST") return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  if (req.method !== "POST") return new Response(JSON.stringify({ success: false, error: { code: "METHOD_NOT_ALLOWED", message: "POST only" } }), { status: 405, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   if (DEV_TOOLS_ENABLED !== "true") {
-    return new Response(JSON.stringify({ error: "Not found" }), { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ success: false, error: { code: "NOT_FOUND", message: "Not found" } }), { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
   const maybeSecret = req.headers.get("x-dev-secret") || "";
   if (DEV_TOOLS_SECRET && maybeSecret !== DEV_TOOLS_SECRET) {
-    return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ success: false, error: { code: "FORBIDDEN", message: "Invalid dev secret" } }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
   try {
     const authHeader = req.headers.get("Authorization") || "";
     const token = authHeader.replace("Bearer ", "");
-    if (!token) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (!token) return new Response(JSON.stringify({ success: false, error: { code: "UNAUTHORIZED", message: "Missing authorization" } }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
     const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     // Validate caller from token
     const { data: userResp, error: userErr } = await supabaseAdmin.auth.getUser(token);
-    if (userErr) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (userErr) return new Response(JSON.stringify({ success: false, error: { code: "UNAUTHORIZED", message: "Invalid token" } }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     const caller = userResp?.user;
-    if (!caller) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (!caller) return new Response(JSON.stringify({ success: false, error: { code: "UNAUTHORIZED", message: "Invalid token" } }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
     // Check admin role / developer allowlist
     const { data: ur, error: urErr } = await supabaseAdmin.from("user_roles").select("role").eq("user_id", caller.id).maybeSingle();
-    if (urErr) return new Response(JSON.stringify({ error: "role_check_failed" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (urErr) return new Response(JSON.stringify({ success: false, error: { code: "INTERNAL", message: "Role check failed" } }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     const { data: allowRow, error: allowErr } = await supabaseAdmin.from("dev_allowlist").select("user_id").eq("user_id", caller.id).maybeSingle();
-    if (allowErr) return new Response(JSON.stringify({ error: "allowlist_check_failed" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (allowErr) return new Response(JSON.stringify({ success: false, error: { code: "INTERNAL", message: "Allowlist check failed" } }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     const isAdmin = !!ur && ur.role === "admin";
     const isAllowlisted = !!allowRow;
     if (!isAdmin && !isAllowlisted) {
-      return new Response(JSON.stringify({ error: "forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ success: false, error: { code: "FORBIDDEN", message: "Admin or allowlist required" } }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     const body = await req.json().catch(() => ({}));
     const acting_as_user_id = body.acting_as_user_id;
     const acting_as_role = body.acting_as_role || "farmer";
     const note = body.note || null;
-    if (!acting_as_user_id) return new Response(JSON.stringify({ error: "missing acting_as_user_id" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (!acting_as_user_id) return new Response(JSON.stringify({ success: false, error: { code: "VALIDATION_ERROR", message: "acting_as_user_id is required" } }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
     const expires_at = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // 24h
 
@@ -58,12 +58,12 @@ Deno.serve(async (req: Request) => {
     }]).select("id").maybeSingle();
 
     if (insertErr) {
-      return new Response(JSON.stringify({ error: insertErr.message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ success: false, error: { code: "INTERNAL", message: "Failed to create session" } }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    return new Response(JSON.stringify({ acting_session_id: inserted?.id, expires_at }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ success: true, data: { acting_session_id: inserted?.id, expires_at } }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (err) {
     console.error("dev-create-acting-session error:", err);
-    return new Response(JSON.stringify({ error: err instanceof Error ? err.message : String(err) }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ success: false, error: { code: "INTERNAL", message: "Internal error" } }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 });

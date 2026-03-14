@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Camera, Upload, X, Loader2, AlertCircle } from 'lucide-react';
 import { useUploadProof, useUpdateTripStatusSecure } from '@/hooks/useTrips';
+import { useLanguage } from '@/hooks/useLanguage';
 import { toast } from 'sonner';
 import imageCompression from 'browser-image-compression';
 import { FILE_SIZE_LIMITS, validateFileSize, isImageFile, getErrorMessage, createRetryAction } from '@/lib/error-utils';
@@ -33,6 +34,7 @@ export default function ProofCaptureDialog({
   nextStatus,
   onSuccess,
 }: ProofCaptureDialogProps) {
+  const { t } = useLanguage();
   const [photos, setPhotos] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const [actualWeight, setActualWeight] = useState('');
@@ -45,13 +47,12 @@ export default function ProofCaptureDialog({
 
   const isLoading = uploadProof.isPending || updateStatus.isPending || isCompressing;
 
-  // Proof is required for picked_up and delivered statuses
-  const proofRequired = ['picked_up', 'delivered'].includes(nextStatus);
+  const proofRequired = ['pickup_done', 'delivered'].includes(nextStatus);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length + photos.length > 3) {
-      toast.error('Maximum 3 photos allowed');
+      toast.error(t('logisticsComponents.proof.maxPhotos'));
       return;
     }
 
@@ -84,8 +85,8 @@ export default function ProofCaptureDialog({
             useWebWorker: true,
           });
         } catch (error) {
-          console.error('Compression failed:', error);
-          toast.error(`Failed to compress ${file.name}`);
+          if (import.meta.env.DEV) console.error('Compression failed:', error);
+          toast.error(`${t('logisticsComponents.proof.compressFailed')} ${file.name}`);
           continue;
         }
         setIsCompressing(false);
@@ -116,7 +117,7 @@ export default function ProofCaptureDialog({
   const handleSubmit = async () => {
     // Check if proof is required but not provided
     if (proofRequired && photos.length === 0) {
-      toast.error('At least one proof photo is required');
+      toast.error(t('logisticsComponents.proof.photoRequired'));
       return;
     }
 
@@ -151,7 +152,7 @@ export default function ProofCaptureDialog({
       onSuccess?.();
     } catch (error) {
       const message = getErrorMessage(error);
-      toast.error(`Failed: ${message}`, {
+      toast.error(`${t('logisticsComponents.proof.failed')}: ${message}`, {
         action: createRetryAction(handleSubmit),
       });
     }
@@ -171,7 +172,7 @@ export default function ProofCaptureDialog({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>
-            {type === 'pickup' ? 'Confirm Pickup' : 'Confirm Delivery'}
+            {type === 'pickup' ? t('logisticsComponents.proof.confirmPickup') : t('logisticsComponents.proof.confirmDelivery')}
           </DialogTitle>
         </DialogHeader>
 
@@ -179,11 +180,11 @@ export default function ProofCaptureDialog({
           {/* Photo capture */}
           <div className="space-y-2">
             <Label className="flex items-center gap-2">
-              Proof Photos (max 3)
+              {t('logisticsComponents.proof.photos')}
               {proofRequired && (
                 <span className="text-xs text-destructive flex items-center gap-1">
                   <AlertCircle className="h-3 w-3" />
-                  Required
+                  {t('logisticsComponents.proof.required')}
                 </span>
               )}
             </Label>
@@ -215,7 +216,7 @@ export default function ProofCaptureDialog({
                   ) : (
                     <Camera className="h-6 w-6 mb-1" />
                   )}
-                  <span className="text-xs">{isCompressing ? 'Processing' : 'Add'}</span>
+                  <span className="text-xs">{isCompressing ? t('logisticsComponents.proof.processing') : t('logisticsComponents.proof.add')}</span>
                 </button>
               )}
             </div>
@@ -236,11 +237,11 @@ export default function ProofCaptureDialog({
           {/* Actual weight (for pickup) */}
           {type === 'pickup' && (
             <div className="space-y-2">
-              <Label htmlFor="weight">Actual Weight (kg) - Optional</Label>
+              <Label htmlFor="weight">{t('logisticsComponents.proof.weight')}</Label>
               <Input
                 id="weight"
                 type="number"
-                placeholder="Enter actual weight"
+                placeholder={t('logisticsComponents.proof.weightPlaceholder')}
                 value={actualWeight}
                 onChange={(e) => setActualWeight(e.target.value)}
                 disabled={isLoading}
@@ -250,10 +251,10 @@ export default function ProofCaptureDialog({
 
           {/* Notes */}
           <div className="space-y-2">
-            <Label htmlFor="notes">Notes (Optional)</Label>
+            <Label htmlFor="notes">{t('logisticsComponents.proof.notes')}</Label>
             <Textarea
               id="notes"
-              placeholder="Any additional notes..."
+              placeholder={t('logisticsComponents.proof.notesPlaceholder')}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={2}
@@ -262,15 +263,13 @@ export default function ProofCaptureDialog({
           </div>
 
           <p className="text-xs text-muted-foreground">
-            {type === 'pickup'
-              ? 'Take photos of the loaded goods as proof of pickup.'
-              : 'Take photos showing successful delivery.'}
+            {t('logisticsComponents.proof.instructions')}
           </p>
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={handleClose} disabled={isLoading}>
-            Cancel
+            {t('logisticsComponents.proof.cancel')}
           </Button>
           <Button 
             onClick={handleSubmit} 
@@ -279,12 +278,12 @@ export default function ProofCaptureDialog({
             {isLoading ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Processing...
+                {t('logisticsComponents.proof.processing')}...
               </>
             ) : (
               <>
                 <Upload className="h-4 w-4 mr-2" />
-                {type === 'pickup' ? 'Confirm Pickup' : 'Confirm Delivery'}
+                {type === 'pickup' ? t('logisticsComponents.proof.confirmPickup') : t('logisticsComponents.proof.confirmDelivery')}
               </>
             )}
           </Button>

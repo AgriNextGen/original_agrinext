@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/select';
 import { Mic, MicOff, Loader2, Languages, FileAudio } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useLanguage } from '@/hooks/useLanguage';
 import { toast } from 'sonner';
 
 type SupportedLanguage = 'en-IN' | 'hi-IN' | 'kn-IN';
@@ -47,6 +48,7 @@ const AgentVoiceNoteDialog = ({
   triggerButton,
   onNoteSaved,
 }: AgentVoiceNoteDialogProps) => {
+  const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [noteText, setNoteText] = useState('');
   const [language, setLanguage] = useState<SupportedLanguage>('en-IN');
@@ -93,8 +95,8 @@ const AgentVoiceNoteDialog = ({
       }, MAX_RECORDING_DURATION);
 
     } catch (error) {
-      console.error('Recording error:', error);
-      toast.error('Could not start recording. Please check microphone permissions.');
+      if (import.meta.env.DEV) console.error('Recording error:', error);
+      toast.error(t('errors.couldNotStartRecording'));
     }
   }, []);
 
@@ -110,7 +112,7 @@ const AgentVoiceNoteDialog = ({
 
   const handleSave = async () => {
     if (!noteText.trim() && !audioBlob) {
-      toast.error('Please add a note or recording');
+      toast.error(t('validation.addNoteOrRecording'));
       return;
     }
 
@@ -154,15 +156,15 @@ const AgentVoiceNoteDialog = ({
       const data = await response.json();
       if (!data.success) throw new Error(data.error || 'Failed to save note');
 
-      toast.success('Voice note saved!');
+      toast.success(t('toast.voiceNoteSaved'));
       setIsOpen(false);
       setNoteText('');
       setAudioBlob(null);
       setRecordingDuration(0);
       onNoteSaved?.();
     } catch (error: any) {
-      console.error('Save error:', error);
-      toast.error(error.message || 'Failed to save note');
+      if (import.meta.env.DEV) console.error('Save error:', error);
+      toast.error(error.message || t('errors.saveNoteFailed'));
     } finally {
       setIsSaving(false);
     }

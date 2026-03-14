@@ -78,46 +78,36 @@
   }
 
   .dark {
-    --background: 220 20% 8%;
+    --background: 224 15% 10%;
     --foreground: 210 20% 95%;
-
-    --card: 220 18% 12%;
+    --card: 224 15% 13%;
     --card-foreground: 210 20% 95%;
-
-    --popover: 220 18% 12%;
+    --popover: 224 15% 13%;
     --popover-foreground: 210 20% 95%;
-
     --primary: 152 50% 42%;
-    --primary-foreground: 220 20% 8%;
-
-    --secondary: 220 15% 18%;
-    --secondary-foreground: 210 20% 90%;
-
-    --muted: 220 12% 18%;
-    --muted-foreground: 215 12% 60%;
-
-    --accent: 42 70% 48%;
-    --accent-foreground: 220 20% 8%;
-
-    --destructive: 0 62% 50%;
-    --destructive-foreground: 210 20% 95%;
-
+    --primary-foreground: 210 20% 98%;
+    --secondary: 224 15% 18%;
+    --secondary-foreground: 210 20% 95%;
+    --muted: 224 15% 18%;
+    --muted-foreground: 215 15% 55%;
+    --accent: 224 15% 18%;
+    --accent-foreground: 210 20% 95%;
+    --destructive: 0 72% 60%;
+    --destructive-foreground: 210 20% 98%;
     --success: 145 52% 46%;
     --warning: 39 89% 56%;
     --info: 201 88% 62%;
-
-    --border: 220 12% 20%;
-    --input: 220 12% 20%;
+    --border: 224 15% 22%;
+    --input: 224 15% 22%;
     --ring: 152 50% 42%;
-
-    --sidebar-background: 220 18% 6%;
-    --sidebar-foreground: 210 20% 95%;
-    --sidebar-primary: 42 70% 48%;
-    --sidebar-primary-foreground: 220 20% 8%;
-    --sidebar-accent: 220 12% 15%;
+    --sidebar-background: 224 15% 8%;
+    --sidebar-foreground: 210 20% 90%;
+    --sidebar-border: 224 15% 18%;
+    --sidebar-accent: 224 15% 15%;
     --sidebar-accent-foreground: 210 20% 95%;
-    --sidebar-border: 220 12% 18%;
-    --sidebar-ring: 42 70% 48%;
+    --sidebar-primary: 152 50% 50%;
+    --sidebar-primary-foreground: 210 20% 98%;
+    --sidebar-ring: 152 50% 42%;
   }
 }
 
@@ -201,5 +191,90 @@
   .hover-lift:hover {
     @apply -translate-y-1;
     box-shadow: var(--elevation-2);
+  }
+
+  .shadow-glow {
+    box-shadow: 0 0 24px -4px hsl(var(--primary) / 0.25);
+  }
+
+  .animate-pulse-soft {
+    animation: pulse-soft 2.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse-soft {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  .arch-layer {
+    @apply relative;
+  }
+
+  .arch-layer::before {
+    content: '';
+    @apply absolute left-1/2 -translate-x-1/2 w-px bg-border;
+    top: -1rem;
+    height: 1rem;
+  }
+
+  .arch-layer:first-child::before {
+    display: none;
+  }
+
+  .btn-hover-darken {
+    @apply transition-all;
+  }
+
+  .btn-hover-darken:hover {
+    filter: brightness(0.92);
+  }
+
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+
+  @media (max-width: 767px) {
+    button:not([class*="min-h"]),
+    a[role="button"]:not([class*="min-h"]) {
+      min-height: 44px;
+    }
+  }
+
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .safe-area-pb {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  @keyframes count-up {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fade-in-up {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .animate-count-up {
+    animation: count-up 0.4s ease-out both;
+  }
+
+  .animate-fade-in-up {
+    animation: fade-in-up 0.5s ease-out both;
+  }
+
+  .animate-fade-in-up-delay-1 {
+    animation: fade-in-up 0.5s ease-out 0.1s both;
+  }
+
+  .animate-fade-in-up-delay-2 {
+    animation: fade-in-up 0.5s ease-out 0.2s both;
+  }
+
+  .animate-fade-in-up-delay-3 {
+    animation: fade-in-up 0.5s ease-out 0.3s both;
   }
 }

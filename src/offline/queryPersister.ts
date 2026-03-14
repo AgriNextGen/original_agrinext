@@ -28,13 +28,13 @@ export default {
         }
       });
       await offlineDB.cache_meta.put({ key: 'queries', value: toPersist });
-    } catch (e) { console.error('persist error', e); }
+    } catch (e) { if (import.meta.env.DEV) console.error('persist error', e); }
   },
   async restore() {
     try {
       const rec = await offlineDB.cache_meta.get('queries');
       return rec?.value || [];
-    } catch (e) { console.error('restore error', e); return []; }
+    } catch (e) { if (import.meta.env.DEV) console.error('restore error', e); return []; }
   }
 };
 

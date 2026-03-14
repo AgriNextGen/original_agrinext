@@ -9,9 +9,8 @@
  */
 import { describe, it, expect } from "vitest";
 
-const SUPABASE_URL =
-  process.env.VITE_SUPABASE_URL ??
-  "https://rmtkkzfzdmpjlqexrbme.supabase.co";
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL ?? "";
+if (!SUPABASE_URL) throw new Error("VITE_SUPABASE_URL is required for smoke tests");
 
 const JWT = process.env.SMOKE_TEST_JWT ?? "";
 

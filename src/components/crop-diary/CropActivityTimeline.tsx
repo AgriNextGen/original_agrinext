@@ -79,7 +79,7 @@ const CropActivityTimeline = ({ cropId }: CropActivityTimelineProps) => {
             const url = await signedUrlMutation.mutateAsync(log.media.file_path);
             newThumbnails[log.media.id] = url;
           } catch (e) {
-            console.error('Failed to load thumbnail:', e);
+            if (import.meta.env.DEV) console.error('Failed to load thumbnail:', e);
           }
         }
       }

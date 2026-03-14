@@ -29,7 +29,7 @@ async function tryLogin(account) {
     body: JSON.stringify({ phone: account.phone, password: PASSWORD }),
   });
   const body = await res.json().catch(() => ({}));
-  return { status: res.status, body };
+  return { status: res.status, body: typeof body === "object" && body !== null ? body : {} };
 }
 
 async function main() {
@@ -44,8 +44,9 @@ async function main() {
     process.stdout.write(`[${acc.role.padEnd(10)}] ${acc.phone}  →  `);
     try {
       const { status, body } = await tryLogin(acc);
-      if (status === 200 && body.access_token) {
-        console.log(`✅  LOGIN OK   token=${body.access_token.substring(0, 30)}...`);
+      const token = body.data?.access_token ?? body.access_token;
+      if (status === 200 && token) {
+        console.log(`✅  LOGIN OK   token=${token.substring(0, 30)}...`);
         results.push({ ...acc, ok: true, note: "login success" });
       } else {
         console.log(`❌  FAIL  HTTP ${status}  ${JSON.stringify(body).substring(0, 100)}`);

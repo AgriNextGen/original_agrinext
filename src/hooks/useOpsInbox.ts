@@ -39,11 +39,13 @@ export function useOpsInbox(filters: Record<string, string> = {}) {
 export function useResolveOpsItem() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+    mutationFn: async ({ id }: { id: string; status?: string }) => {
       const { data, error } = await (await import('@/integrations/supabase/client')).supabase
         .from('ops_inbox_items')
-        .update({ status })
-        .eq('id', id);
+        .update({ status: 'resolved', updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .select()
+        .single();
       if (error) throw error;
       return data;
     },

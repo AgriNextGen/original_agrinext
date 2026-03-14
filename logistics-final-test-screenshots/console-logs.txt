@@ -1,0 +1,98 @@
+[DEBUG] [vite] connecting...
+[DEBUG] [vite] connected.
+[WARNING] ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+[WARNING] ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+[WARNING] [i18n] Missing KN key: "nav.tasks"
+[ERROR] Failed to load resource: the server responded with a status of 404 ()
+[ERROR] Failed to load resource: the server responded with a status of 404 ()
+[ERROR] Failed to load resource: the server responded with a status of 404 ()
+[ERROR] Failed to load resource: the server responded with a status of 404 ()
+[ERROR] Failed to load resource: the server responded with a status of 403 ()
+[ERROR] Failed to load resource: the server responded with a status of 404 ()
+[ERROR] Failed to load resource: the server responded with a status of 404 ()
+[ERROR] Failed to load resource: the server responded with a status of 403 ()
+[ERROR] Failed to load resource: the server responded with a status of 403 ()
+[ERROR] Failed to load resource: the server responded with a status of 500 ()
+[ERROR] Failed to load resource: the server responded with a status of 500 ()
+[ERROR] Failed to load resource: the server responded with a status of 500 ()
+[ERROR] Failed to load resource: the server responded with a status of 500 ()
+[ERROR] Failed to load resource: the server responded with a status of 500 ()
+[ERROR] Failed to load resource: the server responded with a status of 500 ()
+[ERROR] Failed to load resource: the server responded with a status of 500 ()
+[ERROR] Failed to load resource: the server responded with a status of 500 ()
+[DEBUG] [vite] connecting...
+[DEBUG] [vite] connected.
+[WARNING] ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+[WARNING] ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+[WARNING] [i18n] Missing KN key: "nav.tasks"
+[ERROR] Failed to load resource: the server responded with a status of 403 ()
+[ERROR] Failed to load resource: the server responded with a status of 403 ()
+[ERROR] Failed to load resource: the server responded with a status of 403 ()
+[ERROR] Failed to load resource: the server responded with a status of 403 ()
+[ERROR] Failed to load resource: the server responded with a status of 403 ()
+[DEBUG] [vite] connecting...
+[DEBUG] [vite] connected.
+[WARNING] ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+[WARNING] ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+[WARNING] [i18n] Missing KN key: "nav.tasks"
+[ERROR] Failed to load resource: the server responded with a status of 404 ()
+[ERROR] Failed to load resource: the server responded with a status of 400 ()
+[ERROR] Failed to load resource: the server responded with a status of 403 ()
+[ERROR] Failed to load resource: the server responded with a status of 400 ()
+[ERROR] Failed to load resource: the server responded with a status of 403 ()
+[ERROR] Failed to load resource: the server responded with a status of 404 ()
+[ERROR] Failed to load resource: the server responded with a status of 403 ()
+[ERROR] Failed to load resource: the server responded with a status of 403 ()
+[ERROR] Failed to load resource: the server responded with a status of 403 ()
+[ERROR] Failed to load resource: the server responded with a status of 400 ()
+[ERROR] Failed to load resource: the server responded with a status of 404 ()
+[PAGE ERROR] Cannot read properties of undefined (reading 'map')
+[PAGE ERROR] Cannot read properties of undefined (reading 'map')
+[ERROR] The above error occurred in the <ActiveTrips> component:
+
+    at ActiveTrips (http://localhost:5173/src/pages/logistics/ActiveTrips.tsx:40:22)
+    at Suspense
+    at RouteErrorBoundary (http://localhost:5173/src/components/shared/RouteErrorBoundary.tsx:139:9)
+    at ProtectedRoute (http://localhost:5173/src/components/ProtectedRoute.tsx:29:27)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=e90b6eed:4131:5)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=e90b6eed:4601:5)
+    at ErrorBoundary (http://localhost:5173/src/components/shared/ErrorBoundary.tsx:106:9)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=e90b6eed:4544:15)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=e90b6eed:5290:5)
+    at Provider (http://localhost:5173/node_modules/.vite/deps/chunk-3RXG37ZK.js?v=e90b6eed:38:15)
+    at TooltipProvider (http://localhost:5173/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=e90b6eed:65:5)
+    at LanguageProvider (http://localhost:5173/src/hooks/useLanguage.tsx:29:36)
+    at AuthProvider (http://localhost:5173/src/hooks/useAuth.tsx:40:32)
+    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/@tanstack_react-query.js?v=e90b6eed:2934:3)
+    at App
+
+React will try to recreate this component tree from scratch using the error boundary you provided, RouteErrorBoundary.
+[ERROR] [RouteErrorBoundary] TypeError: Cannot read properties of undefined (reading 'map')
+    at ActiveTrips (http://localhost:5173/src/pages/logistics/ActiveTrips.tsx:190:41)
+    at renderWithHooks (http://localhost:5173/node_modules/.vite/deps/chunk-W6L2VRDA.js?v=e90b6eed:11548:26)
+    at updateFunctionComponent (http://localhost:5173/node_modules/.vite/deps/chunk-W6L2VRDA.js?v=e90b6eed:14582:28)
+    at beginWork (http://localhost:5173/node_modules/.vite/deps/chunk-W6L2VRDA.js?v=e90b6eed:15924:22)
+    at beginWork$1 (http://localhost:5173/node_modules/.vite/deps/chunk-W6L2VRDA.js?v=e90b6eed:19753:22)
+    at performUnitOfWork (http://localhost:5173/node_modules/.vite/deps/chunk-W6L2VRDA.js?v=e90b6eed:19198:20)
+    at workLoopSync (http://localhost:5173/node_modules/.vite/deps/chunk-W6L2VRDA.js?v=e90b6eed:19137:13)
+    at renderRootSync (http://localhost:5173/node_modules/.vite/deps/chunk-W6L2VRDA.js?v=e90b6eed:19116:15)
+    at recoverFromConcurrentError (http://localhost:5173/node_modules/.vite/deps/chunk-W6L2VRDA.js?v=e90b6eed:18736:28)
+    at performSyncWorkOnRoot (http://localhost:5173/node_modules/.vite/deps/chunk-W6L2VRDA.js?v=e90b6eed:18879:28) {componentStack: 
+    at ActiveTrips (http://localhost:5173/src/pag…tack_react-query.js?v=e90b6eed:2934:3)
+    at App}
+[DEBUG] [vite] connecting...
+[DEBUG] [vite] connected.
+[WARNING] ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+[WARNING] ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+[WARNING] [i18n] Missing KN key: "nav.tasks"
+[ERROR] Failed to load resource: the server responded with a status of 400 ()
+[ERROR] Failed to load resource: the server responded with a status of 404 ()
+[ERROR] Failed to load resource: the server responded with a status of 403 ()
+[ERROR] Failed to load resource: the server responded with a status of 403 ()
+[ERROR] Failed to load resource: the server responded with a status of 404 ()
+[ERROR] Failed to load resource: the server responded with a status of 400 ()
+[ERROR] Failed to load resource: the server responded with a status of 403 ()
+[ERROR] Failed to load resource: the server responded with a status of 403 ()
+[ERROR] Failed to load resource: the server responded with a status of 403 ()
+[ERROR] Failed to load resource: the server responded with a status of 404 ()
+[ERROR] Failed to load resource: the server responded with a status of 400 ()

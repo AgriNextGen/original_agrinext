@@ -1,3 +1,18 @@
+/**
+ * Google Gemini API client for AgriNext Edge Functions.
+ *
+ * Usage:
+ *   import { generateGeminiText } from "../_shared/gemini_client.ts";
+ *   const result = await generateGeminiText({
+ *     systemPrompt: PROMPTS.farmer.system,
+ *     userPrompt: userMessage,
+ *     temperature: 0.7,
+ *     maxOutputTokens: 1024,
+ *   });
+ *
+ * Requires GEMINI_API_KEY secret set in Supabase Dashboard → Edge Functions → Secrets.
+ * Always use _shared/ai_prompts.ts for system prompts — never write prompts inline.
+ */
 import { EnvError } from "./env.ts";
 import { geminiErrorMessage } from "./ai_response.ts";
 

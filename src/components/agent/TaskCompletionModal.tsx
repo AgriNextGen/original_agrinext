@@ -5,8 +5,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { CheckCircle, Loader2 } from 'lucide-react';
 import { useUpdateTaskStatus } from '@/hooks/useAgentDashboard';
-import { enqueueAction } from '@/lib/offlineQueue';
-import { useToast } from '@/components/ui/use-toast';
+import { enqueueAction } from '@/offline/actionQueue';
+import { useToast } from '@/hooks/use-toast';
 
 interface TaskCompletionModalProps {
   open: boolean;
@@ -30,7 +30,11 @@ export default function TaskCompletionModal({ open, onClose, taskId, farmerName,
       toast({ title: 'Task completed' });
       resetAndClose();
     } catch (err) {
-      enqueueAction('complete_task', { taskId, status: 'completed', notes });
+      enqueueAction({
+        type: 'rpc',
+        name: 'update_task_status_v1',
+        payload: { p_task_id: taskId, p_status: 'completed', p_notes: notes },
+      });
       toast({ title: 'Saved offline', description: 'Will sync when network is available.' });
       resetAndClose();
     } finally {
@@ -64,8 +68,8 @@ export default function TaskCompletionModal({ open, onClose, taskId, farmerName,
         </div>
 
         {step === 0 && (
-          <div className="space-y-3">
-            <div>
+          <div className="space-y-4">
+            <div className="space-y-2">
               <Label htmlFor="notes">Notes</Label>
               <Textarea
                 id="notes"
@@ -82,7 +86,7 @@ export default function TaskCompletionModal({ open, onClose, taskId, farmerName,
         )}
 
         {step === 1 && (
-          <div className="space-y-3">
+          <div className="space-y-4">
             <p className="text-sm font-medium">Review & Submit</p>
             <div className="bg-muted/50 rounded p-3 text-sm space-y-1">
               <p><strong>Status:</strong> Completed</p>

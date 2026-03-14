@@ -30,12 +30,12 @@ Deno.serve(async (req: Request) => {
   }
   const reqId = getRequestIdFromHeaders(req.headers);
   if (req.method !== "POST") {
-    return jsonResponse(reqId, 405, { ok: false, error: "method_not_allowed" });
+    return jsonResponse(reqId, 405, { success: false, error: { code: "METHOD_NOT_ALLOWED", message: "POST only" } });
   }
   const secret = req.headers.get("x-worker-secret") || "";
   if (!secret || secret !== WORKER_SECRET) {
     logStructured({ request_id: reqId, endpoint: "finance-reconcile", status: "forbidden" });
-    return jsonResponse(reqId, 403, { ok: false, error: "forbidden" });
+    return jsonResponse(reqId, 403, { success: false, error: { code: "FORBIDDEN", message: "Invalid worker secret" } });
   }
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
   try {
@@ -58,7 +58,7 @@ Deno.serve(async (req: Request) => {
         status: "rpc_error",
         error: rpc.error.message,
       });
-      return jsonResponse(reqId, 500, { ok: false, error: rpc.error.message });
+      return jsonResponse(reqId, 500, { success: false, error: { code: "RPC_ERROR", message: rpc.error.message } });
     }
     logStructured({
       request_id: reqId,
@@ -67,7 +67,7 @@ Deno.serve(async (req: Request) => {
       lookback_minutes: lookback,
       job_id: rpc.data ?? null,
     });
-    return jsonResponse(reqId, 200, { ok: true, job_id: rpc.data ?? null });
+    return jsonResponse(reqId, 200, { success: true, data: { job_id: rpc.data ?? null } });
   } catch (err) {
     console.error("finance-reconcile error", err);
     logStructured({
@@ -76,6 +76,6 @@ Deno.serve(async (req: Request) => {
       status: "error",
       error: err instanceof Error ? err.message : String(err),
     });
-    return jsonResponse(reqId, 500, { ok: false, error: "internal" });
+    return jsonResponse(reqId, 500, { success: false, error: { code: "INTERNAL", message: "Internal error" } });
   }
 });

@@ -1,3 +1,22 @@
+/**
+ * @function signup-by-phone
+ * @description Register a new AgriNext user with phone number + password.
+ *   Creates a Supabase Auth user with synthetic email (91XXXXXXXXXX@agrinext.local).
+ *   This is the ONLY valid signup path — never use supabase.auth.signUp() from frontend.
+ *
+ * @auth verify_jwt = false (public endpoint)
+ *
+ * @request POST /functions/v1/signup-by-phone
+ *   { phone: string, password: string, full_name: string, role: "farmer"|"agent"|"logistics"|"buyer"|"admin", profile_metadata?: object }
+ *
+ * @response
+ *   200: { success: true, data: { user_id, role } }
+ *   400: { error: { code: "invalid_input"|"duplicate_phone"|"role_locked", message } }
+ *   429: { error: { code: "rate_limited", message } }
+ *   500: { error: { code: "internal", message } }
+ *
+ * @guards Rate limiting, role-based signup lockdown, duplicate phone/email check
+ */
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import {
@@ -17,7 +36,7 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-type AppRole = "farmer" | "agent" | "logistics" | "buyer" | "admin";
+type AppRole = "farmer" | "agent" | "logistics" | "buyer" | "admin" | "vendor";
 
 type SignupErrorCode =
   | "PHONE_ALREADY_EXISTS"
@@ -53,6 +72,7 @@ const ROLE_SET = new Set<AppRole>([
   "logistics",
   "buyer",
   "admin",
+  "vendor",
 ]);
 
 const ROLE_DASHBOARD: Record<AppRole, string> = {
@@ -61,6 +81,7 @@ const ROLE_DASHBOARD: Record<AppRole, string> = {
   logistics: "/logistics/dashboard",
   buyer: "/marketplace/dashboard",
   admin: "/admin/dashboard",
+  vendor: "/vendor/dashboard",
 };
 
 function normalizePhone(phone: string): string {
@@ -223,6 +244,7 @@ async function readAppConfig(admin: ReturnType<typeof createClient>) {
     OPEN_SIGNUP_LOGISTICS: parseConfigBool(map.get("OPEN_SIGNUP_LOGISTICS"), true),
     OPEN_SIGNUP_BUYER: parseConfigBool(map.get("OPEN_SIGNUP_BUYER"), true),
     OPEN_SIGNUP_ADMIN: parseConfigBool(map.get("OPEN_SIGNUP_ADMIN"), false),
+    OPEN_SIGNUP_VENDOR: parseConfigBool(map.get("OPEN_SIGNUP_VENDOR"), true),
   };
 }
 
@@ -231,6 +253,7 @@ function roleOpenFlag(config: Awaited<ReturnType<typeof readAppConfig>>, role: A
   if (role === "agent") return config.OPEN_SIGNUP_AGENT;
   if (role === "logistics") return config.OPEN_SIGNUP_LOGISTICS;
   if (role === "buyer") return config.OPEN_SIGNUP_BUYER;
+  if (role === "vendor") return config.OPEN_SIGNUP_VENDOR;
   return config.OPEN_SIGNUP_ADMIN;
 }
 
@@ -425,10 +448,8 @@ function errorResponse(
 ) {
   return makeResponseWithRequestId(
     jsonText({
-      ok: false,
-      error_code: errorCode,
-      message,
-      request_id: requestId,
+      success: false,
+      error: { code: errorCode, message },
     }),
     requestId,
     { status, headers: responseHeaders() },
@@ -438,7 +459,7 @@ function errorResponse(
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   if (req.method !== "POST") {
-    return new Response(jsonText({ error: "Method not allowed" }), {
+    return new Response(jsonText({ success: false, error: { code: "method_not_allowed", message: "Method not allowed" } }), {
       status: 405,
       headers: responseHeaders(),
     });
@@ -799,16 +820,17 @@ Deno.serve(async (req: Request) => {
 
     return makeResponseWithRequestId(
       jsonText({
-        ok: true,
-        user_id: userId,
-        role,
-        phone: normalizedPhone,
-        auth_email: authEmail,
-        dashboard_route: ROLE_DASHBOARD[role],
-        access_token: tokenBody.access_token,
-        refresh_token: tokenBody.refresh_token,
-        expires_in: tokenBody.expires_in,
-        request_id: requestId,
+        success: true,
+        data: {
+          user_id: userId,
+          role,
+          phone: normalizedPhone,
+          auth_email: authEmail,
+          dashboard_route: ROLE_DASHBOARD[role],
+          access_token: tokenBody.access_token,
+          refresh_token: tokenBody.refresh_token,
+          expires_in: tokenBody.expires_in,
+        },
       }),
       requestId,
       { status: 201, headers: responseHeaders() },

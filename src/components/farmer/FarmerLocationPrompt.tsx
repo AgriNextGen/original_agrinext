@@ -24,8 +24,10 @@ import {
   useUpdateFarmerLocation,
 } from '@/hooks/useKarnatakaDistricts';
 import { useAuth } from '@/hooks/useAuth';
+import { useLanguage } from '@/hooks/useLanguage';
 
 const FarmerLocationPrompt = () => {
+  const { t } = useLanguage();
   const { user, userRole } = useAuth();
   const { data: districts, isLoading: districtsLoading } = useKarnatakaDistricts();
   const { data: needsDistrictData, isLoading: checkLoading } = useFarmerNeedsDistrict();
@@ -98,10 +100,10 @@ const FarmerLocationPrompt = () => {
           <MapPin className="h-4 w-4 text-amber-600" />
           <AlertDescription className="text-amber-800 dark:text-amber-200 flex items-center justify-between">
             <span>
-              <strong>Set your district</strong> to see local mandi prices and advisories
+              <strong>{t('farmer.locationPrompt.bannerTitle')}</strong> {t('farmer.locationPrompt.bannerDescription')}
             </span>
             <Button variant="outline" size="sm" className="ml-4 shrink-0">
-              Set Now
+              {t('farmer.locationPrompt.setNow')}
             </Button>
           </AlertDescription>
         </Alert>
@@ -113,10 +115,10 @@ const FarmerLocationPrompt = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <MapPin className="h-5 w-5 text-primary" />
-              Set Your Location
+              {t('farmer.locationPrompt.dialogTitle')}
             </DialogTitle>
             <DialogDescription>
-              We'll use this to show you local mandi prices, weather forecasts, and relevant advisories.
+              {t('farmer.locationPrompt.dialogDescription')}
             </DialogDescription>
           </DialogHeader>
 
@@ -124,7 +126,7 @@ const FarmerLocationPrompt = () => {
             {/* District Selection - Required */}
             <div className="space-y-2">
               <Label htmlFor="district" className="flex items-center gap-1">
-                District <span className="text-destructive">*</span>
+                {t('farmer.locationPrompt.district')} <span className="text-destructive">*</span>
               </Label>
               <Select
                 value={selectedDistrict}
@@ -132,7 +134,7 @@ const FarmerLocationPrompt = () => {
                 disabled={districtsLoading}
               >
                 <SelectTrigger id="district">
-                  <SelectValue placeholder={districtsLoading ? 'Loading...' : 'Select your district'} />
+                  <SelectValue placeholder={districtsLoading ? t('farmer.locationPrompt.loadingDistricts') : t('farmer.locationPrompt.selectDistrict')} />
                 </SelectTrigger>
                 <SelectContent className="max-h-60">
                   {districts?.map((d) => (
@@ -146,10 +148,10 @@ const FarmerLocationPrompt = () => {
 
             {/* Village - Optional */}
             <div className="space-y-2">
-              <Label htmlFor="village">Village (Optional)</Label>
+              <Label htmlFor="village">{t('farmer.locationPrompt.village')}</Label>
               <Input
                 id="village"
-                placeholder="Enter your village name"
+                placeholder={t('farmer.locationPrompt.villagePlaceholder')}
                 value={village}
                 onChange={(e) => setVillage(e.target.value)}
               />
@@ -157,16 +159,16 @@ const FarmerLocationPrompt = () => {
 
             {/* Pincode - Optional */}
             <div className="space-y-2">
-              <Label htmlFor="pincode">Pincode (Optional)</Label>
+              <Label htmlFor="pincode">{t('farmer.locationPrompt.pincode')}</Label>
               <Input
                 id="pincode"
-                placeholder="e.g., 560001"
+                placeholder={t('farmer.locationPrompt.pincodePlaceholder')}
                 value={pincode}
                 onChange={(e) => setPincode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                 maxLength={6}
               />
               <p className="text-xs text-muted-foreground">
-                Pincode can help us provide more accurate local data
+                {t('farmer.locationPrompt.pincodeHelp')}
               </p>
             </div>
           </div>
@@ -177,13 +179,13 @@ const FarmerLocationPrompt = () => {
               onClick={handleSkip}
               className="text-muted-foreground"
             >
-              Skip for now
+              {t('farmer.locationPrompt.skip')}
             </Button>
             <Button
               onClick={handleSave}
               disabled={!selectedDistrict || updateLocation.isPending}
             >
-              {updateLocation.isPending ? 'Saving...' : 'Save Location'}
+              {updateLocation.isPending ? t('farmer.locationPrompt.saving') : t('farmer.locationPrompt.saveLocation')}
             </Button>
           </div>
         </DialogContent>

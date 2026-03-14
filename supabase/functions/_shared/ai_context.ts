@@ -1,3 +1,13 @@
+/**
+ * Builds structured AI context objects from DB data for Gemini prompts.
+ *
+ * Used by ai-gateway to inject farmer/agent/logistics context into prompts.
+ * Produces a structured context string that is embedded in the system prompt.
+ *
+ * Usage:
+ *   const ctx = buildFarmerAiContext({ profile, crops, market });
+ *   // ctx is a formatted string describing the farmer's situation
+ */
 import { getOptionalEnv } from "./env.ts";
 
 type FarmerProfile = {

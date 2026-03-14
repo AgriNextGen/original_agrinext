@@ -1,9 +1,20 @@
 import { en } from './en';
 import { kn as knSource } from './kn';
 import { resolveTranslationAlias } from './aliases';
+import type { SupportedLocale } from './localeConfig';
 
-export type Language = 'en' | 'kn';
+export type Language = SupportedLocale;
 export type TranslationKeys = typeof en;
+
+export {
+  SUPPORTED_LOCALES,
+  DEFAULT_LOCALE,
+  FALLBACK_LOCALE,
+  isSupportedLocale,
+  detectBrowserLocale,
+  resolveLocale,
+} from './localeConfig';
+export type { SupportedLocale } from './localeConfig';
 
 const MOJIBAKE_MARKER_RE = /[\u00c2\u00c3\u00e0\u00e2]/;
 const KANNADA_CHAR_RE = /[\u0C80-\u0CFF]/gu;
@@ -114,6 +125,12 @@ const KN_STRING_OVERRIDES: Record<string, string> = {
   'badges.personalized': 'ವೈಯಕ್ತಿಕ',
   'badges.webVerified': 'ಜಾಲ ಪರಿಶೀಲಿತ',
   'errors.languagePreferenceSaveFailed': 'ಭಾಷೆ ಆಯ್ಕೆಯನ್ನು ಉಳಿಸಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ',
+  'errors.profileUpdateFailed': 'ಪ್ರೊಫೈಲ್ ನವೀಕರಿಸಲು ವಿಫಲವಾಗಿದೆ',
+  'errors.couldNotStartRecording': 'ರೆಕಾರ್ಡಿಂಗ್ ಪ್ರಾರಂಭಿಸಲು ಆಗಲಿಲ್ಲ. ಮೈಕ್ರೋಫೋನ್ ಅನುಮತಿಗಳನ್ನು ಪರಿಶೀಲಿಸಿ.',
+  'errors.compressFailed': 'ಚಿತ್ರ ಸಂಕುಚಿತಗೊಳಿಸಲು ವಿಫಲವಾಗಿದೆ. ಚಿಕ್ಕ ಫೈಲ್ ಪ್ರಯತ್ನಿಸಿ.',
+  'errors.loadAlreadyAccepted': 'ಈ ಲೋಡ್ ಅನ್ನು ಇನ್ನೊಬ್ಬ ಸಾರಿಗೆದಾರ ಈಗಾಗಲೇ ಸ್ವೀಕರಿಸಿದ್ದಾರೆ.',
+  'errors.saveNoteFailed': 'ಟಿಪ್ಪಣಿ ಉಳಿಸಲು ವಿಫಲವಾಗಿದೆ',
+  'errors.acceptLoadFailed': 'ಲೋಡ್ ಸ್ವೀಕರಿಸಲು ವಿಫಲವಾಗಿದೆ',
   'errors.ai.assistantUnavailable': 'ಈಗ ಉತ್ತರ ಪಡೆಯಲು ಆಗಲಿಲ್ಲ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.',
   'errors.ai.recommendationsFailed': 'ಶಿಫಾರಸುಗಳನ್ನು ಪಡೆಯಲು ವಿಫಲವಾಗಿದೆ',
   'errors.audio.playFailed': 'ಆಡಿಯೋ ಪ್ಲೇ ಮಾಡಲು ಆಗಲಿಲ್ಲ',
@@ -285,13 +302,22 @@ function getNestedValue(obj: Record<string, any>, path: string): string | undefi
 }
 
 /**
- * Log missing translation keys in development
+ * Log missing translation keys in development.
+ * Includes a truncated stack trace to help locate the calling component.
  */
 function logMissingKey(key: string, language: Language): void {
   const logKey = `${language}:${key}`;
   if (!missingKeys.has(logKey) && isDevRuntime) {
     missingKeys.add(logKey);
-    console.warn(`[i18n] Missing ${language.toUpperCase()} key: "${key}"`);
+    let caller = '';
+    try {
+      const stack = new Error().stack;
+      if (stack) {
+        const frames = stack.split('\n').slice(2, 5);
+        caller = frames.map(f => f.trim()).join(' <- ');
+      }
+    } catch {}
+    console.warn(`[i18n] Missing ${language.toUpperCase()} key: "${key}"${caller ? ` | ${caller}` : ''}`);
   }
 }
 

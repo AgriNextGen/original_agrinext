@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useLanguage } from '@/hooks/useLanguage';
 import { toast } from 'sonner';
 
 export interface KarnatakaDistrict {
@@ -72,6 +73,7 @@ export const useFarmerNeedsDistrict = () => {
 export const useUpdateFarmerLocation = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async (data: {
@@ -105,10 +107,10 @@ export const useUpdateFarmerLocation = () => {
       queryClient.invalidateQueries({ queryKey: ['farmer-needs-district'] });
       queryClient.invalidateQueries({ queryKey: ['market-prices'] });
       queryClient.invalidateQueries({ queryKey: ['all-market-prices'] });
-      toast.success('Location saved! You\'ll now see personalized market data.');
+      toast.success(t('hookToasts.districts.locationSaved'));
     },
     onError: (error) => {
-      toast.error('Failed to save location: ' + error.message);
+      toast.error(t('hookToasts.districts.locationFailed') + ': ' + error.message);
     },
   });
 };

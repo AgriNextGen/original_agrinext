@@ -1,33 +1,27 @@
-\% AgriNext Gen --- Enterprise API Contracts (Production Grade,
-Cursor-Optimized) % Version 1.0 % Generated on 2026-02-19
-
 # API_CONTRACTS.md
 
-Status: Production-Grade\
-Applies to: Frontend (React PWA) ↔ Supabase (Postgres/RPC/RLS/Storage) ↔
-Edge Functions\
-Depends on: ENTERPRISE_SECURITY_MODEL_V2_1.md,
-ENTERPRISE_DATA_ARCHITECTURE.md, ENTERPRISE_RLS_POLICY_MATRIX.md,
-ENTERPRISE_EDGE_FUNCTION_STANDARD.md
+Status: Production-Grade — v2.0\
+Updated: 2026-03-14\
+Applies to: Frontend (React PWA) ↔ Supabase (Postgres/RPC/RLS/Storage) ↔ Edge Functions\
+Depends on: ENTERPRISE_SECURITY_MODEL_V2_1.md, ENTERPRISE_DATA_ARCHITECTURE.md, ENTERPRISE_RLS_POLICY_MATRIX.md, ENTERPRISE_EDGE_FUNCTION_STANDARD.md
 
-**Purpose:** Define stable, versioned API contracts so Cursor can
-generate consistent frontend hooks, edge functions, RPCs, and tests
-without drift.
+**Purpose:** Define stable, versioned API contracts so AI agents (Cursor, Claude, GPT, Copilot) can generate consistent frontend hooks, edge functions, RPCs, and tests without drift.
 
-------------------------------------------------------------------------
+---
 
 ## 0) Design Rules (Non-Negotiable)
 
-1.  **Single contract shape** for responses (success + error).
-2.  **Role enforcement is server-side** (edge/RPC + RLS).
-3.  **Multi-table mutations must be RPC** (transactional).
-4.  **Tier-4 access must be edge/RPC only** (no direct client reads of
-    secure schema).
-5.  **Idempotency required** for accept/confirm/payment/webhooks.
-6.  **Audit logs emitted** for sensitive actions.
-7.  **Version endpoints** to prevent breaking clients.
+1. **Single contract shape** for all responses (success + error) — see Section 2.
+2. **Role enforcement is server-side** (Edge Functions/RPC + RLS).
+3. **Multi-table mutations must be RPC** (transactional).
+4. **Tier-4 access must be Edge/RPC only** (no direct client reads of `secure` schema).
+5. **Idempotency required** for accept/confirm/payment/webhooks.
+6. **Audit logs emitted** for sensitive actions.
+7. **Version endpoints** to prevent breaking clients.
+8. **APIs must be role-agnostic** whenever possible — use unified endpoints with RLS for access control.
+9. **Logistics APIs must use the unified shipment system** — all actors use the same infrastructure.
 
-------------------------------------------------------------------------
+---
 
 ## 1) API Surface Overview
 
@@ -35,428 +29,647 @@ AgriNext Gen uses three API mechanisms:
 
 ### 1.1 Direct Postgres via Supabase client (RLS protected)
 
-Allowed for: - Simple reads/writes on public tables where RLS fully
-enforces access - Non-critical single-table inserts (e.g., creating a
-farmland, adding crop photo metadata)
+Allowed for:
+- Simple reads/writes on public tables where RLS fully enforces access
+- Non-critical single-table inserts (e.g., creating a farmland, adding crop photo metadata)
 
-Not allowed for: - State transitions - Multi-table writes - Tier-4
-data - Anything requiring strong atomicity
+Not allowed for:
+- State transitions
+- Multi-table writes
+- Tier-4 data
+- Anything requiring strong atomicity
 
 ### 1.2 RPC Functions (Postgres functions)
 
-Used for: - Atomic workflows - State machines (trips, orders, warehouse
-stock events) - Access-controlled data shaping (denormalized views)
+Used for:
+- Atomic workflows
+- State machines (trips, orders)
+- Access-controlled data shaping (denormalized views)
 
 ### 1.3 Edge Functions (Deno)
 
-Used for: - Operations requiring secrets (SMS, payments, govt APIs) -
-Role validation + orchestration around RPC - Rate limiting and
-idempotency - Signed upload URL generation - Webhooks
+Used for:
+- Operations requiring secrets (payments, external APIs)
+- Role validation + orchestration around RPC
+- Rate limiting and idempotency
+- Signed upload URL generation
+- Webhooks
+- Internal logistics orchestration
 
-------------------------------------------------------------------------
+---
 
 ## 2) Standard Response Contract
 
+**ALL Edge Functions MUST use this shape. No exceptions.**
+
 ### 2.1 Success
 
-    {
-      "ok": true,
-      "data": <payload>,
-      "request_id": "<uuid>",
-      "meta": {
-        "version": "v1"
-      }
-    }
+```json
+{
+  "success": true,
+  "data": { ... }
+}
+```
 
 ### 2.2 Error
 
-    {
-      "ok": false,
-      "error": {
-        "code": "AUTH_REQUIRED" | "ROLE_FORBIDDEN" | "VALIDATION_ERROR" | "NOT_FOUND" |
-                "CONFLICT" | "RATE_LIMITED" | "INTERNAL",
-        "message": "Human-readable message",
-        "details": { ...optional }
-      },
-      "request_id": "<uuid>",
-      "meta": {
-        "version": "v1"
-      }
-    }
+```json
+{
+  "success": false,
+  "error": {
+    "code": "UPPERCASE_ERROR_CODE",
+    "message": "Human-readable message"
+  }
+}
+```
 
-### 2.3 Request Headers (Standard)
+### 2.3 Standard Error Codes
 
--   `Authorization: Bearer <access_token>`
--   `Content-Type: application/json`
--   `X-Request-Id: <uuid>` (optional, generated client-side)
--   `Idempotency-Key: <string>` (required for idempotent endpoints)
+| Code | HTTP Status | Meaning |
+|------|-------------|---------|
+| `VALIDATION_ERROR` | 400 | Invalid input |
+| `UNAUTHORIZED` | 401 | Missing or invalid auth |
+| `FORBIDDEN` | 403 | Insufficient permissions |
+| `NOT_FOUND` | 404 | Resource not found |
+| `METHOD_NOT_ALLOWED` | 405 | Wrong HTTP method |
+| `CONFLICT` | 409 | Duplicate or state conflict |
+| `RATE_LIMITED` | 429 | Rate limit exceeded |
+| `INTERNAL` | 500 | Server error |
 
-------------------------------------------------------------------------
+### 2.4 Request Headers (Standard)
+
+- `Authorization: Bearer <access_token>`
+- `Content-Type: application/json`
+- `X-Request-Id: <uuid>` (optional, generated client-side)
+- `Idempotency-Key: <string>` (required for idempotent endpoints)
+
+### 2.5 Shared Response Helpers
+
+All Edge Functions should import from `_shared/errors.ts`:
+
+```typescript
+import { successResponse, errorResponse } from "../_shared/errors.ts";
+
+return successResponse({ user_id: "abc" });
+return successResponse({ user_id: "abc" }, 201);
+return errorResponse("VALIDATION_ERROR", "Phone is required", 400);
+return errorResponse("NOT_FOUND", "Trip not found", 404);
+```
+
+---
 
 ## 3) Endpoint Versioning Strategy
 
-All edge functions are versioned by path:
+Edge functions are versioned by path:
+- `/functions/v1/<name>` (default current)
+- `/functions/v2/<name>` (breaking changes)
 
--   `/functions/v1/<name>` (default current)
--   `/functions/v2/<name>` (breaking changes)
-
-RPC functions are versioned by name when needed: -
-`accept_transport_load_v1` - `accept_transport_load_v2`
+RPC functions are versioned by name suffix:
+- `accept_transport_load_v1` → `accept_transport_load_v2`
 
 Frontend must pin to a version.
 
-------------------------------------------------------------------------
+---
 
 ## 4) Authentication & Session APIs
 
-### 4.1 Phone Login (Edge) --- v1
+### 4.1 Phone Signup (Edge) — v1
 
-**Endpoint:** `POST /functions/v1/login-by-phone`\
-**JWT:** verify_jwt = false (auth bootstrap)\
-**Rate Limit:** required (per phone + IP)
+**Endpoint:** `POST /functions/v1/signup-by-phone`\
+**JWT:** verify_jwt = false (public)\
+**Rate Limit:** per phone + IP
 
 **Request**
 
-    {
-      "phone": "+91XXXXXXXXXX",
-      "password": "<string>",
-      "role": "farmer|agent|logistics|buyer|admin"
-    }
+```json
+{
+  "phone": "+91XXXXXXXXXX",
+  "password": "string (min 8 chars)",
+  "full_name": "string",
+  "role": "farmer|agent|logistics|buyer|admin",
+  "email": "optional@email.com",
+  "profile_metadata": { "village": "...", "district": "..." }
+}
+```
 
 **Response (success)**
 
-    {
-      "ok": true,
-      "data": {
-        "access_token": "<jwt>",
-        "refresh_token": "<token>",
-        "expires_in": 3600,
-        "user_id": "<uuid>",
-        "role": "<role>"
-      },
-      "request_id": "<uuid>",
-      "meta": { "version": "v1" }
-    }
+```json
+{
+  "success": true,
+  "data": {
+    "user_id": "<uuid>",
+    "role": "farmer",
+    "phone": "+91XXXXXXXXXX",
+    "auth_email": "91XXXXXXXXXX@agrinext.local",
+    "dashboard_route": "/farmer/dashboard",
+    "access_token": "<jwt>",
+    "refresh_token": "<token>",
+    "expires_in": 3600
+  }
+}
+```
 
-Errors: - AUTH_REQUIRED (missing fields) - VALIDATION_ERROR (invalid
-phone format) - ROLE_FORBIDDEN (role mismatch) - RATE_LIMITED - INTERNAL
+**Error codes:** VALIDATION_ERROR, PHONE_ALREADY_EXISTS, EMAIL_ALREADY_EXISTS, ROLE_CLOSED, SIGNUP_DISABLED, RATE_LIMITED, INTERNAL
 
-**Notes** - role must be validated against public.user_roles - do not
-leak whether user exists (avoid account enumeration)
+### 4.2 Phone Login (Edge) — v1
 
-------------------------------------------------------------------------
+**Endpoint:** `POST /functions/v1/login-by-phone`\
+**JWT:** verify_jwt = false (public)\
+**Rate Limit:** per phone + IP, lockout after N failures
 
-### 4.2 Logout (Client)
+**Request**
+
+```json
+{
+  "phone": "+91XXXXXXXXXX",
+  "password": "string"
+}
+```
+
+**Response (success)**
+
+```json
+{
+  "success": true,
+  "data": {
+    "access_token": "<jwt>",
+    "refresh_token": "<token>",
+    "expires_in": 3600
+  }
+}
+```
+
+**Error codes:** VALIDATION_ERROR, INVALID_CREDENTIALS, ACCOUNT_LOCKED, RATE_LIMITED, INTERNAL
+
+### 4.3 Role Onboarding (Edge) — v1
+
+**Endpoint:** `POST /functions/v1/complete-role-onboard`\
+**JWT:** required
+
+**Request**
+
+```json
+{ "role": "farmer|agent|logistics|buyer" }
+```
+
+**Response (success)**
+
+```json
+{
+  "success": true,
+  "data": { "role": "farmer", "dashboard_route": "/farmer/dashboard" }
+}
+```
+
+### 4.4 Logout (Client)
 
 Use `supabase.auth.signOut()` on client. No server endpoint.
 
-------------------------------------------------------------------------
+---
 
-## 5) Core Domain APIs (RPC + Edge)
+## 5) Core Domain APIs
 
-This section defines primary workflows by domain.
+### 5A) Farmer Domain
 
-------------------------------------------------------------------------
+#### 5A.1 Profile CRUD (Direct + RLS)
 
-# 5A) Farmer Domain
+**Table:** `public.profiles`\
+Client allowed: SELECT own, UPDATE own fields.
 
-## 5A.1 Create/Update Farmer Profile (Direct + RLS)
+#### 5A.2 Farmland CRUD (Direct + RLS)
 
-Table: `public.profiles`
+**Table:** `public.farmlands`\
+Farmer inserts/updates own farmland. Agent may update assigned farmer farmland via RLS.
 
-Client allowed: - SELECT own - UPDATE own fields
+#### 5A.3 Crop CRUD (Direct + RLS)
 
-Sensitive fields update (phone) may require edge function later.
+**Table:** `public.crops` (linked to `farmlands` via `land_id`)\
+Farmer inserts/updates own crops. Agent may update assigned farmer crops.
 
-------------------------------------------------------------------------
+**Known nullable columns** (always null-check):
+- `health_status` → default `'normal'`
+- `growth_stage` → default `'seedling'`
 
-## 5A.2 Farmland CRUD (Direct + RLS)
+#### 5A.4 Agent Crop Status Update — v1 (Edge + RPC, planned)
 
-Table: `public.farmlands`
-
-Allowed operations: - Farmer inserts own farmland - Farmer updates own
-farmland - Agent may update assigned farmer farmland if authorized by
-RLS
-
-Request/Response: standard Supabase client patterns (no edge required).
-
-------------------------------------------------------------------------
-
-## 5A.3 Crop Status Update (Agent) --- v1 (Edge + RPC recommended)
-
-Because this is sensitive (tampering risk), enforce via edge or RPC.
-
-**Endpoint:** `POST /functions/v1/agent-update-crop-status`\
-**JWT:** required\
-**Allowed Roles:** agent, admin\
+**Endpoint:** `POST /functions/v1/agent-update-crop-status` (not yet implemented)\
+**JWT:** required, roles: agent, admin\
 **Audit:** yes
+
+Currently agents update crops via direct table access + RLS. Edge function enforcement is planned.
+
+---
+
+### 5B) Logistics Domain
+
+#### Legacy System (Current Frontend)
+
+The frontend currently uses these legacy tables and RPCs:
+
+| Operation | Mechanism | Table/RPC |
+|-----------|-----------|-----------|
+| Create transport request | Direct INSERT | `transport_requests` |
+| Accept load | RPC | `accept_transport_load_v2` |
+| Update trip status | RPC | `update_trip_status_v1` |
+| Get trips | RPC | `get_trips_with_context_v2` |
+| Get trip detail | RPC | `get_trip_detail_with_context_v1` |
+| Cancel transport request | RPC | `cancel_transport_request_v1` |
+
+#### Unified Logistics System (Target State)
+
+The `logistics-orchestrator` Edge Function provides the unified logistics API. It is currently internal-only (requires `x-worker-secret` or admin JWT).
+
+**Bridge RPCs** exist to migrate legacy data:
+- `bridge_transport_request_to_shipment_v1(p_transport_request_id)`
+- `bridge_trip_to_unified_trip_v1(p_trip_id)`
+
+##### POST /shipments — Create Shipment Request
+
+**Endpoint:** `POST /functions/v1/logistics-orchestrator/shipments`\
+**Auth:** x-worker-secret or admin JWT
 
 **Request**
 
-    {
-      "crop_id": "<uuid>",
-      "new_status": "SOWN|GROWING|READY|HARVESTED",
-      "note": "<optional string>",
-      "evidence_media_ids": ["<uuid>", "..."]
-    }
-
-**Rules** - agent must be assigned to crop's farmer
-(agent_farmer_assignments) - status transition must follow allowed state
-changes
+```json
+{
+  "request_source_type": "farmer|buyer|vendor|admin",
+  "source_actor_id": "<uuid>",
+  "shipment_type": "farm_produce|input_supply|return_goods",
+  "pickup_location": "string",
+  "drop_location": "string",
+  "weight_estimate_kg": 1200,
+  "pickup_time_window": "2026-03-15T08:00:00Z"
+}
+```
 
 **Response**
 
-    { "ok": true, "data": { "crop_id": "<uuid>", "status": "<new_status>" }, "request_id": "...", "meta": { "version": "v1" } }
+```json
+{ "success": true, "data": { "shipment_id": "<uuid>" } }
+```
 
-------------------------------------------------------------------------
+##### GET /shipments/{id} — Get Shipment
 
-# 5B) Logistics Domain
+**Endpoint:** `GET /functions/v1/logistics-orchestrator/shipments/:id`
 
-## 5B.1 Create Transport Request (Farmer) (Direct + RLS)
+Returns shipment with items and bookings.
 
-Table: `public.transport_requests` Farmer can create a request for own
-crop/listing.
+##### POST /shipments/{id}/items — Add Shipment Items
 
-------------------------------------------------------------------------
+**Endpoint:** `POST /functions/v1/logistics-orchestrator/shipments/:id/items`
 
-## 5B.2 Accept Load (Logistics) --- v1 (Edge + RPC)
+**Request** (single item or array)
 
-**Endpoint:** `POST /functions/v1/accept-load`\
-**JWT:** required\
-**Allowed Roles:** logistics, admin\
-**Idempotency:** required\
-**Audit:** yes
+```json
+{
+  "product_name": "Tomato",
+  "quantity": 500,
+  "unit": "kg"
+}
+```
+
+##### POST /trips — Create Unified Trip
+
+**Endpoint:** `POST /functions/v1/logistics-orchestrator/trips`
 
 **Request**
 
-    {
-      "transport_request_id": "<uuid>",
-      "vehicle_id": "<uuid>"
-    }
+```json
+{
+  "vehicle_id": "<uuid>",
+  "driver_id": "<uuid>",
+  "start_location": "string",
+  "end_location": "string"
+}
+```
 
-**Server Behavior** - calls RPC `accept_transport_load_v1` - creates
-trip + status event + notification atomically - returns trip_id and
-assignment summary
+##### GET /trips/{id} — Get Unified Trip
+
+**Endpoint:** `GET /functions/v1/logistics-orchestrator/trips/:id`
+
+Returns trip with legs and bookings.
+
+##### POST /bookings — Assign Shipment to Trip
+
+**Endpoint:** `POST /functions/v1/logistics-orchestrator/bookings`
+
+**Request**
+
+```json
+{
+  "shipment_request_id": "<uuid>",
+  "unified_trip_id": "<uuid>"
+}
+```
+
+##### GET /reverse-candidates/{tripId} — Reverse Load Opportunities
+
+**Endpoint:** `GET /functions/v1/logistics-orchestrator/reverse-candidates/:tripId`
+
+Returns reverse load candidates for a trip's return route.
+
+##### POST /route-clusters/detect — Detect Route Cluster
+
+**Endpoint:** `POST /functions/v1/logistics-orchestrator/route-clusters/detect`
+
+**Request**
+
+```json
+{
+  "origin_district_id": "<uuid>",
+  "dest_district_id": "<uuid>"
+}
+```
+
+##### POST /load-pools — Create Load Pool
+
+**Endpoint:** `POST /functions/v1/logistics-orchestrator/load-pools`
+
+##### POST /load-pools/{id}/add — Add Shipment to Pool
+
+**Endpoint:** `POST /functions/v1/logistics-orchestrator/load-pools/:id/add`
+
+#### Migration Path: Legacy → Unified
+
+1. Bridge RPCs convert existing `transport_requests` → `shipment_requests` and `trips` → `unified_trips`
+2. Frontend migration: replace direct `transport_requests` INSERT with `logistics-orchestrator/shipments` calls
+3. Replace `accept_transport_load_v2` with `logistics-orchestrator/bookings`
+4. Replace `get_trip_detail_with_context_v1` with `logistics-orchestrator/trips/:id`
+5. Open `logistics-orchestrator` to JWT-authenticated users (not just admin/worker)
+
+---
+
+### 5C) Marketplace Domain
+
+#### 5C.1 Browse Listings (Direct + RLS)
+
+**Table:** `public.listings`\
+Buyer: SELECT where listing is APPROVED. Farmer: SELECT own. Agent: SELECT assigned farmer listings.
+
+#### 5C.2 Place Order — v1 (RPC)
+
+**RPC:** `place_order_v1`\
+**Table:** `public.market_orders`
+
+**Inputs:** listing_id, buyer_id, quantity, note\
+**Outputs:** order_id, status
+
+#### 5C.3 Update Order Status — v1 (RPC)
+
+**RPC:** `farmer_confirm_order_v1`, `farmer_reject_order_v1`, `update_order_status_v1`\
+Rules: farmer can update only orders linked to their listings. State machine enforced.
+
+---
+
+### 5D) Agent Domain
+
+Agent work is modeled via tasks and visits, not a single "verification" endpoint.
+
+**Tables:** `agent_tasks`, `agent_visits`, `agent_data`, `agent_farmer_assignments`
+
+**RPCs:**
+- `agent_dashboard_v1` — agent dashboard stats
+- `list_agent_tasks_compact_v1` — paginated task list
+
+Agent crop verification is currently done via direct table access. A dedicated Edge Function (`agent-update-crop-status`) is planned.
+
+---
+
+### 5E) Vendor Domain (Planned)
+
+Vendor dashboard is not yet implemented. When built:
+- Vendor registration will use `complete-role-onboard` with role `vendor`
+- Vendor delivery requests will use the unified shipment system (`POST /shipments` with `request_source_type: "vendor"`)
+
+---
+
+### 5F) Transport Partner Domain
+
+#### Vehicle Registration (Direct + RLS)
+
+**Table:** `public.vehicles`\
+Transporter inserts own vehicles via direct Supabase client.
+
+---
+
+### 5G) Admin Domain
+
+#### Dashboard Metrics — v1 (RPC)
+
+**RPC:** `admin_dashboard_v1(p_days)` — returns platform-wide metrics\
+**RPC:** `logistics_dashboard_v1` — logistics-specific stats
+
+#### Admin Edge Functions
+
+| Function | Auth | Purpose |
+|----------|------|---------|
+| `admin-enqueue` | JWT (admin) | Enqueue background jobs |
+| `admin-jobs-summary` | JWT (admin) | Job queue statistics |
+| `admin-finance-summary` | JWT (admin) | Financial summary |
+
+All return `{ success: true, data: {...} }`.
+
+---
+
+## 6) Tier-4 Secure Domain (KYC + Payments)
+
+### 6.1 Create Payment Order (Edge)
+
+**Endpoint:** `POST /functions/v1/create-payment-order`\
+**JWT:** required
+
+**Request**
+
+```json
+{ "order_id": "<uuid>", "provider": "razorpay" }
+```
 
 **Response**
 
-    {
-      "ok": true,
-      "data": {
-        "trip_id": "<uuid>",
-        "transport_request_id": "<uuid>",
-        "status": "ASSIGNED"
-      },
-      "request_id": "<uuid>",
-      "meta": { "version": "v1" }
-    }
+```json
+{
+  "success": true,
+  "data": {
+    "key_id": "<razorpay_key>",
+    "payment_order_id": "<provider_order_id>",
+    "amount": 250000,
+    "currency": "INR",
+    "order_id": "<uuid>"
+  }
+}
+```
 
-Errors: - CONFLICT (already accepted) - ROLE_FORBIDDEN - NOT_FOUND -
-VALIDATION_ERROR
+### 6.2 Payment Webhook (Edge)
 
-------------------------------------------------------------------------
+**Endpoint:** `POST /functions/v1/payment-webhook`\
+**Auth:** HMAC-SHA256 signature (no JWT)\
+**Idempotency:** per event_id
 
-## 5B.3 Update Trip Status --- v1 (Edge + RPC)
+### 6.3 KYC Start (Planned)
 
-**Endpoint:** `POST /functions/v1/update-trip-status`\
-**JWT:** required\
-**Allowed Roles:** logistics, admin\
-**Audit:** yes
+**Endpoint:** `POST /functions/v1/kyc-start` (not yet implemented)
 
-**Request**
+---
 
-    {
-      "trip_id": "<uuid>",
-      "new_status": "EN_ROUTE|PICKED_UP|IN_TRANSIT|DELIVERED",
-      "proof": {
-        "media_id": "<uuid>",
-        "lat": 12.3,
-        "lng": 76.6,
-        "timestamp": "2026-02-19T10:00:00Z"
-      }
-    }
+## 7) Storage Upload Contracts
 
-Rules: - PICKED_UP and DELIVERED require proof - status transitions must
-be valid from current state - inserts `transport_status_events`
-append-only
+### 7.1 Get Signed Upload URL — v1
 
-------------------------------------------------------------------------
-
-## 5B.4 GPS Ingest --- v1 (Edge only)
-
-**Endpoint:** `POST /functions/v1/trip-location-ingest`\
-**JWT:** required\
-**Allowed Roles:** logistics\
-**Rate Limit:** required\
-**Audit:** anomaly-only
+**Endpoint:** `POST /functions/v1/storage-sign-upload-v1`\
+**JWT:** required
 
 **Request**
 
-    {
-      "trip_id": "<uuid>",
-      "points": [
-        { "lat": 12.3, "lng": 76.6, "speed": 40, "heading": 120, "recorded_at": "..." },
-        ...
-      ]
-    }
+```json
+{
+  "bucket": "crop-media|trip-proofs|kyc-docs",
+  "content_type": "image/jpeg",
+  "size_bytes": 12345,
+  "entity": { "type": "crop|trip|kyc", "id": "<uuid>" }
+}
+```
 
-Response: - accepted count - dropped count - server timestamp
+**Response**
 
-------------------------------------------------------------------------
+```json
+{
+  "success": true,
+  "data": {
+    "file_id": "<uuid>",
+    "bucket": "crop-media",
+    "path": "crop/<entity_id>/<uuid>.jpg",
+    "token": "<signed_upload_url>"
+  }
+}
+```
 
-# 5C) Marketplace Domain
+### 7.2 Confirm Upload — v1
 
-## 5C.1 Browse Listings (Buyer) (Direct + RLS)
+**Endpoint:** `POST /functions/v1/storage-confirm-upload-v1`\
+Marks file status as `ready`.
 
-Table: `public.listings`
+### 7.3 Signed Read URL — v1
 
-Buyer: - SELECT where listing is APPROVED and not deleted
+**Endpoint:** `POST /functions/v1/storage-sign-read-v1`\
+Returns a time-limited signed URL for reading a private file.
 
-Farmer: - SELECT own listings
+### 7.4 Delete File — v1
 
-Agent: - SELECT assigned farmer listings
+**Endpoint:** `POST /functions/v1/storage-delete-v1`\
+Deletes file from storage and marks `files` record as deleted.
 
-------------------------------------------------------------------------
+---
 
-## 5C.2 Place Order (Buyer) --- v1 (RPC recommended)
+## 8) Internal/Worker APIs
 
-Because order placement impacts multiple tables (inventory,
-notifications), use RPC.
+These endpoints are NOT called by the frontend. They use `x-worker-secret` for auth.
 
-**RPC:** `place_market_order_v1`\
-Inputs: - listing_id, quantity, buyer_notes
+| Function | Purpose |
+|----------|---------|
+| `job-worker` | Background job processor |
+| `finance-cron` | Scheduled finance/trust/analytics job enqueuer |
+| `finance-reconcile` | Manual payment reconciliation trigger |
+| `finance-admin-api` | Finance admin actions (refunds, payouts) |
 
-Outputs: - order_id, status
+All return `{ success: true, data: {...} }`.
 
-------------------------------------------------------------------------
+---
 
-## 5C.3 Update Order Status (Farmer) --- v1 (RPC)
+## 9) Dev-Only APIs
 
-**RPC:** `farmer_update_order_status_v1` Inputs: - order_id, new_status
-Rules: - farmer can update only orders linked to their listings -
-transitions validated (state machine) - audit log written
+These endpoints require `DEV_TOOLS_ENABLED=true` and `x-dev-secret` header. **Never call from production UI.**
 
-------------------------------------------------------------------------
+| Function | Method | Purpose |
+|----------|--------|---------|
+| `dev-switch-role` | POST | Switch acting role |
+| `dev-get-active-role` | GET | Query active role |
+| `dev-create-acting-session` | POST | Create acting session |
+| `dev-revoke-acting-session` | POST | Revoke acting session |
 
-# 5D) Warehouse Domain
+All return `{ success: true, data: {...} }`.
 
-## 5D.1 Stock Adjust (Operator/Admin) --- v1 (Edge + RPC)
+---
 
-**Endpoint:** `POST /functions/v1/warehouse-adjust-stock`\
-JWT required, role = admin or warehouse_operator (future role).\
-Idempotency required.
+## 10) Table Name Reference
 
-**Request**
+Mapping from conceptual domain names to actual database tables:
 
-    {
-      "warehouse_id": "<uuid>",
-      "crop_id": "<uuid>",
-      "delta_qty": 100,
-      "reason": "INTAKE|DISPATCH|DAMAGE|AUDIT_CORRECTION"
-    }
+| Domain Concept | Actual Table | Notes |
+|---------------|-------------|-------|
+| Farms | `farmlands` | Farmer land parcels |
+| Farm crops | `crops` | Linked via `land_id` FK |
+| Produce listings | `listings` | Marketplace produce listings |
+| Buyer orders | `market_orders` | Via `place_order_v1` RPC |
+| Shipments | `shipment_requests` | Unified logistics |
+| Shipment items | `shipment_items` | Line items in a shipment |
+| Trips (legacy) | `trips` | Legacy transport trips |
+| Trips (unified) | `unified_trips` | New unified trip model |
+| Trip legs | `trip_legs` | Multi-stop trip segments |
+| Bookings | `shipment_bookings` | Shipment-to-trip assignment |
+| Load pools | `load_pools` + `load_pool_members` | Grouped shipments |
+| Reverse loads | `reverse_load_candidates` | Return-trip opportunities |
+| Route clusters | `route_clusters` | Geographic route groupings |
+| Vehicles | `vehicles` | Transporter vehicle registry |
+| Agent verifications | `agent_tasks` + `agent_visits` | Agent field work |
+| Users | `profiles` + `user_roles` | User identity and roles |
 
-Server: - calls RPC `warehouse_adjust_stock_v1` - inserts
-`warehouse_stock_events` - prevents negative stock - audit log written
+---
 
-------------------------------------------------------------------------
+## 11) Error Handling Details
 
-# 5E) Tier-4 Secure Domain (KYC + Payments)
+### 11.1 Validation Errors
 
-## 5E.1 KYC Start --- v1 (Edge + RPC)
+Return code `VALIDATION_ERROR` with a human-readable message describing the invalid field.
 
-**Endpoint:** `POST /functions/v1/kyc-start`\
-Roles: admin/system (later user-initiated with strict scope)
+### 11.2 Conflict Errors
 
-Returns: - provider session URL or token - reference_id (tokenized)
+Return code `CONFLICT`. Examples: accept load already taken, idempotency key mismatch.
 
-------------------------------------------------------------------------
+### 11.3 Not Found
 
-## 5E.2 Payment Webhook --- v1 (Edge webhook)
+Do not reveal existence across roles. Prefer generic `NOT_FOUND` when unauthorized.
 
-**Endpoint:** `POST /functions/v1/payments-webhook`\
-JWT off, signature required, idempotency required. Writes to: -
-secure.payment_events - audit.security_events
+---
 
-------------------------------------------------------------------------
+## 12) Deprecation Policy
 
-## 6) Storage Upload Contracts
+When changing a contract:
+1. Keep v1 for 90 days
+2. Publish v2 alongside
+3. Update client to v2
+4. Then remove v1
 
-Uploads must follow signed URL pattern.
+---
 
-### 6.1 Get Signed Upload URL --- v1
+## 13) Cursor Contract (Must Output For New APIs)
 
-**Endpoint:** `POST /functions/v1/storage-sign-upload`\
-JWT required. Request:
+For any new endpoint/RPC, AI agents must output:
 
-    {
-      "bucket": "crop-photos|trip-proofs|voice-notes|soil-reports|kyc-documents",
-      "path_hint": "optional",
-      "content_type": "image/jpeg",
-      "size_bytes": 12345,
-      "entity": { "type": "crop|trip|kyc", "id": "<uuid>" }
-    }
+1. Endpoint name + version
+2. API mechanism type (Direct/RPC/Edge)
+3. `verify_jwt` setting
+4. Allowed roles
+5. Request schema
+6. Response schema (using canonical format)
+7. Idempotency rule
+8. Rate limit rule
+9. Audit event definition
+10. DB/RLS/RPC dependencies
+11. Tests to add
 
-Response: - signed_url - path - expires_at
+---
 
-Must validate: - bucket allowed for role - entity ownership - file type
-allowlist - size limit
+## 14) API Development Rules for AI Agents
 
-------------------------------------------------------------------------
+1. Never create duplicate logistics APIs — use the unified shipment system.
+2. Always use `shipment_requests` as the logistics entry point for all actors.
+3. Maintain backward compatibility with legacy `transport_requests` during migration.
+4. Always validate actor roles server-side.
+5. Use service layer (RPC) for business logic — keep Edge Functions thin.
+6. All responses MUST use `{ success: true, data }` / `{ success: false, error: { code, message } }`.
+7. Never create role-specific endpoint names (e.g., `/farmer-transport-request`).
 
-## 7) Error Handling Details
-
-### 7.1 Validation Errors
-
-Return: - code=VALIDATION_ERROR - details with field-level errors
-
-### 7.2 Conflict Errors
-
-Return: - code=CONFLICT Examples: - accept load already taken -
-idempotency key mismatch
-
-### 7.3 Not Found
-
-Do not reveal existence across roles. Prefer generic NOT_FOUND when
-unauthorized.
-
-------------------------------------------------------------------------
-
-## 8) Audit Requirements Per Endpoint
-
-Every endpoint/RPC must declare: - action_type - entity_type -
-entity_id - metadata fields
-
-Minimum audited endpoints: - accept-load - update-trip-status -
-agent-update-crop-status - warehouse-adjust-stock - any Tier-4 calls -
-any admin data export
-
-------------------------------------------------------------------------
-
-## 9) Frontend Integration Standards
-
-Frontend must implement: - typed request/response wrappers - request_id
-propagation - idempotency-key generation for idempotent calls - retry
-strategy: - safe retries only for idempotent endpoints
-
-Hooks naming: - useAcceptLoad() - useUpdateTripStatus() -
-useTripLocationIngest() - useSignedUploadUrl()
-
-------------------------------------------------------------------------
-
-## 10) Deprecation Policy
-
-When changing a contract: - keep v1 for 90 days - publish v2 alongside -
-update client to v2 - then remove v1
-
-------------------------------------------------------------------------
-
-## 11) Cursor Contract (Must Output For New APIs)
-
-For any new endpoint/RPC, Cursor must output: 1. Endpoint name + version
-2. Type (A/B/C/D) 3. verify_jwt setting 4. allowed roles 5. request
-schema 6. response schema 7. idempotency rule 8. rate limit rule 9.
-audit event definition 10. DB/RLS/RPC dependencies 11. tests to add
-
-------------------------------------------------------------------------
+---
 
 END OF API CONTRACTS

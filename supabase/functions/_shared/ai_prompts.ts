@@ -1,3 +1,12 @@
+/**
+ * AI prompt templates for all AgriNext roles.
+ *
+ * These are the ONLY prompts that should be used with Gemini.
+ * Never write system prompts inline inside Edge Functions.
+ *
+ * Exported: buildFarmerPrompt(context, language), buildAgentPrompt(...), etc.
+ * Each builder returns { systemPrompt, userPrompt } ready for gemini_client.ts.
+ */
 import type { SupportedResponseLanguage } from "./ai_lang.ts";
 
 type FarmerProfileContext = {

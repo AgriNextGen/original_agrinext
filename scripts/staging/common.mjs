@@ -14,6 +14,14 @@ export function requireEnv(name, fallback = null) {
   return String(value).trim();
 }
 
+export function getMgmtApiConfig() {
+  const { url } = getSupabaseConfig();
+  const pat = requireEnv("SUPABASE_PAT");
+  const projectRef = new URL(url).hostname.split(".")[0];
+  const base = `https://api.supabase.com/v1/projects/${projectRef}`;
+  return { pat, projectRef, base };
+}
+
 export function getSupabaseConfig() {
   const url = requireEnv("SUPABASE_URL", "VITE_SUPABASE_URL").replace(/^"|"$/g, "");
   const serviceRoleKey = requireEnv("SUPABASE_SERVICE_ROLE_KEY").replace(/^"|"$/g, "");

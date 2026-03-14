@@ -1,11 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import DashboardLayout from '@/layouts/DashboardLayout';
+import PageShell from '@/components/layout/PageShell';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Progress } from '@/components/ui/progress';
 import {
   Select,
   SelectContent,
@@ -13,12 +15,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { User, Save, Truck, MapPin } from 'lucide-react';
+import { User, Save, Truck, MapPin, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useTransporterProfile } from '@/hooks/useLogisticsDashboard';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import GeoDistrictSelect from '@/components/geo/GeoDistrictSelect';
 import { toast } from 'sonner';
+import { useLanguage } from '@/hooks/useLanguage';
+import { cn } from '@/lib/utils';
 
 const vehicleTypes = [
   { value: 'truck', label: 'Truck' },
@@ -28,11 +32,29 @@ const vehicleTypes = [
   { value: 'tractor', label: 'Tractor Trolley' },
 ];
 
+const MAX_CAPACITY: Record<string, number> = {
+  truck: 25, pickup: 5, mini_truck: 8, tempo: 10, tractor: 15,
+};
+
+function formatPhone(raw: string): string {
+  const digits = raw.replace(/\D/g, '');
+  if (digits.startsWith('91') && digits.length > 2) {
+    const local = digits.slice(2);
+    return `+91 ${local.slice(0, 5)} ${local.slice(5, 10)}`.trim();
+  }
+  if (digits.length === 10) {
+    return `+91 ${digits.slice(0, 5)} ${digits.slice(5)}`;
+  }
+  return raw;
+}
+
 const Profile = () => {
+  const { t } = useLanguage();
   const { data: profile, isLoading } = useTransporterProfile();
   const queryClient = useQueryClient();
-  
+
   const [isSaving, setIsSaving] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -57,11 +79,48 @@ const Profile = () => {
     }
   }, [profile]);
 
+  const completion = useMemo(() => {
+    const fields = [
+      formData.name,
+      formData.phone,
+      formData.vehicle_type,
+      formData.vehicle_capacity,
+      formData.registration_number,
+      formData.operating_village,
+      formData.operating_district,
+    ];
+    const filled = fields.filter((f) => f.trim().length > 0).length;
+    return Math.round((filled / fields.length) * 100);
+  }, [formData]);
+
+  const validate = (): boolean => {
+    const newErrors: Record<string, string> = {};
+    if (!formData.name.trim()) newErrors.name = t('validation.required');
+    if (formData.phone) {
+      const digits = formData.phone.replace(/\D/g, '');
+      if (digits.length < 10) newErrors.phone = t('validation.phone_required');
+    }
+    if (formData.vehicle_capacity) {
+      const cap = parseFloat(formData.vehicle_capacity);
+      if (isNaN(cap) || cap <= 0) {
+        newErrors.vehicle_capacity = t('validation.required');
+      } else {
+        const max = MAX_CAPACITY[formData.vehicle_type] ?? 30;
+        if (cap > max) {
+          newErrors.vehicle_capacity = `Max ${max} tons for ${formData.vehicle_type.replace('_', ' ')}`;
+        }
+      }
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSave = async () => {
     if (!profile?.id) {
-      toast.error('Profile not found');
+      toast.error(t('logistics.profileNotFound') || 'Profile not found');
       return;
     }
+    if (!validate()) return;
 
     setIsSaving(true);
     try {
@@ -80,10 +139,10 @@ const Profile = () => {
 
       if (error) throw error;
 
-      toast.success('Profile updated successfully!');
+      toast.success(t('logistics.profileUpdated') || 'Profile updated successfully!');
       queryClient.invalidateQueries({ queryKey: ['transporter-profile'] });
     } catch (error: any) {
-      toast.error('Failed to update profile: ' + error.message);
+      toast.error(t('errors.profileUpdateFailed'));
     } finally {
       setIsSaving(false);
     }
@@ -91,25 +150,48 @@ const Profile = () => {
 
   if (isLoading) {
     return (
-      <DashboardLayout title="My Profile">
+      <DashboardLayout title={t('logistics.myProfile') || 'My Profile'}>
         <div className="space-y-6">
           <Skeleton className="h-10 w-48" />
-          <Skeleton className="h-96 w-full" />
+          <div className="grid md:grid-cols-2 gap-6">
+            <Skeleton className="h-80" />
+            <Skeleton className="h-80" />
+          </div>
         </div>
       </DashboardLayout>
     );
   }
 
   return (
-    <DashboardLayout title="My Profile">
-      <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">My Profile</h1>
-        <p className="text-muted-foreground">
-          Manage your transporter profile and settings
-        </p>
-      </div>
+    <DashboardLayout title={t('logistics.myProfile') || 'My Profile'}>
+      <PageShell title={t('logistics.myProfile') || 'My Profile'} subtitle={t('logistics.manageProfile') || 'Manage your transporter profile and settings'}>
+
+      {/* Profile Completion */}
+      <Card className={cn(
+        'border-2',
+        completion === 100 ? 'border-emerald-200 bg-emerald-50/50' : 'border-amber-200 bg-amber-50/50'
+      )}>
+        <CardContent className="py-4">
+          <div className="flex items-center gap-3">
+            {completion === 100 ? (
+              <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
+            ) : (
+              <AlertCircle className="h-5 w-5 text-amber-600 shrink-0" />
+            )}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-sm font-medium">
+                  {completion === 100
+                    ? (t('logistics.profileComplete') || 'Profile complete')
+                    : (t('logistics.completeYourProfile') || 'Complete your profile')}
+                </p>
+                <span className="text-sm font-bold tabular-nums">{completion}%</span>
+              </div>
+              <Progress value={completion} className="h-2" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid md:grid-cols-2 gap-6">
         {/* Personal Info */}
@@ -117,48 +199,57 @@ const Profile = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <User className="h-5 w-5 text-primary" />
-              Personal Information
+              {t('logistics.personalInfo') || 'Personal Information'}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Full Name *</Label>
+              <Label htmlFor="name">{t('logistics.fullName') || 'Full Name'} *</Label>
               <Input
                 id="name"
                 value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="Enter your full name"
+                onChange={(e) => { setFormData(prev => ({ ...prev, name: e.target.value })); setErrors(prev => ({ ...prev, name: '' })); }}
+                placeholder={t('logistics.enterFullName') || 'Enter your full name'}
+                className={errors.name ? 'border-destructive' : ''}
               />
+              {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
+              <Label htmlFor="phone">{t('logistics.phoneNumber') || 'Phone Number'}</Label>
               <Input
                 id="phone"
                 value={formData.phone}
-                onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                placeholder="+91 9876543210"
+                onChange={(e) => { setFormData(prev => ({ ...prev, phone: e.target.value })); setErrors(prev => ({ ...prev, phone: '' })); }}
+                onBlur={() => {
+                  if (formData.phone) {
+                    setFormData(prev => ({ ...prev, phone: formatPhone(prev.phone) }));
+                  }
+                }}
+                placeholder="+91 98765 43210"
+                className={errors.phone ? 'border-destructive' : ''}
               />
+              {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="operating_village">Operating Village</Label>
+              <Label htmlFor="operating_village">{t('logistics.operatingVillage') || 'Operating Village'}</Label>
               <Input
                 id="operating_village"
                 value={formData.operating_village}
                 onChange={(e) => setFormData(prev => ({ ...prev, operating_village: e.target.value }))}
-                placeholder="Your base village"
+                placeholder={t('logistics.baseVillage') || 'Your base village'}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="operating_district">Operating District</Label>
+              <Label htmlFor="operating_district">{t('logistics.operatingDistrict') || 'Operating District'}</Label>
               <GeoDistrictSelect
                 value={formData.operating_district || ''}
                 onValueChange={(id) => {
                   setFormData(prev => ({ ...prev, operating_district: id }));
                 }}
-                placeholder="Select district"
+                placeholder={t('logistics.selectDistrict') || 'Select district'}
               />
             </div>
 
@@ -166,8 +257,8 @@ const Profile = () => {
               <div className="flex items-center gap-2 p-3 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer">
                 <MapPin className="h-5 w-5 text-primary" />
                 <div>
-                  <p className="font-medium text-sm">Service Areas</p>
-                  <p className="text-xs text-muted-foreground">Manage districts you operate in</p>
+                  <p className="font-medium text-sm">{t('logistics.serviceAreas') || 'Service Areas'}</p>
+                  <p className="text-xs text-muted-foreground">{t('logistics.manageDistricts') || 'Manage districts you operate in'}</p>
                 </div>
               </div>
             </Link>
@@ -179,18 +270,18 @@ const Profile = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Truck className="h-5 w-5 text-primary" />
-              Primary Vehicle
+              {t('logistics.primaryVehicle') || 'Primary Vehicle'}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="vehicle_type">Vehicle Type</Label>
-              <Select 
-                value={formData.vehicle_type} 
+              <Label htmlFor="vehicle_type">{t('logistics.vehicleType') || 'Vehicle Type'}</Label>
+              <Select
+                value={formData.vehicle_type}
                 onValueChange={(value) => setFormData(prev => ({ ...prev, vehicle_type: value }))}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select vehicle type" />
+                  <SelectValue placeholder={t('logistics.selectVehicleType') || 'Select vehicle type'} />
                 </SelectTrigger>
                 <SelectContent>
                   {vehicleTypes.map((type) => (
@@ -203,28 +294,40 @@ const Profile = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="vehicle_capacity">Capacity (tons)</Label>
+              <Label htmlFor="vehicle_capacity">
+                {t('logistics.capacityTons') || 'Capacity (tons)'}
+                {formData.vehicle_type && (
+                  <span className="ml-1 text-xs text-muted-foreground font-normal">
+                    (max {MAX_CAPACITY[formData.vehicle_type] ?? 30}t)
+                  </span>
+                )}
+              </Label>
               <Input
                 id="vehicle_capacity"
                 type="number"
+                min="0"
+                max={MAX_CAPACITY[formData.vehicle_type] ?? 30}
+                step="0.5"
                 value={formData.vehicle_capacity}
-                onChange={(e) => setFormData(prev => ({ ...prev, vehicle_capacity: e.target.value }))}
-                placeholder="e.g., 10"
+                onChange={(e) => { setFormData(prev => ({ ...prev, vehicle_capacity: e.target.value })); setErrors(prev => ({ ...prev, vehicle_capacity: '' })); }}
+                placeholder="e.g., 5"
+                className={errors.vehicle_capacity ? 'border-destructive' : ''}
               />
+              {errors.vehicle_capacity && <p className="text-xs text-destructive">{errors.vehicle_capacity}</p>}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="registration_number">Registration Number</Label>
+              <Label htmlFor="registration_number">{t('logistics.registrationNumber') || 'Registration Number'}</Label>
               <Input
                 id="registration_number"
                 value={formData.registration_number}
-                onChange={(e) => setFormData(prev => ({ ...prev, registration_number: e.target.value }))}
+                onChange={(e) => setFormData(prev => ({ ...prev, registration_number: e.target.value.toUpperCase() }))}
                 placeholder="e.g., KA-01-AB-1234"
               />
             </div>
 
             <p className="text-xs text-muted-foreground">
-              You can add more vehicles from the Vehicles page
+              {t('logistics.addMoreVehiclesHint') || 'You can add more vehicles from the Vehicles page'}
             </p>
           </CardContent>
         </Card>
@@ -232,12 +335,12 @@ const Profile = () => {
 
       {/* Save Button */}
       <div className="flex justify-end">
-        <Button onClick={handleSave} disabled={isSaving}>
+        <Button onClick={handleSave} disabled={isSaving} size="lg">
           <Save className="h-4 w-4 mr-2" />
-          {isSaving ? 'Saving...' : 'Save Changes'}
+          {isSaving ? (t('common.saving') || 'Saving...') : (t('common.save_changes') || 'Save Changes')}
         </Button>
       </div>
-      </div>
+      </PageShell>
     </DashboardLayout>
   );
 };

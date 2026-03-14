@@ -91,7 +91,7 @@ const EditCropDialog = ({ crop, open, onOpenChange }: EditCropDialogProps) => {
           <DialogTitle>{t('farmer.crops.editCrop')}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
+          <div className="space-y-2">
             <Label>{t('farmer.crops.cropName')} *</Label>
             <Input
               value={formData.crop_name}
@@ -100,7 +100,7 @@ const EditCropDialog = ({ crop, open, onOpenChange }: EditCropDialogProps) => {
               required
             />
           </div>
-          <div>
+          <div className="space-y-2">
             <Label>{t('farmer.crops.variety')}</Label>
             <Input
               value={formData.variety}
@@ -108,7 +108,7 @@ const EditCropDialog = ({ crop, open, onOpenChange }: EditCropDialogProps) => {
               placeholder={t('farmer.crops.varietyPlaceholder')}
             />
           </div>
-          <div>
+          <div className="space-y-2">
             <Label>{t('farmer.crops.status')}</Label>
             <Select 
               value={formData.status} 
@@ -125,7 +125,7 @@ const EditCropDialog = ({ crop, open, onOpenChange }: EditCropDialogProps) => {
               </SelectContent>
             </Select>
           </div>
-          <div>
+          <div className="space-y-2">
             <Label>{t('farmer.farmlands.title')}</Label>
             <Select value={formData.land_id} onValueChange={(v) => setFormData({ ...formData, land_id: v })}>
               <SelectTrigger>
@@ -141,7 +141,7 @@ const EditCropDialog = ({ crop, open, onOpenChange }: EditCropDialogProps) => {
             </Select>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <div>
+            <div className="space-y-2">
               <Label>{t('farmer.crops.sowingDate')}</Label>
               <Input
                 type="date"
@@ -149,7 +149,7 @@ const EditCropDialog = ({ crop, open, onOpenChange }: EditCropDialogProps) => {
                 onChange={(e) => setFormData({ ...formData, sowing_date: e.target.value })}
               />
             </div>
-            <div>
+            <div className="space-y-2">
               <Label>{t('farmer.crops.harvestDate')}</Label>
               <Input
                 type="date"
@@ -159,7 +159,7 @@ const EditCropDialog = ({ crop, open, onOpenChange }: EditCropDialogProps) => {
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <div>
+            <div className="space-y-2">
               <Label>{t('farmer.crops.expectedQuantity')}</Label>
               <Input
                 type="number"
@@ -168,7 +168,7 @@ const EditCropDialog = ({ crop, open, onOpenChange }: EditCropDialogProps) => {
                 placeholder="50"
               />
             </div>
-            <div>
+            <div className="space-y-2">
               <Label>{t('common.unit')}</Label>
               <Select value={formData.quantity_unit} onValueChange={(v) => setFormData({ ...formData, quantity_unit: v })}>
                 <SelectTrigger>

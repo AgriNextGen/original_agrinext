@@ -1,4 +1,6 @@
 import DashboardLayout from '@/layouts/DashboardLayout';
+import PageShell from '@/components/layout/PageShell';
+import KpiCard from '@/components/dashboard/KpiCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -10,74 +12,85 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { CheckCircle2, MapPin, Calendar, Package } from 'lucide-react';
+import { CheckCircle2, MapPin, Calendar, Package, RotateCcw, DollarSign } from 'lucide-react';
+import EmptyState from '@/components/shared/EmptyState';
 import { useTrips } from '@/hooks/useTrips';
+import { useCompletedUnifiedTrips } from '@/hooks/useUnifiedLogistics';
 import { format, parseISO } from 'date-fns';
+import { useLanguage } from '@/hooks/useLanguage';
+import TripCard from '@/components/logistics/TripCard';
+import { useNavigate } from 'react-router-dom';
+import { ROUTES } from '@/lib/routes';
 
 const CompletedTrips = () => {
-  const { data: trips, isLoading } = useTrips(['delivered']);
+  const { t } = useLanguage();
+  const navigate = useNavigate();
+  const { data: trips, isLoading } = useTrips(['delivered', 'completed']);
+  const { data: completedUnified } = useCompletedUnifiedTrips();
 
   if (isLoading) {
     return (
-      <DashboardLayout title="Completed Trips">
-        <div className="space-y-6">
-          <Skeleton className="h-10 w-48" />
-          <Skeleton className="h-96 w-full" />
-        </div>
+      <DashboardLayout title={t('logistics.completedTrips')}>
+        <PageShell title={t('logistics.completedTrips')}>
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-6 w-48" />
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex items-center gap-4 py-3">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-4 w-20" />
+                  <Skeleton className="h-6 w-16 rounded-full" />
+                  <Skeleton className="h-4 w-28" />
+                  <Skeleton className="h-4 w-24" />
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </PageShell>
       </DashboardLayout>
     );
   }
 
   return (
-    <DashboardLayout title="Completed Trips">
-      <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Completed Trips</h1>
-        <p className="text-muted-foreground">
-          {trips?.length || 0} trips completed successfully
-        </p>
-      </div>
-
+    <DashboardLayout title={t('logistics.completedTrips')}>
+      <PageShell title={t('logistics.completedTrips')} subtitle={`${trips?.length || 0} ${t('logistics.tripsCompletedSuccessfully')}`}>
       {/* Trips Table */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <CheckCircle2 className="h-5 w-5 text-green-600" />
-            Delivery History
+            {t('logistics.deliveryHistory')}
           </CardTitle>
         </CardHeader>
         <CardContent>
           {!trips || trips.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <Package className="h-16 w-16 mx-auto mb-4 opacity-50" />
-              <p className="text-lg">No completed trips yet</p>
-              <p className="text-sm">Your delivery history will appear here</p>
-            </div>
+            <EmptyState icon={Package} title={t('logistics.noCompletedTrips')} description={t('logistics.deliveryHistoryHint')} />
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Farmer</TableHead>
-                    <TableHead>Crop</TableHead>
-                    <TableHead>Quantity</TableHead>
-                    <TableHead>Pickup Location</TableHead>
-                    <TableHead>Completed</TableHead>
-                    <TableHead>Distance</TableHead>
+                    <TableHead>{t('logistics.farmer')}</TableHead>
+                    <TableHead>{t('logistics.crop')}</TableHead>
+                    <TableHead>{t('logistics.quantity')}</TableHead>
+                    <TableHead>{t('logistics.pickupLocation')}</TableHead>
+                    <TableHead>{t('common.completed')}</TableHead>
+                    <TableHead>{t('logistics.totalDistanceKm')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {trips.map((trip) => (
                     <TableRow key={trip.id}>
                       <TableCell>
-                        <p className="font-medium">{trip.farmer?.full_name || 'Unknown'}</p>
+                        <p className="font-medium">{trip.farmer?.full_name || t('common.unknown')}</p>
                         <p className="text-xs text-muted-foreground">
                           {[trip.farmer?.village, trip.farmer?.district].filter(Boolean).join(', ')}
                         </p>
                       </TableCell>
                       <TableCell>
-                        <p className="font-medium">{trip.crop?.crop_name || 'N/A'}</p>
+                        <p className="font-medium">{trip.crop?.crop_name || t('common.notAvailable')}</p>
                         {trip.crop?.variety && (
                           <p className="text-xs text-muted-foreground">{trip.crop.variety}</p>
                         )}
@@ -122,39 +135,31 @@ const CompletedTrips = () => {
       {/* Summary Stats */}
       {trips && trips.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-4 text-center">
-              <p className="text-2xl font-bold text-green-600">{trips.length}</p>
-              <p className="text-sm text-muted-foreground">Total Deliveries</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <p className="text-2xl font-bold text-primary">
-                {trips.reduce((acc, t) => acc + (t.transport_request?.quantity || 0), 0)}
-              </p>
-              <p className="text-sm text-muted-foreground">Total Quintals</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <p className="text-2xl font-bold text-blue-600">
-                {trips.reduce((acc, t) => acc + ((t as any).distance_km || 0), 0)}
-              </p>
-              <p className="text-sm text-muted-foreground">Total Distance (km)</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <p className="text-2xl font-bold text-amber-600">
-                {new Set(trips.map(t => t.transport_request?.farmer_id).filter(Boolean)).size}
-              </p>
-              <p className="text-sm text-muted-foreground">Farmers Served</p>
-            </CardContent>
-          </Card>
+          <KpiCard label={t('logistics.totalDeliveries')} value={trips.length} icon={CheckCircle2} priority="success" />
+          <KpiCard label={t('logistics.totalQuintals')} value={trips.reduce((acc, trip) => acc + (trip.transport_request?.quantity || 0), 0)} icon={Package} priority="primary" />
+          <KpiCard label={t('logistics.totalDistanceKm')} value={trips.reduce((acc, trip) => acc + ((trip as any).distance_km || 0), 0)} icon={MapPin} priority="info" />
+          <KpiCard label={t('logistics.farmersServed')} value={new Set(trips.map((trip) => trip.transport_request?.farmer_id).filter(Boolean)).size} icon={Package} priority="warning" />
         </div>
       )}
-      </div>
+
+      {completedUnified && completedUnified.length > 0 && (
+        <div className="mt-6">
+          <h3 className="text-lg font-semibold flex items-center gap-2 mb-3">
+            <CheckCircle2 className="h-5 w-5 text-green-600" />
+            {t('logistics.unifiedCompletedTrips')}
+          </h3>
+          <div className="space-y-3">
+            {completedUnified.map((trip) => (
+              <TripCard
+                key={trip.id}
+                trip={trip}
+                onViewDetail={(id) => navigate(ROUTES.LOGISTICS.UNIFIED_TRIP_DETAIL(id))}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+      </PageShell>
     </DashboardLayout>
   );
 };

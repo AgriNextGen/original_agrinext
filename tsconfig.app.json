@@ -16,10 +16,12 @@
 
     /* Linting */
     "strict": false,
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "noImplicitAny": false,
+    "noUnusedLocals": true,      // Phase A: catches dead imports and unused variables
+    "noUnusedParameters": false, // Phase B: enable once codebase is cleaner (many React props are unused)
+    "noImplicitAny": false,      // Phase C: enable after strictNullChecks is resolved
     "noFallthroughCasesInSwitch": false,
+    // NOTE: strictNullChecks is off (strict: false). Runtime nulls are invisible to TypeScript.
+    // This is the #1 cause of bugs. Enable after backfilling null checks throughout the codebase.
 
     "baseUrl": ".",
     "paths": {

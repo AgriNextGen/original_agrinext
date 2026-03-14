@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useLanguage } from '@/hooks/useLanguage';
 import { toast } from 'sonner';
 
 /**
@@ -26,12 +27,11 @@ export interface Transporter {
 export interface Vehicle {
   id: string;
   transporter_id: string;
-  vehicle_type: string;
-  capacity: number;
-  number_plate: string;
-  is_active: boolean;
+  vehicle_type: string | null;
+  capacity_kg: number | null;
+  registration_number: string | null;
+  refrigerated: boolean | null;
   created_at: string;
-  updated_at: string;
 }
 
 export interface TransportRequest {
@@ -47,6 +47,8 @@ export interface TransportRequest {
   status: 'requested' | 'assigned' | 'en_route' | 'picked_up' | 'delivered' | 'cancelled';
   transporter_id: string | null;
   vehicle_id: string | null;
+  assigned_trip_id: string | null;
+  accepted_trip_id: string | null;
   pickup_photo_url: string | null;
   delivery_photo_url: string | null;
   distance_km: number | null;
@@ -93,6 +95,7 @@ export const useTransporterProfile = () => {
 export const useCreateTransporterProfile = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { t } = useLanguage();
   
   return useMutation({
     mutationFn: async (data: Partial<Transporter>) => {
@@ -118,10 +121,10 @@ export const useCreateTransporterProfile = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transporter-profile'] });
-      toast.success('Profile created successfully');
+      toast.success(t('hookToasts.logistics.profileCreated'));
     },
     onError: (error) => {
-      toast.error('Failed to create profile: ' + error.message);
+      toast.error(t('hookToasts.logistics.profileFailed') + ': ' + error.message);
     },
   });
 };
@@ -292,22 +295,26 @@ export const useAITransportLogs = () => {
 // Hook to get dashboard stats
 import { rpcJson } from '@/lib/readApi';
 
+const DEFAULT_STATS = { availableLoads: 0, acceptedTrips: 0, tripsInProgress: 0, completedTrips: 0 };
+
 export const useLogisticsDashboardStats = () => {
-  const q = useQuery({
+  return useQuery({
     queryKey: ['logistics-dashboard'],
     queryFn: async () => {
       const data = await rpcJson('logistics_dashboard_v1');
+      const byStatus = data?.trips_by_status || {};
       return {
         stats: {
           availableLoads: Number(data?.available_loads_count || 0),
-          acceptedTrips: Number((data?.trips_by_status && data.trips_by_status['assigned']) || 0),
-          tripsInProgress: Number((data?.trips_by_status && data.trips_by_status['en_route']) || 0),
-          completedTrips: Number((data?.trips_by_status && data.trips_by_status['delivered']) || 0),
+          acceptedTrips: Number(byStatus['accepted'] || 0),
+          tripsInProgress:
+            Number(byStatus['pickup_done'] || 0) +
+            Number(byStatus['in_transit'] || 0),
+          completedTrips: Number(byStatus['delivered'] || 0) + Number(byStatus['completed'] || 0),
         },
         transporter: null,
-        raw: data
+        raw: data,
       };
-    }
+    },
   });
-  return q.data || { stats: { availableLoads:0, acceptedTrips:0, tripsInProgress:0, completedTrips:0 }, transporter: null };
 };

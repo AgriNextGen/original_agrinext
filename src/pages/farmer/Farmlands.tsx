@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { useFarmlands, Farmland } from '@/hooks/useFarmerDashboard';
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/hooks/useLanguage';
-import { supabase } from '@/integrations/supabase/client';
+import { useCreateFarmland, useDeleteFarmland } from '@/hooks/useFarmerFarmlandMutations';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,9 +11,10 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import PageHeader from '@/components/shared/PageHeader';
+import KpiCard from '@/components/dashboard/KpiCard';
 import DataState from '@/components/ui/DataState';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Search, LandPlot, MapPin, Layers, Edit, Trash2, TreeDeciduous, TestTube2, Loader2, CheckCircle2 } from 'lucide-react';
+import { Plus, Search, LandPlot, MapPin, Layers, Edit, Trash2, TreeDeciduous, TestTube2, Loader2, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react';
 import EditFarmlandDialog from '@/components/farmer/EditFarmlandDialog';
 import ConfirmDialog from '@/components/ui/confirm-dialog';
 import EmptyState from '@/components/shared/EmptyState';
@@ -23,11 +23,12 @@ import FarmlandSoilReportsPanel from '@/components/farmer/soil-reports/FarmlandS
 import { useGeoCapture } from '@/hooks/useGeoCapture';
 
 const FarmlandsPage = () => {
-  const { data: farmlands, isLoading } = useFarmlands();
+  const { data: farmlands, isLoading, isError, refetch } = useFarmlands();
   const { user } = useAuth();
   const { toast } = useToast();
   const { t } = useLanguage();
-  const queryClient = useQueryClient();
+  const createFarmland = useCreateFarmland();
+  const deleteFarmland = useDeleteFarmland();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -61,8 +62,7 @@ const FarmlandsPage = () => {
 
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.from('farmlands').insert({
-        farmer_id: user.id,
+      await createFarmland.mutateAsync({
         name: formData.name,
         area: parseFloat(formData.area),
         area_unit: formData.area_unit,
@@ -74,13 +74,10 @@ const FarmlandsPage = () => {
         geo_verified: !!geo.position,
       });
 
-      if (error) throw error;
-
       toast({ title: t('common.success'), description: t('farmer.farmlands.addSuccess') });
       setIsDialogOpen(false);
       setFormData({ name: '', area: '', area_unit: 'acres', soil_type: '', village: '', district: '' });
       geo.clear();
-      queryClient.invalidateQueries({ queryKey: ['farmlands', user.id] });
     } catch (error) {
       const message = error instanceof Error ? error.message : t('common.error');
       toast({ title: t('common.error'), description: message, variant: 'destructive' });
@@ -99,10 +96,8 @@ const FarmlandsPage = () => {
     
     setIsDeleting(true);
     try {
-      const { error } = await supabase.from('farmlands').delete().eq('id', deletingFarmland.id);
-      if (error) throw error;
+      await deleteFarmland.mutateAsync(deletingFarmland.id);
       toast({ title: t('farmer.farmlands.deleted'), description: t('farmer.farmlands.deleteSuccess') });
-      queryClient.invalidateQueries({ queryKey: ['farmlands', user?.id] });
       setDeleteConfirmOpen(false);
       setDeletingFarmland(null);
     } catch (error) {
@@ -126,62 +121,10 @@ const FarmlandsPage = () => {
       <PageHeader title={t('farmer.farmlands.title')}>
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                  <LandPlot className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{farmlands?.length || 0}</p>
-                  <p className="text-xs text-muted-foreground">{t('farmer.farmlands.totalPlots')}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-emerald-100 text-emerald-600">
-                  <Layers className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{totalArea.toFixed(1)}</p>
-                  <p className="text-xs text-muted-foreground">{t('farmer.farmlands.totalAcres')}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-amber-100 text-amber-600">
-                  <TreeDeciduous className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">
-                    {Object.keys(soilDistribution || {}).filter(k => k !== 'unknown').length}
-                  </p>
-                  <p className="text-xs text-muted-foreground">{t('farmer.farmlands.soilTypes')}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-blue-100 text-blue-600">
-                  <MapPin className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">
-                    {new Set(farmlands?.map(l => l.village).filter(Boolean)).size}
-                  </p>
-                  <p className="text-xs text-muted-foreground">{t('farmer.farmlands.villages')}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <KpiCard label={t('farmer.farmlands.totalPlots')} value={farmlands?.length || 0} icon={LandPlot} priority="primary" />
+          <KpiCard label={t('farmer.farmlands.totalAcres')} value={totalArea.toFixed(1)} icon={Layers} priority="success" />
+          <KpiCard label={t('farmer.farmlands.soilTypes')} value={Object.keys(soilDistribution || {}).filter(k => k !== 'unknown').length} icon={TreeDeciduous} priority="warning" />
+          <KpiCard label={t('farmer.farmlands.villages')} value={new Set(farmlands?.map(l => l.village).filter(Boolean)).size} icon={MapPin} priority="info" />
         </div>
 
         {/* Header */}
@@ -294,27 +237,27 @@ const FarmlandsPage = () => {
                 <div className="rounded-lg border border-border p-3 space-y-2">
                   <Label className="text-sm font-medium flex items-center gap-1.5">
                     <MapPin className="h-4 w-4" />
-                    Farm Location (GPS) - Optional
+                    {t('farmerFarmlands.locationLabel')}
                   </Label>
                   {geo.position ? (
                     <div className="flex items-center justify-between">
                       <span className="text-sm flex items-center gap-1 text-green-600">
                         <CheckCircle2 className="h-4 w-4" />
-                        Location captured
+                        {t('farmerFarmlands.locationCaptured')}
                       </span>
                       <Button type="button" variant="outline" size="sm" onClick={() => geo.capture()} disabled={geo.capturing}>
                         {geo.capturing ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
-                        Recapture
+                        {t('farmerFarmlands.recapture')}
                       </Button>
                     </div>
                   ) : (
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Location not added</span>
+                      <span className="text-sm text-muted-foreground">{t('farmerFarmlands.locationNotAdded')}</span>
                       <Button type="button" variant="outline" size="sm" onClick={() => geo.capture()} disabled={geo.capturing}>
                         {geo.capturing ? (
-                          <><Loader2 className="h-3 w-3 animate-spin mr-1" /> Capturing...</>
+                          <><Loader2 className="h-3 w-3 animate-spin mr-1" /> {t('farmerFarmlands.capturing')}</>
                         ) : (
-                          <><MapPin className="h-3 w-3 mr-1" /> Capture Location</>
+                          <><MapPin className="h-3 w-3 mr-1" /> {t('farmerFarmlands.captureLocation')}</>
                         )}
                       </Button>
                     </div>
@@ -334,6 +277,16 @@ const FarmlandsPage = () => {
           <DataState loading>
             <></>
           </DataState>
+        ) : isError ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <AlertCircle className="h-12 w-12 text-destructive mb-4" />
+            <p className="text-lg font-medium mb-2">{t('common.loadError')}</p>
+            <p className="text-sm text-muted-foreground mb-4">{t('common.retryMessage')}</p>
+            <Button variant="outline" onClick={() => refetch()}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              {t('common.retry')}
+            </Button>
+          </div>
         ) : filteredFarmlands?.length === 0 ? (
           <Card>
             <CardContent className="p-0">
@@ -388,12 +341,12 @@ const FarmlandsPage = () => {
                     {(land as { geo_verified?: boolean }).geo_verified ? (
                       <div className="flex items-center gap-2 text-green-600">
                         <CheckCircle2 className="h-4 w-4 shrink-0" />
-                        <span>Location captured</span>
-                      </div>
+                      <span>{t('farmerFarmlands.locationCaptured')}</span>
+                    </div>
                     ) : (
                       <div className="flex items-center gap-2">
                         <MapPin className="h-4 w-4 shrink-0 opacity-40" />
-                        <span>Location not added</span>
+                        <span>{t('farmerFarmlands.locationNotAdded')}</span>
                       </div>
                     )}
                   </div>
@@ -414,6 +367,7 @@ const FarmlandsPage = () => {
                       aria-label={`Edit ${land.name}`}
                       variant="outline"
                       size="sm"
+                      className="touch-target"
                       onClick={() => {
                         setEditingFarmland(land);
                         setEditDialogOpen(true);
@@ -425,7 +379,7 @@ const FarmlandsPage = () => {
                       aria-label={`Delete ${land.name}`}
                       variant="outline"
                       size="sm"
-                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                      className="touch-target text-destructive hover:text-destructive hover:bg-destructive/10"
                       onClick={() => handleDeleteClick(land.id, land.name)}
                     >
                       <Trash2 className="h-4 w-4" />

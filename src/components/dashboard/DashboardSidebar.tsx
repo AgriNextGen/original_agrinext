@@ -1,20 +1,21 @@
+import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  Sprout as CropIcon,
-  LandPlot,
-  Truck, 
-  DollarSign, 
-  Settings, 
-  LogOut,
+import {
+  LayoutDashboard,
   Sprout,
+  LandPlot,
+  Truck,
+  DollarSign,
+  Settings,
+  LogOut,
   Bell,
   ShoppingBag,
   Package,
   X,
   ClipboardList,
   Users,
-  Sparkles,
+  UsersRound,
+  UserCog,
   Database,
   TestTube,
   Inbox,
@@ -23,12 +24,41 @@ import {
   Briefcase,
   CalendarDays,
   MapPin,
+  AlertTriangle,
+  Activity,
+  DatabaseZap,
+  Banknote,
+  RotateCcw,
+  Clock,
+  CheckCircle,
+  CarFront,
+  Sparkles,
+  ArrowRightLeft,
+  Gauge,
+  ChevronDown,
+  Store,
+  Plus,
+  History,
+  type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ROUTES } from '@/lib/routes';
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/hooks/useLanguage';
-import { useFarmerNotifications } from '@/hooks/useFarmerDashboard';
+import { useNotifications } from '@/hooks/useNotifications';
 import { Button } from '@/components/ui/button';
+
+interface NavItem {
+  icon: LucideIcon;
+  label: string;
+  href: string;
+  badge?: number;
+}
+
+interface NavGroup {
+  label: string | null;
+  items: NavItem[];
+}
 
 interface DashboardSidebarProps {
   onClose?: () => void;
@@ -40,115 +70,234 @@ const DashboardSidebar = ({ onClose, isOpen = true, isMobile = false }: Dashboar
   const location = useLocation();
   const { signOut, userRole } = useAuth();
   const { t } = useLanguage();
-  const { data: notifications } = useFarmerNotifications();
-  
+  const { data: notifications } = useNotifications();
+
   const unreadCount = notifications?.filter(n => !n.is_read).length || 0;
 
-  // Farmer navigation items
-  const farmerNavItems = [
-    { icon: CalendarDays, label: t('nav.myDay'), href: '/farmer/my-day' },
-    { icon: LayoutDashboard, label: t('nav.dashboard'), href: '/farmer/dashboard' },
-    { icon: CropIcon, label: t('nav.crops'), href: '/farmer/crops' },
-    { icon: LandPlot, label: t('nav.farmlands'), href: '/farmer/farmlands' },
-    { icon: Truck, label: t('nav.transport'), href: '/farmer/transport' },
-    { icon: ShoppingBag, label: t('nav.listings'), href: '/farmer/listings' },
-    { icon: Package, label: t('nav.orders'), href: '/farmer/orders' },
-    { icon: DollarSign, label: t('nav.earnings'), href: '/farmer/earnings' },
-    { 
-      icon: Bell, 
-      label: t('nav.notifications'), 
-      href: '/farmer/notifications',
-      badge: unreadCount > 0 ? unreadCount : undefined
+  // ── Farmer: 2 groups ──────────────────────────────────────────────
+  const farmerGroups: NavGroup[] = [
+    {
+      label: null,
+      items: [
+        { icon: CalendarDays, label: t('nav.myDay'), href: ROUTES.FARMER.MY_DAY },
+        { icon: LayoutDashboard, label: t('nav.dashboard'), href: ROUTES.FARMER.DASHBOARD },
+        { icon: Sprout, label: t('nav.crops'), href: ROUTES.FARMER.CROPS },
+        { icon: LandPlot, label: t('nav.farmlands'), href: ROUTES.FARMER.FARMLANDS },
+      ],
     },
-    { icon: Settings, label: t('nav.settings'), href: '/farmer/settings' },
+    {
+      label: t('nav.group.marketLogistics'),
+      items: [
+        { icon: Truck, label: t('nav.transport'), href: ROUTES.FARMER.TRANSPORT },
+        { icon: ShoppingBag, label: t('nav.listings'), href: ROUTES.FARMER.LISTINGS },
+        { icon: Package, label: t('nav.orders'), href: ROUTES.FARMER.ORDERS },
+        { icon: DollarSign, label: t('nav.earnings'), href: ROUTES.FARMER.EARNINGS },
+        { icon: Bell, label: t('nav.notifications'), href: ROUTES.FARMER.NOTIFICATIONS, badge: unreadCount > 0 ? unreadCount : undefined },
+        { icon: Settings, label: t('nav.settings'), href: ROUTES.FARMER.SETTINGS },
+      ],
+    },
   ];
 
-  // Agent navigation items
-  const agentNavItems = [
-    { icon: CalendarDays, label: t('nav.today'), href: '/agent/today' },
-    { icon: LayoutDashboard, label: t('nav.dashboard'), href: '/agent/dashboard' },
-    { icon: ClipboardList, label: t('nav.myTasks'), href: '/agent/tasks' },
-    { icon: Users, label: t('nav.myFarmers'), href: '/agent/my-farmers' },
-    { icon: Users, label: t('nav.farmersAndCrops'), href: '/agent/farmers' },
-    { icon: Truck, label: t('nav.transport'), href: '/agent/transport' },
-    { icon: MapPin, label: t('nav.serviceArea'), href: '/agent/service-area' },
-    { icon: Settings, label: t('nav.profile'), href: '/agent/profile' },
+  // ── Agent: 3 groups ───────────────────────────────────────────────
+  const agentGroups: NavGroup[] = [
+    {
+      label: null,
+      items: [
+        { icon: CalendarDays, label: t('nav.today'), href: ROUTES.AGENT.TODAY },
+        { icon: LayoutDashboard, label: t('nav.dashboard'), href: ROUTES.AGENT.DASHBOARD },
+        { icon: ClipboardList, label: t('nav.myTasks'), href: ROUTES.AGENT.TASKS },
+      ],
+    },
+    {
+      label: t('nav.group.network'),
+      items: [
+        { icon: Users, label: t('nav.myFarmers'), href: ROUTES.AGENT.MY_FARMERS },
+        { icon: UsersRound, label: t('nav.farmersAndCrops'), href: ROUTES.AGENT.FARMERS },
+        { icon: Truck, label: t('nav.transport'), href: ROUTES.AGENT.TRANSPORT },
+        { icon: MapPin, label: t('nav.serviceArea'), href: ROUTES.AGENT.SERVICE_AREA },
+      ],
+    },
+    {
+      label: t('nav.group.account'),
+      items: [
+        { icon: Settings, label: t('nav.profile'), href: ROUTES.AGENT.PROFILE },
+      ],
+    },
   ];
 
-  // Logistics navigation items
-  const logisticsNavItems = [
-    { icon: LayoutDashboard, label: t('nav.dashboard'), href: '/logistics/dashboard' },
-    { icon: Package, label: t('nav.availableLoads'), href: '/logistics/loads' },
-    { icon: Truck, label: t('nav.activeTrips'), href: '/logistics/trips' },
-    { icon: CropIcon, label: t('nav.completed'), href: '/logistics/completed' },
-    { icon: LandPlot, label: t('nav.myVehicles'), href: '/logistics/vehicles' },
-    { icon: MapPin, label: t('nav.serviceArea'), href: '/logistics/service-area' },
-    { icon: Settings, label: t('nav.profile'), href: '/logistics/profile' },
+  // ── Logistics ─────────────────────────────────────────────────────
+  const logisticsGroups: NavGroup[] = [
+    {
+      label: null,
+      items: [
+        { icon: LayoutDashboard, label: t('nav.dashboard'), href: ROUTES.LOGISTICS.DASHBOARD },
+        { icon: Package, label: t('nav.availableLoads'), href: ROUTES.LOGISTICS.AVAILABLE_LOADS },
+        { icon: Truck, label: t('nav.activeTrips'), href: ROUTES.LOGISTICS.ACTIVE_TRIPS },
+        { icon: CheckCircle, label: t('nav.completed'), href: ROUTES.LOGISTICS.COMPLETED_TRIPS },
+        { icon: CarFront, label: t('nav.myVehicles'), href: ROUTES.LOGISTICS.VEHICLES },
+      ],
+    },
+    {
+      label: t('nav.group.unifiedLogistics'),
+      items: [
+        { icon: ArrowRightLeft, label: t('nav.forwardTrips'), href: ROUTES.LOGISTICS.FORWARD_TRIPS },
+        { icon: RotateCcw, label: t('nav.reverseLoads'), href: ROUTES.LOGISTICS.REVERSE_LOADS },
+        { icon: Sparkles, label: t('nav.recommendations'), href: ROUTES.LOGISTICS.RECOMMENDATIONS },
+        { icon: Gauge, label: t('nav.capacity'), href: ROUTES.LOGISTICS.CAPACITY },
+        { icon: DollarSign, label: t('nav.earnings'), href: ROUTES.LOGISTICS.EARNINGS },
+      ],
+    },
+    {
+      label: t('nav.group.account'),
+      items: [
+        { icon: MapPin, label: t('nav.serviceArea'), href: ROUTES.LOGISTICS.SERVICE_AREA },
+        { icon: Settings, label: t('nav.profile'), href: ROUTES.LOGISTICS.PROFILE },
+      ],
+    },
   ];
 
-  // Buyer/Marketplace navigation items
-  const buyerNavItems = [
-    { icon: LayoutDashboard, label: t('nav.dashboard'), href: '/marketplace/dashboard' },
-    { icon: ShoppingBag, label: t('nav.browseProducts'), href: '/marketplace/browse' },
-    { icon: Package, label: t('nav.myOrders'), href: '/marketplace/orders' },
-    { icon: Settings, label: t('nav.profile'), href: '/marketplace/profile' },
+  // ── Buyer ─────────────────────────────────────────────────────────
+  const buyerGroups: NavGroup[] = [
+    {
+      label: null,
+      items: [
+        { icon: LayoutDashboard, label: t('nav.dashboard'), href: ROUTES.MARKETPLACE.DASHBOARD },
+        { icon: ShoppingBag, label: t('nav.browseProducts'), href: ROUTES.MARKETPLACE.BROWSE },
+      ],
+    },
+    {
+      label: t('nav.group.orders'),
+      items: [
+        { icon: Package, label: t('nav.myOrders'), href: ROUTES.MARKETPLACE.ORDERS },
+        { icon: Bell, label: t('nav.notifications'), href: ROUTES.MARKETPLACE.ORDERS, badge: unreadCount > 0 ? unreadCount : undefined },
+      ],
+    },
+    {
+      label: t('nav.group.account'),
+      items: [
+        { icon: Settings, label: t('nav.profile'), href: ROUTES.MARKETPLACE.PROFILE },
+      ],
+    },
   ];
 
-  // Admin navigation items
-  const adminNavItems = [
-    { icon: LayoutDashboard, label: t('nav.dashboard'), href: '/admin/dashboard' },
-    { icon: Inbox, label: t('nav.opsInbox'), href: '/admin/ops' },
-    { icon: Ticket, label: t('nav.tickets'), href: '/admin/tickets' },
-    { icon: Users, label: t('nav.farmers'), href: '/admin/farmers' },
-    { icon: Sparkles, label: t('nav.agents'), href: '/admin/agents' },
-    { icon: Truck, label: t('nav.transporters'), href: '/admin/transporters' },
-    { icon: ShoppingBag, label: t('nav.buyers'), href: '/admin/buyers' },
-    { icon: CropIcon, label: t('nav.allCrops'), href: '/admin/crops' },
-    { icon: Package, label: t('nav.transport'), href: '/admin/transport' },
-    { icon: ClipboardList, label: t('nav.orders'), href: '/admin/orders' },
-    { icon: ClipboardList, label: t('nav.pendingUpdates'), href: '/admin/pending-updates' },
-    { icon: Bot, label: t('nav.aiReview'), href: '/admin/ai-review' },
-    { icon: Briefcase, label: t('nav.jobs'), href: '/admin/jobs' },
-    { icon: DollarSign, label: t('nav.finance'), href: '/admin/finance' },
-    { icon: Sparkles, label: t('nav.aiConsole'), href: '/admin/ai-console' },
-    { icon: Database, label: t('nav.seedData'), href: '/admin/seed-data' },
-    { icon: TestTube, label: t('nav.mysuruDemo'), href: '/admin/mysuru-demo' },
-    { icon: Settings, label: t('nav.dataHealth'), href: '/admin/data-health' },
+  // ── Admin: 6 groups ───────────────────────────────────────────────
+  const adminGroups: NavGroup[] = [
+    {
+      label: null,
+      items: [
+        { icon: LayoutDashboard, label: t('nav.dashboard'), href: ROUTES.ADMIN.DASHBOARD },
+        { icon: Inbox, label: t('nav.opsInbox'), href: ROUTES.ADMIN.OPS_INBOX },
+        { icon: Ticket, label: t('nav.tickets'), href: ROUTES.ADMIN.TICKETS },
+      ],
+    },
+    {
+      label: t('nav.group.network'),
+      items: [
+        { icon: Users, label: t('nav.farmers'), href: ROUTES.ADMIN.FARMERS },
+        { icon: UserCog, label: t('nav.agents'), href: ROUTES.ADMIN.AGENTS },
+        { icon: Truck, label: t('nav.transporters'), href: ROUTES.ADMIN.TRANSPORTERS },
+        { icon: ShoppingBag, label: t('nav.buyers'), href: ROUTES.ADMIN.BUYERS },
+        { icon: Sprout, label: t('nav.allCrops'), href: ROUTES.ADMIN.CROPS },
+      ],
+    },
+    {
+      label: t('nav.group.operations'),
+      items: [
+        { icon: Package, label: t('nav.transport'), href: ROUTES.ADMIN.TRANSPORT },
+        { icon: ClipboardList, label: t('nav.orders'), href: ROUTES.ADMIN.ORDERS },
+        { icon: Clock, label: t('nav.pendingUpdates'), href: ROUTES.ADMIN.PENDING_UPDATES },
+      ],
+    },
+    {
+      label: t('nav.group.aiIntelligence'),
+      items: [
+        { icon: Bot, label: t('nav.aiReview'), href: ROUTES.ADMIN.AI_REVIEW },
+        { icon: Sparkles, label: t('nav.aiConsole'), href: ROUTES.ADMIN.AI_CONSOLE },
+      ],
+    },
+    {
+      label: t('nav.group.finance'),
+      items: [
+        { icon: DollarSign, label: t('nav.finance'), href: ROUTES.ADMIN.FINANCE },
+        { icon: Banknote, label: t('nav.payouts'), href: ROUTES.ADMIN.PAYOUTS },
+        { icon: RotateCcw, label: t('nav.refunds'), href: ROUTES.ADMIN.REFUNDS },
+        { icon: AlertTriangle, label: t('nav.disputes'), href: ROUTES.ADMIN.DISPUTES },
+      ],
+    },
+    {
+      label: t('nav.group.system'),
+      items: [
+        { icon: Activity, label: t('nav.systemHealth'), href: ROUTES.ADMIN.SYSTEM_HEALTH },
+        { icon: Database, label: t('nav.seedData'), href: ROUTES.ADMIN.SEED_DATA },
+        { icon: TestTube, label: t('nav.mysuruDemo'), href: ROUTES.ADMIN.MYSURU_DEMO },
+        { icon: Briefcase, label: t('nav.jobs'), href: ROUTES.ADMIN.JOBS },
+        { icon: DatabaseZap, label: t('nav.dataHealth'), href: ROUTES.ADMIN.DATA_HEALTH },
+      ],
+    },
   ];
 
-  // Select nav items based on user role
-  const navItems = userRole === 'agent' 
-    ? agentNavItems 
-    : userRole === 'logistics' 
-      ? logisticsNavItems 
-      : userRole === 'buyer'
-        ? buyerNavItems
-        : userRole === 'admin'
-          ? adminNavItems
-          : farmerNavItems;
-  
-  const dashboardTitle = userRole === 'agent' 
-    ? t('dashboardShell.title.agent')
-    : userRole === 'logistics'
-      ? t('dashboardShell.title.logistics')
-      : userRole === 'buyer'
-        ? t('dashboardShell.title.buyer')
-        : userRole === 'admin'
-          ? t('dashboardShell.title.admin')
-          : t('dashboardShell.title.farmer');
+  // ── Vendor: 3 groups ─────────────────────────────────────────────
+  const vendorGroups: NavGroup[] = [
+    {
+      label: null,
+      items: [
+        { icon: LayoutDashboard, label: t('nav.dashboard'), href: ROUTES.VENDOR.DASHBOARD },
+        { icon: Plus, label: t('nav.createShipment'), href: ROUTES.VENDOR.CREATE_SHIPMENT },
+        { icon: Package, label: t('nav.activeShipments'), href: ROUTES.VENDOR.ACTIVE_SHIPMENTS },
+        { icon: History, label: t('nav.shipmentHistory'), href: ROUTES.VENDOR.SHIPMENT_HISTORY },
+      ],
+    },
+    {
+      label: t('nav.group.logistics'),
+      items: [
+        { icon: Truck, label: t('nav.logisticsRequests'), href: ROUTES.VENDOR.LOGISTICS_REQUESTS },
+        { icon: RotateCcw, label: t('nav.reverseLogistics'), href: ROUTES.VENDOR.REVERSE_LOGISTICS },
+      ],
+    },
+    {
+      label: t('nav.group.account'),
+      items: [
+        { icon: Settings, label: t('nav.profile'), href: ROUTES.VENDOR.PROFILE },
+      ],
+    },
+  ];
+
+  const navGroups: NavGroup[] =
+    userRole === 'agent' ? agentGroups
+    : userRole === 'logistics' ? logisticsGroups
+    : userRole === 'buyer' ? buyerGroups
+    : userRole === 'admin' ? adminGroups
+    : userRole === 'vendor' ? vendorGroups
+    : farmerGroups;
+
+  const dashboardTitle =
+    userRole === 'agent' ? t('dashboardShell.title.agent')
+    : userRole === 'logistics' ? t('dashboardShell.title.logistics')
+    : userRole === 'buyer' ? t('dashboardShell.title.buyer')
+    : userRole === 'admin' ? t('dashboardShell.title.admin')
+    : userRole === 'vendor' ? t('dashboardShell.title.vendor')
+    : t('dashboardShell.title.farmer');
+
+  const isCollapsible = userRole === 'admin';
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<number, boolean>>({});
+
+  const toggleGroup = (index: number) => {
+    setCollapsedGroups(prev => ({ ...prev, [index]: !prev[index] }));
+  };
+
+  const isActive = (href: string) =>
+    location.pathname === href || location.pathname.startsWith(href + '/');
 
   const handleNavClick = () => {
     if (onClose) onClose();
   };
 
   return (
-    <aside 
+    <aside
       className={cn(
         "h-screen w-64 bg-sidebar border-r border-sidebar-border flex-shrink-0",
-        // Mobile: fixed drawer with transform
         isMobile && "fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out",
         isMobile && (isOpen ? "translate-x-0" : "-translate-x-full"),
-        // Desktop: static in document flow (handled by parent)
         !isMobile && "relative"
       )}
     >
@@ -156,54 +305,30 @@ const DashboardSidebar = ({ onClose, isOpen = true, isMobile = false }: Dashboar
         {/* Logo */}
         <div className="flex h-16 items-center justify-between px-6 border-b border-sidebar-border">
           <div className="flex items-center gap-2">
-            <div className={cn(
-              "w-9 h-9 rounded-lg flex items-center justify-center",
-              userRole === 'agent' 
-                ? 'bg-purple-600' 
-                : userRole === 'logistics'
-                  ? 'bg-blue-600'
-                  : userRole === 'buyer'
-                    ? 'bg-orange-600'
-                    : userRole === 'admin'
-                      ? 'bg-rose-600'
-                      : 'bg-sidebar-primary'
-            )}>
-              {userRole === 'agent' ? (
-                <Sparkles className="w-5 h-5 text-white" />
-              ) : userRole === 'logistics' ? (
-                <Truck className="w-5 h-5 text-white" />
-              ) : userRole === 'buyer' ? (
-                <ShoppingBag className="w-5 h-5 text-white" />
-              ) : userRole === 'admin' ? (
-                <Sparkles className="w-5 h-5 text-white" />
-              ) : (
-                <Sprout className="w-5 h-5 text-sidebar-primary-foreground" />
-              )}
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-sidebar-primary">
+              {userRole === 'agent' ? <Sparkles className="w-5 h-5 text-sidebar-primary-foreground" />
+              : userRole === 'logistics' ? <Truck className="w-5 h-5 text-sidebar-primary-foreground" />
+              : userRole === 'buyer' ? <ShoppingBag className="w-5 h-5 text-sidebar-primary-foreground" />
+              : userRole === 'admin' ? <Activity className="w-5 h-5 text-sidebar-primary-foreground" />
+              : userRole === 'vendor' ? <Store className="w-5 h-5 text-sidebar-primary-foreground" />
+              : <Sprout className="w-5 h-5 text-sidebar-primary-foreground" />}
             </div>
             <div>
               <span className="font-display font-bold text-lg text-sidebar-foreground leading-tight block">
                 {dashboardTitle}
               </span>
-              {userRole === 'agent' && (
-                <span className="text-xs text-purple-500 font-medium">{t('dashboardShell.subtitle.agent')}</span>
-              )}
-              {userRole === 'logistics' && (
-                <span className="text-xs text-blue-500 font-medium">{t('dashboardShell.subtitle.logistics')}</span>
-              )}
-              {userRole === 'buyer' && (
-                <span className="text-xs text-orange-500 font-medium">{t('dashboardShell.subtitle.buyer')}</span>
-              )}
-              {userRole === 'admin' && (
-                <span className="text-xs text-rose-500 font-medium">{t('dashboardShell.subtitle.admin')}</span>
+              {userRole && userRole !== 'farmer' && (
+                <span className="text-xs text-sidebar-primary font-medium">
+                  {t(`dashboardShell.subtitle.${userRole}`)}
+                </span>
               )}
             </div>
           </div>
-          {/* Mobile close button */}
           {onClose && (
             <Button
               variant="ghost"
               size="icon"
-              className="lg:hidden text-sidebar-foreground hover:bg-sidebar-accent pointer-events-auto relative z-10"
+              className="md:hidden text-sidebar-foreground hover:bg-sidebar-accent pointer-events-auto relative z-10"
               onClick={(e) => {
                 e.stopPropagation();
                 onClose();
@@ -215,56 +340,86 @@ const DashboardSidebar = ({ onClose, isOpen = true, isMobile = false }: Dashboar
           )}
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
-          {navItems.map((item) => {
-            const isActive = location.pathname === item.href;
+        {/* Grouped Navigation */}
+        <nav className="flex-1 px-3 py-4 overflow-y-auto" aria-label="Main navigation">
+          {navGroups.map((group, gi) => {
+            const isGroupCollapsed = isCollapsible && group.label && collapsedGroups[gi];
+            const hasActiveChild = group.items.some(item => isActive(item.href));
+
             return (
-              <Link
-                key={item.href}
-                to={item.href}
-                onClick={handleNavClick}
-                className={cn(
-                  'flex items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
-                  isActive
-                    ? userRole === 'agent' 
-                      ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
-                      : userRole === 'logistics'
-                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
-                        : userRole === 'buyer'
-                          ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300'
-                          : userRole === 'admin'
-                            ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300'
-                            : 'bg-sidebar-accent text-sidebar-primary'
-                    : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground'
-                )}
-              >
-                <div className="flex items-center gap-3">
-                  <item.icon className="h-5 w-5" />
-                  {item.label}
+              <div key={gi} className={cn(gi > 0 && "mt-4")}>
+                {group.label && isCollapsible ? (
+                  <button
+                    type="button"
+                    onClick={() => toggleGroup(gi)}
+                    className="flex w-full items-center justify-between px-3 mb-1.5 group"
+                  >
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-sidebar-foreground/40 group-hover:text-sidebar-foreground/60 transition-colors">
+                      {group.label}
+                    </span>
+                    <ChevronDown className={cn(
+                      "h-3 w-3 text-sidebar-foreground/30 transition-transform duration-200",
+                      isGroupCollapsed && "-rotate-90"
+                    )} />
+                  </button>
+                ) : group.label ? (
+                  <p className="px-3 mb-2 text-[11px] font-semibold uppercase tracking-wider text-sidebar-foreground/40">
+                    {group.label}
+                  </p>
+                ) : gi > 0 ? (
+                  <div className="mx-3 mb-2 border-t border-sidebar-border" />
+                ) : null}
+                <div className={cn(
+                  "space-y-0.5 transition-all duration-200 overflow-hidden",
+                  isGroupCollapsed ? "max-h-0 opacity-0" : "max-h-[1000px] opacity-100"
+                )}>
+                  {group.items.map((item) => {
+                    const active = isActive(item.href);
+                    return (
+                      <Link
+                        key={item.href}
+                        to={item.href}
+                        onClick={handleNavClick}
+                        aria-current={active ? 'page' : undefined}
+                        className={cn(
+                          'flex items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150 min-h-[44px]',
+                          active
+                            ? 'bg-sidebar-primary/15 text-sidebar-primary font-semibold border-l-[3px] border-sidebar-primary shadow-sm'
+                            : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
+                        )}
+                      >
+                        <div className="flex items-center gap-3">
+                          <item.icon className={cn("h-5 w-5 transition-transform", active && "scale-110")} />
+                          {item.label}
+                        </div>
+                        {item.badge != null && item.badge > 0 && (
+                          <span className="px-1.5 py-0.5 text-xs font-medium bg-destructive text-destructive-foreground rounded-full min-w-[20px] text-center">
+                            {item.badge > 9 ? '9+' : item.badge}
+                          </span>
+                        )}
+                      </Link>
+                    );
+                  })}
                 </div>
-                {'badge' in item && typeof item.badge === 'number' && item.badge > 0 && (
-                  <span className="px-1.5 py-0.5 text-xs font-medium bg-destructive text-destructive-foreground rounded-full min-w-[20px] text-center">
-                    {item.badge > 9 ? '9+' : item.badge}
-                  </span>
-                )}
-              </Link>
+              </div>
             );
           })}
         </nav>
 
         {/* Sign Out */}
         <div className="border-t border-sidebar-border p-3">
-          <button
+          <Button
+            variant="ghost"
+            aria-label={t('nav.logout')}
             onClick={() => {
               signOut();
               if (onClose) onClose();
             }}
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors"
+            className="flex w-full justify-start items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
           >
             <LogOut className="h-5 w-5" />
             {t('nav.logout')}
-          </button>
+          </Button>
         </div>
       </div>
     </aside>

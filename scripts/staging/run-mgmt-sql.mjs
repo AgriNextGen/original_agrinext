@@ -1,11 +1,10 @@
 /**
  * AgriNext 10-Step SQL Execution via Supabase Management API
- * Uses PAT (Personal Access Token) from Windows Credential Manager
+ * Uses PAT (Personal Access Token) from environment variables
  */
+import { getMgmtApiConfig } from './common.mjs';
 
-const PAT = 'sbp_9ae4e5657d4827a0940c2e501ce756958b752572';
-const PROJECT = 'rmtkkzfzdmpjlqexrbme';
-const BASE = `https://api.supabase.com/v1/projects/${PROJECT}`;
+const { pat: PAT, projectRef: PROJECT, base: BASE } = getMgmtApiConfig();
 
 async function execSQL(label, sql) {
   const SEP = '='.repeat(70);

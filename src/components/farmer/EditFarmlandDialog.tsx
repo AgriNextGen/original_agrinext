@@ -110,7 +110,7 @@ const EditFarmlandDialog = ({ farmland, open, onOpenChange }: EditFarmlandDialog
           <DialogTitle>{t('farmer.farmlands.editFarmland')}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
+          <div className="space-y-2">
             <Label>{t('farmer.farmlands.plotName')} *</Label>
             <Input
               value={formData.name}
@@ -120,7 +120,7 @@ const EditFarmlandDialog = ({ farmland, open, onOpenChange }: EditFarmlandDialog
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <div>
+            <div className="space-y-2">
               <Label>{t('farmer.farmlands.area')} *</Label>
               <Input
                 type="number"
@@ -131,7 +131,7 @@ const EditFarmlandDialog = ({ farmland, open, onOpenChange }: EditFarmlandDialog
                 required
               />
             </div>
-            <div>
+            <div className="space-y-2">
               <Label>{t('common.unit')}</Label>
               <Select value={formData.area_unit} onValueChange={(v) => setFormData({ ...formData, area_unit: v })}>
                 <SelectTrigger>
@@ -146,7 +146,7 @@ const EditFarmlandDialog = ({ farmland, open, onOpenChange }: EditFarmlandDialog
               </Select>
             </div>
           </div>
-          <div>
+          <div className="space-y-2">
             <Label>{t('farmer.farmlands.soilType')}</Label>
             <Select value={formData.soil_type} onValueChange={(v) => setFormData({ ...formData, soil_type: v })}>
               <SelectTrigger>
@@ -163,7 +163,7 @@ const EditFarmlandDialog = ({ farmland, open, onOpenChange }: EditFarmlandDialog
             </Select>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <div>
+            <div className="space-y-2">
               <Label>{t('farmer.farmlands.village')}</Label>
               <Input
                 value={formData.village}
@@ -171,7 +171,7 @@ const EditFarmlandDialog = ({ farmland, open, onOpenChange }: EditFarmlandDialog
                 placeholder={t('farmer.farmlands.villagePlaceholder')}
               />
             </div>
-            <div>
+            <div className="space-y-2">
               <Label>{t('farmer.farmlands.district')}</Label>
               <Input
                 value={formData.district}

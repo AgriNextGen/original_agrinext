@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useLanguage } from '@/hooks/useLanguage';
 import { toast } from 'sonner';
 import { signAndUpload } from '@/lib/storage-upload';
 
@@ -8,13 +9,13 @@ export interface Trip {
   id: string;
   transport_request_id: string;
   transporter_id: string;
-  status: 'assigned' | 'en_route' | 'arrived' | 'picked_up' | 'in_transit' | 'delivered' | 'cancelled' | 'issue';
-  assigned_at: string;
-  en_route_at: string | null;
-  arrived_at: string | null;
-  picked_up_at: string | null;
+  status: 'created' | 'accepted' | 'pickup_done' | 'in_transit' | 'delivered' | 'completed' | 'cancelled';
+  created_at: string;
+  accepted_at: string | null;
+  pickup_done_at: string | null;
   in_transit_at: string | null;
   delivered_at: string | null;
+  completed_at: string | null;
   cancelled_at: string | null;
   issue_code: string | null;
   issue_notes: string | null;
@@ -133,9 +134,10 @@ export const useTripStatusEvents = (tripId: string | undefined) => {
   });
 };
 
-// Accept load via edge function
+// Accept load via database RPC (atomic: creates trip + audit trail + farmer notification)
 export const useAcceptLoadSecure = () => {
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async ({
@@ -145,38 +147,39 @@ export const useAcceptLoadSecure = () => {
       transportRequestId: string;
       vehicleId?: string;
     }) => {
-      const { data, error } = await supabase.functions.invoke('accept-load', {
-        body: {
-          transport_request_id: transportRequestId,
-          vehicle_id: vehicleId,
-        },
+      const { data, error } = await supabase.rpc('accept_transport_load', {
+        p_transport_request_id: transportRequestId,
+        p_vehicle_id: vehicleId ?? null,
       });
 
       if (error) throw error;
-      if (data.error) throw new Error(data.error);
-      return data;
+      return data as { trip_id: string; new_status: string };
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['available-loads'] });
       queryClient.invalidateQueries({ queryKey: ['trips'] });
       queryClient.invalidateQueries({ queryKey: ['active-trips'] });
-      toast.success('Load accepted successfully!');
+      queryClient.invalidateQueries({ queryKey: ['transport-requests-infinite'] });
+      queryClient.invalidateQueries({ queryKey: ['logistics-dashboard'] });
+      toast.success(t('hookToasts.trips.loadAccepted'));
     },
     onError: (error: Error) => {
       if (error.message.includes('ALREADY_ASSIGNED') || error.message.includes('already')) {
-        toast.error('This load has already been accepted by another transporter');
+        toast.error(t('hookToasts.trips.alreadyAccepted'));
       } else if (error.message.includes('fetch') || error.message.includes('network') || error.message.includes('Failed to fetch')) {
-        toast.error('Network error. Please check your connection and try again.');
+        toast.error(t('hookToasts.trips.networkError'));
       } else {
-        toast.error('Failed to accept load: ' + error.message);
+        toast.error(t('hookToasts.trips.loadFailed') + ': ' + error.message);
       }
     },
   });
 };
 
-// Update trip status via edge function
+// Update trip status via database RPC (state machine + audit trail)
 export const useUpdateTripStatusSecure = () => {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async ({
@@ -196,21 +199,25 @@ export const useUpdateTripStatusSecure = () => {
       issueNotes?: string;
       actualWeightKg?: number;
     }) => {
-      const { data, error } = await supabase.functions.invoke('update-trip-status', {
-        body: {
-          trip_id: tripId,
-          new_status: newStatus,
-          note,
-          proof_paths: proofPaths,
-          issue_code: issueCode,
-          issue_notes: issueNotes,
-          actual_weight_kg: actualWeightKg,
-        },
+      if (!user?.id) throw new Error('Not authenticated');
+
+      const { data, error } = await supabase.rpc('update_trip_status_v1', {
+        p_trip_id: tripId,
+        p_new_status: newStatus,
+        p_actor_user_id: user.id,
+        p_photo_url: proofPaths?.[0] ?? null,
+        p_latitude: null,
+        p_longitude: null,
+        p_notes: note ?? issueNotes ?? null,
       });
 
       if (error) throw error;
-      if (data.error) throw new Error(data.error);
-      return data;
+
+      const result = data as { success: boolean; new_status?: string; error_code?: string; message?: string };
+      if (result.success === false) {
+        throw new Error(result.message ?? result.error_code ?? 'Status update failed');
+      }
+      return result;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['trips'] });
@@ -218,13 +225,20 @@ export const useUpdateTripStatusSecure = () => {
       queryClient.invalidateQueries({ queryKey: ['trip-status-events'] });
       queryClient.invalidateQueries({ queryKey: ['active-trips'] });
       queryClient.invalidateQueries({ queryKey: ['completed-trips'] });
-      toast.success(`Status updated to ${data.new_status}`);
+      queryClient.invalidateQueries({ queryKey: ['logistics-dashboard'] });
+      toast.success(`${t('hookToasts.trips.statusUpdated')} ${data.new_status}`);
     },
     onError: (error: Error) => {
-      if (error.message.includes('fetch') || error.message.includes('network') || error.message.includes('Failed to fetch')) {
-        toast.error('Network error. Please check your connection and try again.');
+      if (error.message.includes('INVALID_TRANSITION')) {
+        toast.error(t('hookToasts.trips.invalidTransition'));
+      } else if (error.message.includes('PROOF_REQUIRED')) {
+        toast.error(t('hookToasts.trips.photoRequired'));
+      } else if (error.message.includes('FORBIDDEN')) {
+        toast.error(t('hookToasts.trips.forbidden'));
+      } else if (error.message.includes('fetch') || error.message.includes('network') || error.message.includes('Failed to fetch')) {
+        toast.error(t('hookToasts.trips.networkError'));
       } else {
-        toast.error('Failed to update status: ' + error.message);
+        toast.error(t('hookToasts.trips.statusUpdateFailed') + ': ' + error.message);
       }
     },
   });
@@ -233,6 +247,7 @@ export const useUpdateTripStatusSecure = () => {
 // Upload proof photo
 export const useUploadProof = () => {
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async ({
@@ -256,7 +271,7 @@ export const useUploadProof = () => {
       return filePath;
     },
     onError: (error: Error) => {
-      toast.error('Failed to upload photo: ' + error.message);
+      toast.error(t('hookToasts.trips.photoUploadFailed') + ': ' + error.message);
     },
   });
 };

@@ -1,11 +1,14 @@
 import DashboardLayout from '@/layouts/DashboardLayout';
+import PageShell from '@/components/layout/PageShell';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Users, Search, MapPin, Sprout, LandPlot } from 'lucide-react';
+import { Search, MapPin, Sprout, LandPlot, Inbox } from 'lucide-react';
+import EmptyState from '@/components/shared/EmptyState';
 import { useAllFarmers } from '@/hooks/useAdminDashboard';
 import { useState } from 'react';
+import { useLanguage } from '@/hooks/useLanguage';
 import {
   Table,
   TableBody,
@@ -16,6 +19,7 @@ import {
 } from '@/components/ui/table';
 
 const AdminFarmers = () => {
+  const { t } = useLanguage();
   const { data: farmers, isLoading } = useAllFarmers();
   const [search, setSearch] = useState('');
 
@@ -26,30 +30,25 @@ const AdminFarmers = () => {
   ) || [];
 
   return (
-    <DashboardLayout title="Farmer Management">
-      <div className="space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-              <Users className="w-6 h-6 text-green-600" />
-              Farmer Management
-            </h1>
-            <p className="text-muted-foreground">View and manage all registered farmers</p>
-          </div>
+    <DashboardLayout title={t('admin.farmers.title')}>
+      <PageShell
+        title={t('admin.farmers.title')}
+        subtitle={t('admin.farmers.subtitle')}
+        actions={
           <div className="relative w-full md:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Search farmers..."
+              placeholder={t('admin.farmers.search')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9"
             />
           </div>
-        </div>
-
+        }
+      >
         <Card>
           <CardHeader>
-            <CardTitle>All Farmers ({filteredFarmers.length})</CardTitle>
+            <CardTitle>{t('admin.farmers.allFarmers')} ({filteredFarmers.length})</CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -58,63 +57,58 @@ const AdminFarmers = () => {
                   <Skeleton key={i} className="h-16 w-full" />
                 ))}
               </div>
+            ) : filteredFarmers.length === 0 ? (
+                <EmptyState icon={Inbox} title={t('admin.farmers.noFarmers')} />
             ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Phone</TableHead>
-                      <TableHead>Location</TableHead>
-                      <TableHead>Land (acres)</TableHead>
-                      <TableHead>Active Crops</TableHead>
-                      <TableHead>Registered</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredFarmers.map((farmer) => (
-                      <TableRow key={farmer.id}>
-                        <TableCell className="font-medium">
-                          {farmer.full_name || 'Unnamed'}
-                        </TableCell>
-                        <TableCell>{farmer.phone || '-'}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1 text-sm">
-                            <MapPin className="w-3 h-3" />
-                            {farmer.village || farmer.district || 'Unknown'}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1">
-                            <LandPlot className="w-3 h-3" />
-                            {farmer.totalLand?.toFixed(1) || '0'}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="secondary" className="flex items-center gap-1 w-fit">
-                            <Sprout className="w-3 h-3" />
-                            {farmer.cropCount}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
-                          {new Date(farmer.created_at).toLocaleDateString()}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                    {filteredFarmers.length === 0 && (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
                       <TableRow>
-                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                          No farmers found
-                        </TableCell>
+                        <TableHead>{t('admin.farmers.name')}</TableHead>
+                        <TableHead>{t('admin.farmers.phone')}</TableHead>
+                        <TableHead>{t('admin.farmers.location')}</TableHead>
+                        <TableHead>{t('admin.farmers.land')}</TableHead>
+                        <TableHead>{t('admin.farmers.activeCrops')}</TableHead>
+                        <TableHead>{t('admin.farmers.registered')}</TableHead>
                       </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredFarmers.map((farmer) => (
+                        <TableRow key={farmer.id}>
+                          <TableCell className="font-medium">
+                            {farmer.full_name || t('admin.farmers.unnamed')}
+                          </TableCell>
+                          <TableCell>{farmer.phone || '-'}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1 text-sm">
+                              <MapPin className="w-3 h-3" />
+                              {farmer.village || farmer.district || t('admin.farmers.unknown')}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1">
+                              <LandPlot className="w-3 h-3" />
+                              {farmer.totalLand?.toFixed(1) || '0'}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="secondary" className="flex items-center gap-1 w-fit">
+                              <Sprout className="w-3 h-3" />
+                              {farmer.cropCount}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {new Date(farmer.created_at).toLocaleDateString()}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
             )}
           </CardContent>
         </Card>
-      </div>
+      </PageShell>
     </DashboardLayout>
   );
 };
