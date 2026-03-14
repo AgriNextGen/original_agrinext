@@ -368,7 +368,7 @@ const VoiceAssistant = () => {
       }
 
       let resolvedUrl: string | null = null;
-      let mimeType = raw.mime_type || 'audio/mpeg';
+      const mimeType = raw.mime_type || 'audio/mpeg';
 
       if (raw.audio_url) {
         resolvedUrl = raw.audio_url;

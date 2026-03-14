@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 export default function AccountSwitcher() {
   const accounts = getRecentAccounts();
 
-  const useAccount = async (email: string) => {
+  const handleUseAccount = async (email: string) => {
     // Trigger Google OAuth with select_account to choose the exact account
     await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -40,7 +40,7 @@ export default function AccountSwitcher() {
               <div className="text-xs text-muted-foreground">{new Date(a.lastUsedAt).toLocaleString()}</div>
             </div>
           </div>
-          <Button size="sm" onClick={() => useAccount(a.email)}>Use this account</Button>
+          <Button size="sm" onClick={() => handleUseAccount(a.email)}>Use this account</Button>
         </div>
       ))}
       <div className="mt-4">

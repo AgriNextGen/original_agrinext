@@ -17,7 +17,7 @@ export default function AssignModal({ open, onClose, disputeId, onAssigned }: { 
       const { error } = await (supabase as any).schema('admin').rpc('assign_dispute_v1', { p_dispute_id: disputeId, p_admin_id: selectedAdmin });
       if (error) throw error;
       toast({ title: 'Assigned' });
-      onAssigned && onAssigned();
+      if (onAssigned) onAssigned();
       onClose();
     } catch (e:any) {
       if (import.meta.env.DEV) console.error(e);

@@ -225,7 +225,7 @@ export class ReverseLogisticsService {
     let tripsScanned = 0;
     let candidatesCreated = 0;
     let matchesMade = 0;
-    let bookingsCreated = 0;
+    const bookingsCreated = 0;
 
     try {
       await this.expireCandidates();

@@ -26,10 +26,12 @@ const CP1252_EXTENDED_TO_BYTE: Record<number, number> = {
   402: 0x83,  // Æ’
   8222: 0x84, // â€ž
   8230: 0x85, // â€¦
-  8224: 0x86, // â€ 
+  // eslint-disable-next-line no-irregular-whitespace
+  8224: 0x86, //â€ 
   8225: 0x87, // â€¡
   710: 0x88,  // Ë†
   8240: 0x89, // â€°
+  // eslint-disable-next-line no-irregular-whitespace
   352: 0x8a,  // Å 
   8249: 0x8b, // â€¹
   338: 0x8c,  // Å’

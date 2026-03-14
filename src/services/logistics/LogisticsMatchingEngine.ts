@@ -58,8 +58,8 @@ export class LogisticsMatchingEngine {
     let shipmentsProcessed = 0;
     let poolsCreated = 0;
     let poolsFilled = 0;
-    let tripsGenerated = 0;
-    let bookingsCreated = 0;
+    const tripsGenerated = 0;
+    const bookingsCreated = 0;
     let recommendationsGenerated = 0;
 
     try {
