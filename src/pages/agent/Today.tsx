@@ -9,6 +9,7 @@ import { CheckCircle, PlayCircle, Mic, Clock, AlertTriangle, WifiOff, MapPin, Us
 import EmptyState from '@/components/shared/EmptyState';
 import { useQuery } from '@tanstack/react-query';
 import { rpcJson } from '@/lib/readApi';
+import { formatDistanceToNow, parseISO, format } from 'date-fns';
 import { useAuth } from '@/hooks/useAuth';
 import { useAgentTasksInfinite } from '@/hooks/useAgentTasksInfinite';
 import { useUpdateTaskStatus } from '@/hooks/useAgentDashboard';
@@ -194,17 +195,25 @@ function TaskRow({ task, t, onStart, onComplete, onVisit, onNavigate }: {
     >
       <div className="min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <Badge variant="outline" className="text-xs">{task.task_type || t('common.unknown')}</Badge>
-          <Badge className={`text-xs ${PRIORITY_COLORS[task.priority] || 'bg-muted'}`}>{task.priority || 'normal'}</Badge>
-          <Badge variant="secondary" className="text-xs">{task.task_status}</Badge>
+          <Badge variant="outline" className="text-xs capitalize">{(task.task_type || t('common.unknown')).replace('_', ' ')}</Badge>
+          <Badge className={`text-xs capitalize ${PRIORITY_COLORS[task.priority] || 'bg-muted'}`}>{task.priority || 'normal'}</Badge>
+          <Badge variant="secondary" className="text-xs capitalize">{(task.task_status || '').replace('_', ' ')}</Badge>
         </div>
         <p className="text-sm mt-0.5">
           {task.farmer?.full_name || t('agent.today.unknownFarmer')}
           {task.crop?.crop_name ? ` — ${task.crop.crop_name}` : ''}
         </p>
         {task.due_date && (
-          <span className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-            <Clock className="h-3 w-3" /> Due: {task.due_date}
+          <span className={`text-xs flex items-center gap-1 mt-0.5 ${task.due_date < new Date().toISOString().slice(0, 10) ? 'text-destructive font-medium' : 'text-muted-foreground'}`}>
+            <Clock className="h-3 w-3" />
+            {(() => {
+              try {
+                const d = parseISO(task.due_date);
+                const relative = formatDistanceToNow(d, { addSuffix: true });
+                const formatted = format(d, 'MMM d');
+                return `${formatted} (${relative})`;
+              } catch { return task.due_date; }
+            })()}
           </span>
         )}
       </div>

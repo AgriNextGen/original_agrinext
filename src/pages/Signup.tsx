@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Leaf, Mail, Lock, User, Phone, ArrowRight, Users, ShoppingBag, ClipboardList, Truck, Loader2, AlertCircle } from "lucide-react";
+import { Leaf, Mail, Lock, User, Phone, ArrowRight, Users, ShoppingBag, ClipboardList, Truck, Store, Loader2, AlertCircle, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { normalizePhone, getAuthEmailFromPhone } from "@/lib/auth";
@@ -25,22 +25,24 @@ type SignupErrorCode =
 
 type SignupByPhoneResponse =
   | {
-      ok: true;
-      user_id: string;
-      role: AppRole;
-      phone: string;
-      auth_email: string;
-      dashboard_route: string;
-      access_token: string;
-      refresh_token: string;
-      expires_in: number;
-      request_id: string;
+      success: true;
+      data: {
+        user_id: string;
+        role: AppRole;
+        phone: string;
+        auth_email: string;
+        dashboard_route: string;
+        access_token: string;
+        refresh_token: string;
+        expires_in: number;
+      };
     }
   | {
-      ok: false;
-      error_code: SignupErrorCode;
-      message: string;
-      request_id?: string;
+      success: false;
+      error: {
+        code: SignupErrorCode;
+        message: string;
+      };
     };
 
 const logSupabaseError = (label: string, error: unknown) => {
@@ -68,6 +70,7 @@ const getRoles = (t: (key: string) => string): { id: AppRole; label: string; ico
   { id: "buyer", label: t("roles.buyer"), icon: ShoppingBag, description: t("roles.buyer_description") },
   { id: "agent", label: t("roles.agent"), icon: ClipboardList, description: t("roles.agent_description") },
   { id: "logistics", label: t("roles.logistics"), icon: Truck, description: t("roles.logistics_description") },
+  { id: "vendor", label: t("roles.vendor"), icon: Store, description: t("roles.vendor_description") },
 ];
 
 const Signup = () => {
@@ -82,6 +85,7 @@ const Signup = () => {
     password: "",
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const isSubmittingRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -163,9 +167,10 @@ const Signup = () => {
         });
         const signupData = (await signupRes.json().catch(() => null)) as SignupByPhoneResponse | null;
 
-        if (!signupRes.ok || !signupData || !signupData.ok) {
-          const errorCode = signupData && "error_code" in signupData ? signupData.error_code : null;
-          const fallbackMessage = signupData && "message" in signupData ? signupData.message : t("common.error");
+        if (!signupRes.ok || !signupData || !signupData.success) {
+          const errorObj = signupData && "error" in signupData ? signupData.error : null;
+          const errorCode = errorObj?.code ?? null;
+          const fallbackMessage = errorObj?.message ?? t("common.error");
 
           let message = fallbackMessage;
           if (errorCode === "RATE_LIMITED") message = t("auth.rate_limit_retry_hint");
@@ -185,9 +190,10 @@ const Signup = () => {
           return;
         }
 
+        const tokens = signupData.data;
         const { error: sessionError } = await supabase.auth.setSession({
-          access_token: signupData.access_token,
-          refresh_token: signupData.refresh_token,
+          access_token: tokens.access_token,
+          refresh_token: tokens.refresh_token,
         });
         if (sessionError) {
           logSupabaseError("Signup setSession error", sessionError);
@@ -207,7 +213,7 @@ const Signup = () => {
           description: t("auth.welcome_agrinext"),
         });
 
-        const nextRoute = signupData.dashboard_route || ROLE_DASHBOARD_ROUTES[selectedRole] || "/";
+        const nextRoute = tokens.dashboard_route || ROLE_DASHBOARD_ROUTES[selectedRole] || "/";
         navigate(nextRoute);
       } catch (error) {
         if (import.meta.env.DEV) console.error("Signup unexpected error:", error);
@@ -380,16 +386,24 @@ const Signup = () => {
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                     <Input
                       id="password"
-                      type="password"
+                      type={showPassword ? "text" : "password"}
                       placeholder="••••••••"
                       value={formData.password}
                       onChange={(e) => handleInputChange('password', e.target.value)}
-                      className="pl-10 h-12"
+                      className="pl-10 pr-10 h-12"
                       disabled={isLoading}
                       required
                       minLength={8}
                       autoComplete="new-password"
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      tabIndex={-1}
+                    >
+                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
                   </div>
                   <p className="text-xs text-muted-foreground">{t("auth.password_hint")}</p>
                 </div>

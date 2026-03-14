@@ -3,6 +3,7 @@ import { AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { en } from '@/i18n/en';
 import { kn } from '@/i18n/kn';
+import { STORAGE_KEYS } from '@/lib/constants';
 
 interface Props {
   children: React.ReactNode;
@@ -15,7 +16,9 @@ interface State {
 }
 
 function getTranslations() {
-  const stored = localStorage.getItem('agrinext-language');
+  const stored =
+    localStorage.getItem(STORAGE_KEYS.LANGUAGE) ??
+    localStorage.getItem(STORAGE_KEYS.PUBLIC_LANGUAGE);
   const lang = stored === 'kn' ? kn : en;
   return lang.errorBoundary ?? en.errorBoundary;
 }

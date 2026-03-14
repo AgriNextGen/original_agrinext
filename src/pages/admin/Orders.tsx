@@ -6,6 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Calendar, DollarSign, Inbox } from 'lucide-react';
 import EmptyState from '@/components/shared/EmptyState';
 import { useAllMarketOrders, useUpdateOrderStatus } from '@/hooks/useAdminDashboard';
+import { useLanguage } from '@/hooks/useLanguage';
 import {
   Table,
   TableBody,
@@ -23,6 +24,7 @@ import {
 } from '@/components/ui/select';
 
 const AdminOrders = () => {
+  const { t } = useLanguage();
   const { data: orders, isLoading } = useAllMarketOrders();
   const updateStatus = useUpdateOrderStatus();
 
@@ -39,16 +41,29 @@ const AdminOrders = () => {
     }
   };
 
+  const statusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      placed: t('admin.orders.placed'),
+      confirmed: t('admin.orders.confirmed'),
+      packed: t('admin.orders.packed'),
+      ready_for_pickup: t('admin.orders.readyForPickup'),
+      delivered: t('admin.orders.delivered'),
+      cancelled: t('admin.orders.cancelled'),
+      rejected: t('admin.orders.rejected'),
+    };
+    return labels[status] || status;
+  };
+
   const handleStatusChange = (id: string, status: string) => {
     updateStatus.mutate({ id, status });
   };
 
   return (
-    <DashboardLayout title="Marketplace Orders">
-      <PageShell title="Marketplace Orders" subtitle="Manage all marketplace orders">
+    <DashboardLayout title={t('admin.orders.title')}>
+      <PageShell title={t('admin.orders.title')} subtitle={t('admin.orders.subtitle')}>
         <Card>
           <CardHeader>
-            <CardTitle>All Orders ({orders?.length || 0})</CardTitle>
+            <CardTitle>{t('admin.orders.allOrders')} ({orders?.length || 0})</CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -58,20 +73,20 @@ const AdminOrders = () => {
                 ))}
               </div>
             ) : (!orders || orders.length === 0) ? (
-                <EmptyState icon={Inbox} title="No orders found" />
+                <EmptyState icon={Inbox} title={t('admin.orders.noOrders')} />
             ) : (
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Buyer</TableHead>
-                        <TableHead>Crop</TableHead>
-                        <TableHead>Farmer</TableHead>
-                        <TableHead>Quantity</TableHead>
-                        <TableHead>Price</TableHead>
-                        <TableHead>Delivery Date</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Actions</TableHead>
+                        <TableHead>{t('admin.orders.buyer')}</TableHead>
+                        <TableHead>{t('admin.orders.crop')}</TableHead>
+                        <TableHead>{t('admin.orders.farmer')}</TableHead>
+                        <TableHead>{t('admin.orders.quantity')}</TableHead>
+                        <TableHead>{t('admin.orders.price')}</TableHead>
+                        <TableHead>{t('admin.orders.deliveryDate')}</TableHead>
+                        <TableHead>{t('admin.orders.status')}</TableHead>
+                        <TableHead>{t('admin.orders.actions')}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -79,7 +94,7 @@ const AdminOrders = () => {
                         <TableRow key={order.id}>
                           <TableCell className="font-medium">
                             <div>
-                              {order.buyer?.name || 'Unknown'}
+                              {order.buyer?.name || t('admin.farmers.unknown')}
                               {order.buyer?.company_name && (
                                 <div className="text-xs text-muted-foreground">
                                   {order.buyer.company_name}
@@ -96,7 +111,7 @@ const AdminOrders = () => {
                             )}
                           </TableCell>
                           <TableCell>
-                            {order.farmer?.full_name || 'Unknown'}
+                            {order.farmer?.full_name || t('admin.farmers.unknown')}
                           </TableCell>
                           <TableCell>
                             {order.quantity ?? '-'} {order.quantity_unit || 'quintals'}
@@ -124,7 +139,7 @@ const AdminOrders = () => {
                           </TableCell>
                           <TableCell>
                             <Badge className={statusColor(order.status)}>
-                              {order.status.replace(/_/g, ' ')}
+                              {statusLabel(order.status)}
                             </Badge>
                           </TableCell>
                           <TableCell>
@@ -136,13 +151,13 @@ const AdminOrders = () => {
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="placed">Placed</SelectItem>
-                                <SelectItem value="confirmed">Confirmed</SelectItem>
-                                <SelectItem value="packed">Packed</SelectItem>
-                                <SelectItem value="ready_for_pickup">Ready for Pickup</SelectItem>
-                                <SelectItem value="delivered">Delivered</SelectItem>
-                                <SelectItem value="cancelled">Cancelled</SelectItem>
-                                <SelectItem value="rejected">Rejected</SelectItem>
+                                <SelectItem value="placed">{t('admin.orders.placed')}</SelectItem>
+                                <SelectItem value="confirmed">{t('admin.orders.confirmed')}</SelectItem>
+                                <SelectItem value="packed">{t('admin.orders.packed')}</SelectItem>
+                                <SelectItem value="ready_for_pickup">{t('admin.orders.readyForPickup')}</SelectItem>
+                                <SelectItem value="delivered">{t('admin.orders.delivered')}</SelectItem>
+                                <SelectItem value="cancelled">{t('admin.orders.cancelled')}</SelectItem>
+                                <SelectItem value="rejected">{t('admin.orders.rejected')}</SelectItem>
                               </SelectContent>
                             </Select>
                           </TableCell>

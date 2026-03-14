@@ -37,13 +37,13 @@ import { useLanguage } from '@/hooks/useLanguage';
 import { format, parseISO } from 'date-fns';
 
 const taskTypeOptions = [
-  { value: 'visit', label: 'Farm Visit', labelKn: 'ಭೇಟಿ' },
-  { value: 'verify_crop', label: 'Crop Verification', labelKn: 'ಬೆಳೆ ಪರಿಶೀಲನೆ' },
-  { value: 'harvest_check', label: 'Harvest Check', labelKn: 'ಕೊಯ್ಲು ಪರಿಶೀಲನೆ' },
-  { value: 'transport_assist', label: 'Transport Help', labelKn: 'ಸಾರಿಗೆ ಸಹಾಯ' },
-  { value: 'onboard_farmer', label: 'Onboard Farmer', labelKn: 'ರೈತ ಸೇರ್ಪಡೆ' },
-  { value: 'soil_report_upload', label: 'Soil Report', labelKn: 'ಮಣ್ಣು ವರದಿ' },
-  { value: 'field_visit', label: 'Field Visit', labelKn: 'ಕ್ಷೇತ್ರ ಭೇಟಿ' },
+  { value: 'visit' },
+  { value: 'verify_crop' },
+  { value: 'harvest_check' },
+  { value: 'transport_assist' },
+  { value: 'onboard_farmer' },
+  { value: 'soil_report_upload' },
+  { value: 'field_visit' },
 ];
 
 const statusColors: Record<string, string> = {
@@ -60,7 +60,7 @@ interface FarmerTasksTabProps {
 
 export default function FarmerTasksTab({ farmerId }: FarmerTasksTabProps) {
   const { user } = useAuth();
-  const { language } = useLanguage();
+  const { t } = useLanguage();
   const createTask = useCreateTask();
   const updateStatus = useUpdateTaskStatus();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -111,42 +111,40 @@ export default function FarmerTasksTab({ farmerId }: FarmerTasksTabProps) {
       <div className="flex items-center justify-between">
         <h3 className="font-semibold flex items-center gap-2">
           <ClipboardList className="h-4 w-4" />
-          {language === 'kn' ? 'ಕಾರ್ಯಗಳು' : 'Tasks'}
+          {t('agent.farmerTasks.title')}
         </h3>
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <DialogTrigger asChild>
             <Button size="sm">
               <Plus className="h-3 w-3 mr-1" />
-              {language === 'kn' ? 'ಹೊಸ ಕಾರ್ಯ' : 'New Task'}
+              {t('agent.farmerTasks.newTask')}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>{language === 'kn' ? 'ಹೊಸ ಕಾರ್ಯ' : 'New Task'}</DialogTitle>
+              <DialogTitle>{t('agent.farmerTasks.createTitle')}</DialogTitle>
               <DialogDescription>
-                {language === 'kn'
-                  ? 'ಈ ರೈತರಿಗಾಗಿ ಕಾರ್ಯ ರಚಿಸಿ'
-                  : 'Create a task for this farmer'}
+                {t('agent.farmerTasks.createDescription')}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <Label>{language === 'kn' ? 'ಕಾರ್ಯ ಪ್ರಕಾರ' : 'Task Type'}</Label>
+                <Label>{t('agent.farmerTasks.taskType')}</Label>
                 <Select value={newTask.task_type} onValueChange={(v) => setNewTask({ ...newTask, task_type: v })}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {taskTypeOptions.map((t) => (
-                      <SelectItem key={t.value} value={t.value}>
-                        {language === 'kn' ? t.labelKn : t.label}
+                    {taskTypeOptions.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {t(`agent.farmerTasks.taskTypes.${opt.value}`)}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <Label>{language === 'kn' ? 'ಅಂತಿಮ ದಿನಾಂಕ' : 'Due Date'}</Label>
+                <Label>{t('agent.farmerTasks.dueDate')}</Label>
                 <Input
                   type="date"
                   value={newTask.due_date}
@@ -154,11 +152,11 @@ export default function FarmerTasksTab({ farmerId }: FarmerTasksTabProps) {
                 />
               </div>
               <div>
-                <Label>{language === 'kn' ? 'ಟಿಪ್ಪಣಿಗಳು' : 'Notes'}</Label>
+                <Label>{t('agent.farmerTasks.notes')}</Label>
                 <Textarea
                   value={newTask.notes}
                   onChange={(e) => setNewTask({ ...newTask, notes: e.target.value })}
-                  placeholder={language === 'kn' ? 'ಟಿಪ್ಪಣಿಗಳನ್ನು ಸೇರಿಸಿ...' : 'Add notes...'}
+                  placeholder={t('agent.farmerTasks.notesPlaceholder')}
                   rows={3}
                 />
               </div>
@@ -168,7 +166,7 @@ export default function FarmerTasksTab({ farmerId }: FarmerTasksTabProps) {
                 ) : (
                   <Plus className="h-4 w-4 mr-2" />
                 )}
-                {language === 'kn' ? 'ರಚಿಸಿ' : 'Create Task'}
+                {t('agent.farmerTasks.create')}
               </Button>
             </div>
           </DialogContent>
@@ -187,14 +185,13 @@ export default function FarmerTasksTab({ farmerId }: FarmerTasksTabProps) {
           <CardContent className="py-8 text-center">
             <ClipboardList className="h-10 w-10 mx-auto text-muted-foreground/50 mb-2" />
             <p className="text-muted-foreground text-sm">
-              {language === 'kn' ? 'ಯಾವುದೇ ಕಾರ್ಯಗಳಿಲ್ಲ' : 'No tasks yet'}
+              {t('agent.farmerTasks.noTasks')}
             </p>
           </CardContent>
         </Card>
       ) : (
         <div className="space-y-3">
           {tasks.map((task) => {
-            const typeLabel = taskTypeOptions.find((t) => t.value === task.task_type);
             return (
               <Card key={task.id}>
                 <CardContent className="py-3 px-4">
@@ -202,14 +199,14 @@ export default function FarmerTasksTab({ farmerId }: FarmerTasksTabProps) {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-medium text-sm">
-                          {language === 'kn' ? typeLabel?.labelKn : typeLabel?.label || task.task_type}
+                          {t(`agent.farmerTasks.taskTypes.${task.task_type}`)}
                         </span>
                         <Badge className={statusColors[task.task_status] || 'bg-gray-100 text-gray-800'}>
                           {task.task_status.replace('_', ' ')}
                         </Badge>
                         {(task as any).payload && (
                           <Badge variant="outline" className="text-amber-600 border-amber-300">
-                            {language === 'kn' ? 'ಅನುಮೋದನೆ ಬೇಕು' : 'Needs Approval'}
+                            {t('agent.quickUpdate.needsApproval')}
                           </Badge>
                         )}
                       </div>
@@ -218,7 +215,7 @@ export default function FarmerTasksTab({ farmerId }: FarmerTasksTabProps) {
                       )}
                       <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
-                        Due: {format(parseISO(task.due_date), 'MMM d, yyyy')}
+                        {t('agent.farmerTasks.due')}: {format(parseISO(task.due_date), 'MMM d, yyyy')}
                       </p>
                     </div>
                     <div className="flex items-center gap-1">

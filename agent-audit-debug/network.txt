@@ -1,0 +1,2 @@
+200 http://localhost:5173/src/integrations/supabase/client.ts
+200 http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=0cd7e9bf

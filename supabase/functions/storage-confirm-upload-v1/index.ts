@@ -43,7 +43,7 @@ Deno.serve(async (req: Request) => {
       .eq("id", file_id);
 
     return new Response(
-      JSON.stringify({ success: true }),
+      JSON.stringify({ success: true, data: { confirmed: true } }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {

@@ -24,11 +24,13 @@ import {
 import EmptyState from '@/components/shared/EmptyState';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useLanguage } from '@/hooks/useLanguage';
 import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
 
 export default function PendingUpdates() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   const [selectedTask, setSelectedTask] = useState<any>(null);
 
@@ -81,9 +83,9 @@ export default function PendingUpdates() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-pending-updates'] });
       setSelectedTask(null);
-      toast.success('Update approved and applied');
+      toast.success(t('admin.pendingUpdates.approved'));
     },
-    onError: () => toast.error('Failed to approve update'),
+    onError: () => toast.error(t('admin.pendingUpdates.failedApprove')),
   });
 
   // Reject mutation
@@ -113,16 +115,16 @@ export default function PendingUpdates() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-pending-updates'] });
       setSelectedTask(null);
-      toast.success('Update rejected');
+      toast.success(t('admin.pendingUpdates.rejected'));
     },
-    onError: () => toast.error('Failed to reject update'),
+    onError: () => toast.error(t('admin.pendingUpdates.failedReject')),
   });
 
   return (
-    <DashboardLayout title="Pending Updates">
+    <DashboardLayout title={t('admin.pendingUpdates.title')}>
       <PageShell
-        title="Pending Farmer Updates"
-        subtitle="Review and approve agent-submitted profile changes"
+        title={t('admin.pendingUpdates.title')}
+        subtitle={t('admin.pendingUpdates.subtitle')}
       >
         {isLoading ? (
           <div className="space-y-4">
@@ -131,7 +133,7 @@ export default function PendingUpdates() {
             ))}
           </div>
         ) : !pendingTasks?.length ? (
-          <EmptyState icon={CheckCircle} title="All caught up!" description="No pending update requests" />
+          <EmptyState icon={CheckCircle} title={t('admin.pendingUpdates.noPending')} description={t('admin.pendingUpdates.noPendingDesc')} />
         ) : (
           <div className="space-y-4">
             {pendingTasks.map((task: any) => (
@@ -142,7 +144,7 @@ export default function PendingUpdates() {
                       <div className="flex items-center gap-2 flex-wrap mb-2">
                         <Badge className="bg-amber-100 text-amber-800">
                           <Clock className="h-3 w-3 mr-1" />
-                          Pending Approval
+                          {t('admin.pendingUpdates.title')}
                         </Badge>
                         <span className="text-sm text-muted-foreground">
                           {format(parseISO(task.created_at), 'MMM d, yyyy h:mm a')}
@@ -156,7 +158,7 @@ export default function PendingUpdates() {
                         </span>
                       </div>
                       <p className="text-sm text-muted-foreground mt-1">
-                        Submitted by: <span className="font-medium">{task.agent_name}</span>
+                        {t('admin.pendingUpdates.agent')}: <span className="font-medium">{task.agent_name}</span>
                       </p>
                       {task.notes && (
                         <p className="text-sm text-muted-foreground mt-1 italic">"{task.notes}"</p>
@@ -165,7 +167,7 @@ export default function PendingUpdates() {
                       {/* Proposed Changes Preview */}
                       <div className="mt-3 p-3 bg-muted rounded-lg">
                         <p className="text-xs font-medium text-muted-foreground mb-2">
-                          Proposed Changes:
+                          {t('admin.pendingUpdates.actions')}:
                         </p>
                         {Object.entries(task.payload || {}).map(([key, value]) => (
                           <div key={key} className="flex items-center gap-2 text-sm">
@@ -187,7 +189,7 @@ export default function PendingUpdates() {
                         className="bg-green-600 hover:bg-green-700"
                       >
                         <CheckCircle className="h-4 w-4 mr-1" />
-                        Approve
+                        {t('admin.pendingUpdates.approve')}
                       </Button>
                       <Button
                         size="sm"
@@ -197,7 +199,7 @@ export default function PendingUpdates() {
                         className="text-red-600 border-red-200 hover:bg-red-50"
                       >
                         <XCircle className="h-4 w-4 mr-1" />
-                        Reject
+                        {t('admin.pendingUpdates.reject')}
                       </Button>
                     </div>
                   </div>

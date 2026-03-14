@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { useFarmlands, Farmland } from '@/hooks/useFarmerDashboard';
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/hooks/useLanguage';
-import { supabase } from '@/integrations/supabase/client';
+import { useCreateFarmland, useDeleteFarmland } from '@/hooks/useFarmerFarmlandMutations';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,7 +14,7 @@ import PageHeader from '@/components/shared/PageHeader';
 import KpiCard from '@/components/dashboard/KpiCard';
 import DataState from '@/components/ui/DataState';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Search, LandPlot, MapPin, Layers, Edit, Trash2, TreeDeciduous, TestTube2, Loader2, CheckCircle2 } from 'lucide-react';
+import { Plus, Search, LandPlot, MapPin, Layers, Edit, Trash2, TreeDeciduous, TestTube2, Loader2, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react';
 import EditFarmlandDialog from '@/components/farmer/EditFarmlandDialog';
 import ConfirmDialog from '@/components/ui/confirm-dialog';
 import EmptyState from '@/components/shared/EmptyState';
@@ -24,11 +23,12 @@ import FarmlandSoilReportsPanel from '@/components/farmer/soil-reports/FarmlandS
 import { useGeoCapture } from '@/hooks/useGeoCapture';
 
 const FarmlandsPage = () => {
-  const { data: farmlands, isLoading } = useFarmlands();
+  const { data: farmlands, isLoading, isError, refetch } = useFarmlands();
   const { user } = useAuth();
   const { toast } = useToast();
   const { t } = useLanguage();
-  const queryClient = useQueryClient();
+  const createFarmland = useCreateFarmland();
+  const deleteFarmland = useDeleteFarmland();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -62,8 +62,7 @@ const FarmlandsPage = () => {
 
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.from('farmlands').insert({
-        farmer_id: user.id,
+      await createFarmland.mutateAsync({
         name: formData.name,
         area: parseFloat(formData.area),
         area_unit: formData.area_unit,
@@ -75,13 +74,10 @@ const FarmlandsPage = () => {
         geo_verified: !!geo.position,
       });
 
-      if (error) throw error;
-
       toast({ title: t('common.success'), description: t('farmer.farmlands.addSuccess') });
       setIsDialogOpen(false);
       setFormData({ name: '', area: '', area_unit: 'acres', soil_type: '', village: '', district: '' });
       geo.clear();
-      queryClient.invalidateQueries({ queryKey: ['farmlands', user.id] });
     } catch (error) {
       const message = error instanceof Error ? error.message : t('common.error');
       toast({ title: t('common.error'), description: message, variant: 'destructive' });
@@ -100,10 +96,8 @@ const FarmlandsPage = () => {
     
     setIsDeleting(true);
     try {
-      const { error } = await supabase.from('farmlands').delete().eq('id', deletingFarmland.id);
-      if (error) throw error;
+      await deleteFarmland.mutateAsync(deletingFarmland.id);
       toast({ title: t('farmer.farmlands.deleted'), description: t('farmer.farmlands.deleteSuccess') });
-      queryClient.invalidateQueries({ queryKey: ['farmlands', user?.id] });
       setDeleteConfirmOpen(false);
       setDeletingFarmland(null);
     } catch (error) {
@@ -283,6 +277,16 @@ const FarmlandsPage = () => {
           <DataState loading>
             <></>
           </DataState>
+        ) : isError ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <AlertCircle className="h-12 w-12 text-destructive mb-4" />
+            <p className="text-lg font-medium mb-2">{t('common.loadError')}</p>
+            <p className="text-sm text-muted-foreground mb-4">{t('common.retryMessage')}</p>
+            <Button variant="outline" onClick={() => refetch()}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              {t('common.retry')}
+            </Button>
+          </div>
         ) : filteredFarmlands?.length === 0 ? (
           <Card>
             <CardContent className="p-0">

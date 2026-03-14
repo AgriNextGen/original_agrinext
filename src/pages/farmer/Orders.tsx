@@ -1,5 +1,7 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { ROUTES } from '@/lib/routes';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -50,19 +52,20 @@ import { format } from 'date-fns';
 
 type OrderStatus = 'placed' | 'confirmed' | 'packed' | 'ready_for_pickup' | 'delivered' | 'cancelled' | 'rejected';
 
-const statusConfig: Record<OrderStatus, { label: string; icon: typeof Clock; color: string }> = {
-  placed: { label: 'New Order', icon: Clock, color: 'bg-accent/20 text-accent-foreground border-accent/30' },
-  confirmed: { label: 'Confirmed', icon: CheckCircle, color: 'bg-primary/20 text-primary border-primary/30' },
-  packed: { label: 'Packed', icon: Package, color: 'bg-blue-500/20 text-blue-700 border-blue-500/30' },
-  ready_for_pickup: { label: 'Ready for Pickup', icon: Truck, color: 'bg-purple-500/20 text-purple-700 border-purple-500/30' },
-  delivered: { label: 'Delivered', icon: Package, color: 'bg-primary/20 text-primary border-primary/30' },
-  cancelled: { label: 'Cancelled', icon: XCircle, color: 'bg-destructive/20 text-destructive border-destructive/30' },
-  rejected: { label: 'Rejected', icon: XCircle, color: 'bg-destructive/20 text-destructive border-destructive/30' },
-};
+const getStatusConfig = (t: (k: string) => string): Record<OrderStatus, { label: string; icon: typeof Clock; color: string }> => ({
+  placed: { label: t('orders.newOrder'), icon: Clock, color: 'bg-accent/20 text-accent-foreground border-accent/30' },
+  confirmed: { label: t('orders.confirmed'), icon: CheckCircle, color: 'bg-primary/20 text-primary border-primary/30' },
+  packed: { label: t('orders.packed'), icon: Package, color: 'bg-blue-500/20 text-blue-700 border-blue-500/30' },
+  ready_for_pickup: { label: t('orders.readyForPickup'), icon: Truck, color: 'bg-purple-500/20 text-purple-700 border-purple-500/30' },
+  delivered: { label: t('orders.delivered'), icon: Package, color: 'bg-primary/20 text-primary border-primary/30' },
+  cancelled: { label: t('orders.cancelled'), icon: XCircle, color: 'bg-destructive/20 text-destructive border-destructive/30' },
+  rejected: { label: t('orders.rejected'), icon: XCircle, color: 'bg-destructive/20 text-destructive border-destructive/30' },
+});
 
 const FarmerOrders = () => {
   const { t } = useLanguage();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedOrder, setSelectedOrder] = useState<ReturnType<typeof useFarmerOrders>['data'] extends (infer T)[] | undefined ? T : never | null>(null);
@@ -70,6 +73,7 @@ const FarmerOrders = () => {
 
   const { data: orders, isLoading } = useFarmerOrders();
   const updateStatus = useFarmerUpdateOrderStatus();
+  const statusConfig = getStatusConfig(t);
 
   const filteredOrders = (orders || []).filter(order => {
     const matchesSearch = 
@@ -127,7 +131,7 @@ const FarmerOrders = () => {
       window.open(json.signed_url, '_blank');
     } catch (err) {
       if (import.meta.env.DEV) console.error('viewProof error', err);
-      toast({ title: 'Error', description: 'Unable to open proof file', variant: 'destructive' });
+      toast({ title: t('common.error'), description: t('orders.unableToOpenProof'), variant: 'destructive' });
     }
   };
 
@@ -159,7 +163,7 @@ const FarmerOrders = () => {
 
   return (
     <DashboardLayout title={t('orders.title')}>
-      <PageHeader title={t('orders.title')} subtitle={t('orders.subtitle') || 'View and manage incoming buyer orders'}>
+      <PageHeader title={t('orders.title')} subtitle={t('orders.subtitle')}>
         {/* Header Actions */}
         <div className="flex flex-col sm:flex-row gap-4 justify-between">
           <div className="relative flex-1 max-w-md">
@@ -175,15 +179,15 @@ const FarmerOrders = () => {
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-[140px]">
                 <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Status" />
+                <SelectValue placeholder={t('orders.statusPlaceholder')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="placed">New</SelectItem>
-                <SelectItem value="confirmed">Confirmed</SelectItem>
-                <SelectItem value="active">In Progress</SelectItem>
-                <SelectItem value="delivered">Delivered</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
+                <SelectItem value="all">{t('orders.allStatus')}</SelectItem>
+                <SelectItem value="placed">{t('orders.new')}</SelectItem>
+                <SelectItem value="confirmed">{t('orders.confirmed')}</SelectItem>
+                <SelectItem value="active">{t('orders.inProgress')}</SelectItem>
+                <SelectItem value="delivered">{t('orders.delivered')}</SelectItem>
+                <SelectItem value="cancelled">{t('orders.cancelled')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -193,19 +197,19 @@ const FarmerOrders = () => {
         <Tabs value={statusFilter} onValueChange={setStatusFilter} className="w-full">
           <TabsList className="w-full justify-start bg-muted/50 p-1 h-auto flex-wrap">
             <TabsTrigger value="all" className="data-[state=active]:bg-background">
-              All <Badge variant="secondary" className="ml-2">{orderCounts.all}</Badge>
+              {t('common.all')} <Badge variant="secondary" className="ml-2">{orderCounts.all}</Badge>
             </TabsTrigger>
             <TabsTrigger value="placed" className="data-[state=active]:bg-background">
-              New <Badge variant="secondary" className="ml-2">{orderCounts.placed}</Badge>
+              {t('orders.new')} <Badge variant="secondary" className="ml-2">{orderCounts.placed}</Badge>
             </TabsTrigger>
             <TabsTrigger value="confirmed" className="data-[state=active]:bg-background">
-              Confirmed <Badge variant="secondary" className="ml-2">{orderCounts.confirmed}</Badge>
+              {t('orders.confirmed')} <Badge variant="secondary" className="ml-2">{orderCounts.confirmed}</Badge>
             </TabsTrigger>
             <TabsTrigger value="active" className="data-[state=active]:bg-background">
-              In Progress <Badge variant="secondary" className="ml-2">{orderCounts.active}</Badge>
+              {t('orders.inProgress')} <Badge variant="secondary" className="ml-2">{orderCounts.active}</Badge>
             </TabsTrigger>
             <TabsTrigger value="delivered" className="data-[state=active]:bg-background">
-              Delivered <Badge variant="secondary" className="ml-2">{orderCounts.delivered}</Badge>
+              {t('orders.delivered')} <Badge variant="secondary" className="ml-2">{orderCounts.delivered}</Badge>
             </TabsTrigger>
           </TabsList>
         </Tabs>
@@ -216,6 +220,8 @@ const FarmerOrders = () => {
             icon={Package}
             title={orders?.length === 0 ? t('orders.noOrdersYet') : t('common.noResultsFound')}
             description={orders?.length === 0 ? t('orders.noOrdersYet') : t('common.tryAgain')}
+            actionLabel={orders?.length === 0 ? t('listings.addListing') : undefined}
+            onAction={orders?.length === 0 ? () => navigate(ROUTES.FARMER.LISTINGS) : undefined}
           />
         ) : (
           <div className="rounded-xl border border-border shadow-soft overflow-hidden">
@@ -223,14 +229,14 @@ const FarmerOrders = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Order ID</TableHead>
-                    <TableHead>Buyer</TableHead>
-                    <TableHead>Product</TableHead>
-                    <TableHead>Quantity</TableHead>
-                    <TableHead>Total</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead>{t('orders.orderId')}</TableHead>
+                    <TableHead>{t('orders.buyer')}</TableHead>
+                    <TableHead>{t('orders.product')}</TableHead>
+                    <TableHead>{t('common.quantity')}</TableHead>
+                    <TableHead>{t('orders.total')}</TableHead>
+                    <TableHead>{t('orders.status')}</TableHead>
+                    <TableHead>{t('orders.date')}</TableHead>
+                    <TableHead>{t('common.actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -254,7 +260,7 @@ const FarmerOrders = () => {
                           {order.crop?.variety && <span className="text-muted-foreground ml-1">({order.crop.variety})</span>}
                         </TableCell>
                         <TableCell className="text-muted-foreground">
-                          {order.quantity} {order.quantity_unit || 'quintals'}
+                          {order.quantity} {order.quantity_unit || t('common.quintals')}
                         </TableCell>
                         <TableCell className="font-medium">
                           {order.price_offered ? `₹${order.price_offered.toLocaleString()}` : '-'}
@@ -267,7 +273,7 @@ const FarmerOrders = () => {
                             </Badge>
                             {order.payout_hold && (
                               <Badge className="bg-yellow-100 text-yellow-800">
-                                Payout hold
+                                {t('orders.payoutHold')}
                               </Badge>
                             )}
                           </div>
@@ -283,7 +289,7 @@ const FarmerOrders = () => {
                             onClick={() => handleViewOrder(order)}
                           >
                             <Eye className="h-4 w-4" />
-                            View
+                            {t('orders.viewDetails')}
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -299,46 +305,46 @@ const FarmerOrders = () => {
         <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
-              <DialogTitle>Order Details - {selectedOrder?.id.slice(0, 8).toUpperCase()}</DialogTitle>
+              <DialogTitle>{t('orders.orderDetails')} - {selectedOrder?.id.slice(0, 8).toUpperCase()}</DialogTitle>
               <DialogDescription>
-                View and manage order information
+                {t('orders.orderDetailsDescription')}
               </DialogDescription>
             </DialogHeader>
             {selectedOrder && (
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <p className="text-xs text-muted-foreground">Buyer</p>
-                    <p className="text-sm font-medium">{selectedOrder.buyer?.name || 'Unknown'}</p>
+                    <p className="text-xs text-muted-foreground">{t('orders.buyer')}</p>
+                    <p className="text-sm font-medium">{selectedOrder.buyer?.name || t('common.unknown')}</p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-xs text-muted-foreground">Phone</p>
+                    <p className="text-xs text-muted-foreground">{t('common.phone')}</p>
                     <p className="text-sm font-medium">{selectedOrder.buyer?.phone || '-'}</p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-xs text-muted-foreground">Company</p>
+                    <p className="text-xs text-muted-foreground">{t('orders.company')}</p>
                     <p className="text-sm font-medium">{selectedOrder.buyer?.company_name || '-'}</p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-xs text-muted-foreground">Order Date</p>
+                    <p className="text-xs text-muted-foreground">{t('orders.orderDate')}</p>
                     <p className="text-sm font-medium">{format(new Date(selectedOrder.created_at), 'dd MMM yyyy')}</p>
                   </div>
                 </div>
                 <div className="border-t border-border pt-4">
                   <div className="flex justify-between items-center mb-2">
-                    <p className="text-sm">{selectedOrder.crop?.crop_name || 'Product'}</p>
+                    <p className="text-sm">{selectedOrder.crop?.crop_name || t('orders.product')}</p>
                     <p className="text-sm text-muted-foreground">
-                      {selectedOrder.quantity} {selectedOrder.quantity_unit || 'quintals'}
+                      {selectedOrder.quantity} {selectedOrder.quantity_unit || t('common.quintals')}
                     </p>
                   </div>
                   {selectedOrder.delivery_address && (
                     <div className="flex justify-between items-center mb-2">
-                      <p className="text-sm text-muted-foreground">Delivery Address</p>
+                      <p className="text-sm text-muted-foreground">{t('orders.deliveryAddress')}</p>
                       <p className="text-sm">{selectedOrder.delivery_address}</p>
                     </div>
                   )}
                   <div className="flex justify-between items-center pt-2 border-t border-border">
-                    <p className="font-medium">Total Amount</p>
+                    <p className="font-medium">{t('orders.totalAmount')}</p>
                     <p className="font-semibold text-lg">
                       {selectedOrder.price_offered ? `₹${selectedOrder.price_offered.toLocaleString()}` : '-'}
                     </p>
@@ -346,7 +352,7 @@ const FarmerOrders = () => {
                 </div>
                   <div className="flex items-center justify-between pt-4 border-t border-border">
                   <div>
-                    <p className="text-xs text-muted-foreground">Current Status</p>
+                    <p className="text-xs text-muted-foreground">{t('orders.currentStatus')}</p>
                     <Badge 
                       variant="outline" 
                       className={cn('mt-1', statusConfig[selectedOrder.status as OrderStatus]?.color || '')}
@@ -355,17 +361,17 @@ const FarmerOrders = () => {
                     </Badge>
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">Payment</p>
+                    <p className="text-xs text-muted-foreground">{t('orders.paymentStatus')}</p>
                       <div className="flex items-center gap-2">
                         <Badge 
                           variant={selectedOrder.payment_status === 'paid' ? 'default' : 'secondary'} 
                           className="mt-1"
                         >
-                          {selectedOrder.payment_status || 'pending'}
+                          {selectedOrder.payment_status || t('common.pending')}
                         </Badge>
                         {selectedOrder.payout_hold && (
                           <Badge className="bg-yellow-100 text-yellow-800 mt-1">
-                            Payout hold
+                            {t('orders.payoutHold')}
                           </Badge>
                         )}
                       </div>
@@ -373,7 +379,7 @@ const FarmerOrders = () => {
                 </div>
                 {selectedOrder.notes && (
                   <div className="pt-4 border-t border-border">
-                    <p className="text-xs text-muted-foreground mb-1">Notes</p>
+                    <p className="text-xs text-muted-foreground mb-1">{t('common.notes')}</p>
                     <p className="text-sm">{selectedOrder.notes}</p>
                   </div>
                 )}
@@ -381,9 +387,9 @@ const FarmerOrders = () => {
             )}
             {/* Timeline */}
             <div className="pt-4 border-t border-border">
-            <h4 className="text-sm font-medium mb-3">Timeline</h4>
+            <h4 className="text-sm font-medium mb-3">{t('orders.timeline')}</h4>
             {timeline.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No events yet</p>
+              <p className="text-sm text-muted-foreground">{t('orders.noEventsYet')}</p>
             ) : (
               <ol className="relative border-l border-muted/50 ml-2">
                 {timeline.map((e: any) => (
@@ -411,7 +417,7 @@ const FarmerOrders = () => {
                       {e.payload && (e.payload.proof_file_id || e.payload.file_id || e.payload.proof) && (
                         <div className="mt-2">
                           <Button size="sm" variant="outline" onClick={() => viewProof(e.payload.proof_file_id || e.payload.file_id || e.payload.proof)}>
-                            View proof
+                            {t('orders.viewProof')}
                           </Button>
                         </div>
                       )}
@@ -431,7 +437,7 @@ const FarmerOrders = () => {
                     disabled={updateStatus.isPending}
                   >
                     <XCircle className="h-4 w-4 mr-2" />
-                    Reject
+                    {t('orders.rejectOrder')}
                   </Button>
                   <Button 
                     className="gap-2"
@@ -439,7 +445,7 @@ const FarmerOrders = () => {
                     disabled={updateStatus.isPending}
                   >
                     <CheckCircle className="h-4 w-4" />
-                    Confirm Order
+                    {t('orders.confirmOrder')}
                   </Button>
                 </>
               )}
@@ -450,7 +456,7 @@ const FarmerOrders = () => {
                   disabled={updateStatus.isPending}
                 >
                   <Package className="h-4 w-4" />
-                  Mark as Packed
+                  {t('orders.markPacked')}
                 </Button>
               )}
               {selectedOrder?.status === 'packed' && (
@@ -460,7 +466,7 @@ const FarmerOrders = () => {
                   disabled={updateStatus.isPending}
                 >
                   <Truck className="h-4 w-4" />
-                  Ready for Pickup
+                  {t('orders.readyForPickup')}
                 </Button>
               )}
               {selectedOrder?.status === 'ready_for_pickup' && (
@@ -470,7 +476,7 @@ const FarmerOrders = () => {
                   disabled={updateStatus.isPending}
                 >
                   <CheckCircle className="h-4 w-4" />
-                  Mark as Delivered
+                  {t('orders.markDelivered')}
                 </Button>
               )}
             </DialogFooter>

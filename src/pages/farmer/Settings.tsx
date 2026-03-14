@@ -25,16 +25,15 @@ import {
   Loader2,
   Shield,
   Bell,
-  Globe,
-  Check
 } from 'lucide-react';
+import LanguageSelector from '@/components/shared/LanguageSelector';
 
 const SettingsPage = () => {
   const { data: profile, isLoading } = useFarmerProfile();
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { language, setLanguage, isLoading: languageLoading, t } = useLanguage();
+  const { t } = useLanguage();
   const [isSaving, setIsSaving] = useState(false);
   const setProfileGeo = useSetProfileGeo();
   
@@ -269,37 +268,7 @@ const SettingsPage = () => {
             </div>
             
             {/* Language Toggle */}
-            <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
-              <div className="flex items-center gap-3">
-                <Globe className="h-5 w-5 text-muted-foreground" />
-                <div>
-                  <p className="font-medium">{t('settings.language')}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {language === 'en' ? t('settings.english') : t('settings.kannada')}
-                  </p>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <Button 
-                  variant={language === 'en' ? 'default' : 'outline'} 
-                  size="sm"
-                  onClick={() => setLanguage('en')}
-                  disabled={languageLoading}
-                >
-                  {language === 'en' && <Check className="h-3 w-3 mr-1" />}
-                  {t('settings.english')}
-                </Button>
-                <Button 
-                  variant={language === 'kn' ? 'default' : 'outline'} 
-                  size="sm"
-                  onClick={() => setLanguage('kn')}
-                  disabled={languageLoading}
-                >
-                  {language === 'kn' && <Check className="h-3 w-3 mr-1" />}
-                  {t('settings.kannada')}
-                </Button>
-              </div>
-            </div>
+            <LanguageSelector variant="inline" />
 
             <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
               <div className="flex items-center gap-3">

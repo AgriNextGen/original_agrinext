@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Camera, Upload, X, Loader2, MapPin, CheckCircle2 } from 'lucide-react';
 import { useUploadCropMedia } from '@/hooks/useCropDiary';
+import { useLanguage } from '@/hooks/useLanguage';
 import { toast } from 'sonner';
 import imageCompression from 'browser-image-compression';
 import { FILE_SIZE_LIMITS, validateFileSize, isImageFile, getErrorMessage, createRetryAction } from '@/lib/error-utils';
@@ -18,6 +19,7 @@ interface CropPhotoUploadDialogProps {
 }
 
 const CropPhotoUploadDialog = ({ cropId, open, onOpenChange }: CropPhotoUploadDialogProps) => {
+  const { t } = useLanguage();
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [caption, setCaption] = useState('');
@@ -32,13 +34,13 @@ const CropPhotoUploadDialog = ({ cropId, open, onOpenChange }: CropPhotoUploadDi
     if (!selectedFile) return;
 
     if (!isImageFile(selectedFile)) {
-      toast.error('Please select an image file (JPG, PNG, WebP)');
+      toast.error(t('validation.selectImageFile'));
       return;
     }
 
     const validation = validateFileSize(selectedFile, FILE_SIZE_LIMITS.IMAGE_MAX_MB);
     if (!validation.valid) {
-      toast.error(validation.message);
+      toast.error(t('validation.fileTooLarge'));
       return;
     }
 
@@ -55,7 +57,7 @@ const CropPhotoUploadDialog = ({ cropId, open, onOpenChange }: CropPhotoUploadDi
         });
       } catch (error) {
         if (import.meta.env.DEV) console.error('Compression failed:', error);
-        toast.error('Failed to compress image. Please try a smaller file.');
+        toast.error(t('errors.compressFailed'));
         setIsCompressing(false);
         return;
       }

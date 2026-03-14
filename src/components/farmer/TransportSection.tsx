@@ -9,20 +9,31 @@ import { Truck, MapPin, Calendar, Package, ChevronRight, Plus, ChevronDown } fro
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/lib/routes';
+import { useLanguage } from '@/hooks/useLanguage';
 
-const statusConfig = {
-  requested: { label: 'Requested', color: 'bg-blue-100 text-blue-800', step: 1 },
-  assigned: { label: 'Assigned', color: 'bg-purple-100 text-purple-800', step: 2 },
-  en_route: { label: 'En Route', color: 'bg-amber-100 text-amber-800', step: 3 },
-  picked_up: { label: 'Picked Up', color: 'bg-emerald-100 text-emerald-800', step: 4 },
-  delivered: { label: 'Delivered', color: 'bg-primary/10 text-primary', step: 5 },
-  cancelled: { label: 'Cancelled', color: 'bg-destructive/10 text-destructive', step: 0 },
+const statusColors: Record<string, { color: string; step: number }> = {
+  requested: { color: 'bg-blue-100 text-blue-800', step: 1 },
+  assigned: { color: 'bg-purple-100 text-purple-800', step: 2 },
+  en_route: { color: 'bg-amber-100 text-amber-800', step: 3 },
+  picked_up: { color: 'bg-emerald-100 text-emerald-800', step: 4 },
+  delivered: { color: 'bg-primary/10 text-primary', step: 5 },
+  cancelled: { color: 'bg-destructive/10 text-destructive', step: 0 },
 };
 
 const TransportSection = () => {
+  const { t } = useLanguage();
   const { data: requests, isLoading } = useTransportRequests();
   const navigate = useNavigate();
   const [isExpanded, setIsExpanded] = useState(false);
+
+  const statusLabels: Record<string, string> = {
+    requested: t('farmer.transport.status.requested'),
+    assigned: t('farmer.transport.status.assigned'),
+    en_route: t('farmer.transport.status.enRoute'),
+    picked_up: t('farmer.transport.status.pickedUp'),
+    delivered: t('farmer.transport.status.delivered'),
+    cancelled: t('farmer.transport.status.cancelled'),
+  };
 
   const activeRequests = requests?.filter(r => 
     !['delivered', 'cancelled'].includes(r.status)
@@ -85,7 +96,7 @@ const TransportSection = () => {
           {!isExpanded && (
             <div className="space-y-2">
               {activeRequests.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No active transport requests</p>
+                <p className="text-sm text-muted-foreground">{t('farmer.transport.noActiveRequests')}</p>
               ) : topRequest ? (
                 <div className="flex items-center justify-between p-2 bg-muted/30 rounded-lg">
                   <div className="flex items-center gap-2">
@@ -95,13 +106,13 @@ const TransportSection = () => {
                       • {topRequest.quantity} {topRequest.quantity_unit}
                     </span>
                   </div>
-                  <Badge className={statusConfig[topRequest.status]?.color || 'bg-muted'}>
-                    {statusConfig[topRequest.status]?.label || topRequest.status}
+                  <Badge className={statusColors[topRequest.status]?.color || 'bg-muted'}>
+                    {statusLabels[topRequest.status] || topRequest.status}
                   </Badge>
                 </div>
               ) : null}
               {activeRequests.length > 1 && (
-                <p className="text-xs text-muted-foreground">+{activeRequests.length - 1} more requests</p>
+                <p className="text-xs text-muted-foreground">+{activeRequests.length - 1} {t('farmer.transport.moreRequests')}</p>
               )}
             </div>
           )}
@@ -111,15 +122,15 @@ const TransportSection = () => {
             {activeRequests.length === 0 ? (
               <div className="text-center py-6">
                 <Truck className="h-10 w-10 mx-auto text-muted-foreground/50 mb-3" />
-                <p className="text-muted-foreground text-sm">No active transport requests</p>
+                <p className="text-muted-foreground text-sm">{t('farmer.transport.noActiveRequests')}</p>
                 <Button variant="outline" className="mt-4" size="sm" onClick={() => navigate(ROUTES.FARMER.TRANSPORT)}>
-                  Request Transport
+                  {t('farmer.transport.requestTransport')}
                 </Button>
               </div>
             ) : (
               <div className="space-y-4 pt-2">
                 {activeRequests.map((request) => {
-                  const status = statusConfig[request.status];
+                  const status = statusColors[request.status];
                   const totalSteps = 5;
                   const progress = (status.step / totalSteps) * 100;
 
@@ -139,7 +150,7 @@ const TransportSection = () => {
                             • {request.quantity} {request.quantity_unit}
                           </span>
                         </div>
-                        <Badge className={status.color}>{status.label}</Badge>
+                        <Badge className={status.color}>{statusLabels[request.status] || request.status}</Badge>
                       </div>
 
                       {/* Progress bar */}
@@ -152,11 +163,11 @@ const TransportSection = () => {
                             />
                           </div>
                           <div className="flex justify-between mt-1 text-xs text-muted-foreground">
-                            <span>Requested</span>
-                            <span>Assigned</span>
-                            <span>En Route</span>
-                            <span>Picked Up</span>
-                            <span>Delivered</span>
+                            <span>{t('farmer.transport.status.requested')}</span>
+                            <span>{t('farmer.transport.status.assigned')}</span>
+                            <span>{t('farmer.transport.status.enRoute')}</span>
+                            <span>{t('farmer.transport.status.pickedUp')}</span>
+                            <span>{t('farmer.transport.status.delivered')}</span>
                           </div>
                         </div>
                       )}
@@ -185,7 +196,7 @@ const TransportSection = () => {
                     className="w-full text-muted-foreground hover:text-foreground"
                     onClick={() => navigate(ROUTES.FARMER.TRANSPORT)}
                   >
-                    View all requests
+                    {t('farmer.transport.viewAllRequests')}
                     <ChevronRight className="h-4 w-4 ml-1" />
                   </Button>
                 )}

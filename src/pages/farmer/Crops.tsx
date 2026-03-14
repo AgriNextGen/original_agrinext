@@ -1,11 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQueryClient } from '@tanstack/react-query';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { useCrops, useFarmlands, Crop, Farmland } from '@/hooks/useFarmerDashboard';
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/hooks/useLanguage';
-import { supabase } from '@/integrations/supabase/client';
+import { useCreateCrop, useDeleteCrop } from '@/hooks/useFarmerCropMutations';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -31,8 +30,9 @@ const CropsPage = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { t } = useLanguage();
-  const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const createCrop = useCreateCrop();
+  const deleteCrop = useDeleteCrop();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -85,8 +85,7 @@ const CropsPage = () => {
     setIsSubmitting(true);
 
     try {
-      const { error } = await supabase.from('crops').insert({
-        farmer_id: user.id,
+      await createCrop.mutateAsync({
         crop_name: formData.crop_name,
         variety: formData.variety || null,
         land_id: formData.land_id || null,
@@ -96,8 +95,6 @@ const CropsPage = () => {
         estimated_quantity: formData.estimated_quantity ? parseFloat(formData.estimated_quantity) : null,
         quantity_unit: formData.quantity_unit,
       });
-
-      if (error) throw error;
 
       toast({ title: t('common.success'), description: t('farmer.crops.addSuccess') });
       setIsDialogOpen(false);
@@ -111,7 +108,6 @@ const CropsPage = () => {
         estimated_quantity: '',
         quantity_unit: 'quintals',
       });
-      queryClient.invalidateQueries({ queryKey: ['crops', user.id] });
     } catch (error) {
       const message = error instanceof Error ? error.message : t('common.error');
       toast({ title: t('common.error'), description: message, variant: 'destructive' });
@@ -130,10 +126,8 @@ const CropsPage = () => {
     
     setIsDeleting(true);
     try {
-      const { error } = await supabase.from('crops').delete().eq('id', deletingCrop.id);
-      if (error) throw error;
+      await deleteCrop.mutateAsync(deletingCrop.id);
       toast({ title: t('farmer.crops.deleted'), description: t('farmer.crops.deleteSuccess') });
-      queryClient.invalidateQueries({ queryKey: ['crops', user?.id] });
       setDeleteConfirmOpen(false);
       setDeletingCrop(null);
     } catch (error) {

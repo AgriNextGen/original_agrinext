@@ -1,9 +1,10 @@
 /**
  * Tests for the i18n translation system.
  * Verifies: key coverage, Kannada encoding, fallback behaviour.
+ * Uses repaired kn from index (runtime output) — source kn.ts may have mojibake that gets repaired.
  */
 import { en } from '@/i18n/en';
-import { kn } from '@/i18n/kn';
+import { kn } from '@/i18n';
 
 // ---------------------------------------------------------------------------
 // Key coverage

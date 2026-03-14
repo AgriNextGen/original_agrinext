@@ -8,6 +8,7 @@ import { Truck, Search, MapPin, Package, CheckCircle, Inbox } from 'lucide-react
 import EmptyState from '@/components/shared/EmptyState';
 import { useAllTransporters } from '@/hooks/useAdminDashboard';
 import { useState } from 'react';
+import { useLanguage } from '@/hooks/useLanguage';
 import {
   Table,
   TableBody,
@@ -18,25 +19,26 @@ import {
 } from '@/components/ui/table';
 
 const AdminTransporters = () => {
+  const { t } = useLanguage();
   const { data: transporters, isLoading } = useAllTransporters();
   const [search, setSearch] = useState('');
 
-  const filteredTransporters = transporters?.filter(t => 
-    t.name?.toLowerCase().includes(search.toLowerCase()) ||
-    t.operating_district?.toLowerCase().includes(search.toLowerCase()) ||
-    t.operating_village?.toLowerCase().includes(search.toLowerCase())
+  const filteredTransporters = transporters?.filter(tp => 
+    tp.name?.toLowerCase().includes(search.toLowerCase()) ||
+    tp.operating_district?.toLowerCase().includes(search.toLowerCase()) ||
+    tp.operating_village?.toLowerCase().includes(search.toLowerCase())
   ) || [];
 
   return (
-    <DashboardLayout title="Transporter Management">
+    <DashboardLayout title={t('admin.transporters.title')}>
       <PageShell
-        title="Transporter Management"
-        subtitle="View and manage logistics partners"
+        title={t('admin.transporters.title')}
+        subtitle={t('admin.transporters.subtitle')}
         actions={
           <div className="relative w-full md:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Search transporters..."
+              placeholder={t('admin.transporters.search')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9"
@@ -46,7 +48,7 @@ const AdminTransporters = () => {
       >
         <Card>
           <CardHeader>
-            <CardTitle>All Transporters ({filteredTransporters.length})</CardTitle>
+            <CardTitle>{t('admin.transporters.allTransporters')} ({filteredTransporters.length})</CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -56,18 +58,18 @@ const AdminTransporters = () => {
                 ))}
               </div>
             ) : filteredTransporters.length === 0 ? (
-                <EmptyState icon={Inbox} title="No transporters found" />
+                <EmptyState icon={Inbox} title={t('admin.transporters.noTransporters')} />
             ) : (
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Phone</TableHead>
-                        <TableHead>Operating Area</TableHead>
-                        <TableHead>Vehicles</TableHead>
-                        <TableHead>Active Trips</TableHead>
-                        <TableHead>Completed</TableHead>
+                        <TableHead>{t('admin.transporters.name')}</TableHead>
+                        <TableHead>{t('admin.transporters.phone')}</TableHead>
+                        <TableHead>{t('admin.transporters.operatingArea')}</TableHead>
+                        <TableHead>{t('admin.transporters.vehicles')}</TableHead>
+                        <TableHead>{t('admin.transporters.activeTrips')}</TableHead>
+                        <TableHead>{t('admin.transporters.completed')}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>

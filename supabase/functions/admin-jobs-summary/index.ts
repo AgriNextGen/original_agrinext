@@ -9,15 +9,15 @@ Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   try {
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (!authHeader) return new Response(JSON.stringify({ success: false, error: { code: "UNAUTHORIZED", message: "Missing authorization" } }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     const { data: { user } } = await supabase.auth.getUser(authHeader.replace("Bearer ", ""));
-    if (!user) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (!user) return new Response(JSON.stringify({ success: false, error: { code: "UNAUTHORIZED", message: "Invalid token" } }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
     // check admin via admin_users table (best-effort)
     const { data: adminRow } = await supabase.from("admin_users").select("id").eq("user_id", user.id).maybeSingle();
-    if (!adminRow) return new Response(JSON.stringify({ error: "forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (!adminRow) return new Response(JSON.stringify({ success: false, error: { code: "FORBIDDEN", message: "Admin access required" } }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
     const [{ count: queued }] = await supabase.rpc("get_row_count", { p_table: "public.job_queue", p_where: "status = 'queued'" }).then(r => r.data || [{ count: 0 }]);
     // Fallback if get_row_count not present, use direct counts
@@ -36,17 +36,20 @@ Deno.serve(async (req: Request) => {
     const recent = await supabase.from("job_queue").select("*").order("created_at", { ascending: false }).limit(100);
 
     return new Response(JSON.stringify({
-      summary: {
-        queued: q1.count || 0,
-        running: q2.count || 0,
-        failed: q3.count || 0,
-        dead: q4.count || 0
-      },
-      jobs: recent.data || []
+      success: true,
+      data: {
+        summary: {
+          queued: q1.count || 0,
+          running: q2.count || 0,
+          failed: q3.count || 0,
+          dead: q4.count || 0
+        },
+        jobs: recent.data || []
+      }
     }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (err) {
     console.error('admin-jobs-summary error:', err);
-    return new Response(JSON.stringify({ error: err instanceof Error ? err.message : 'internal' }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ success: false, error: { code: "INTERNAL", message: "Internal error" } }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 });
 

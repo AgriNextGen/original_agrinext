@@ -4,18 +4,20 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '@/hooks/useLanguage';
+import { ROUTES } from '@/lib/routes';
 
 const FarmerSummaryCard = ({ dashboardData }: { dashboardData?: any } ) => {
   const { data: profile, isLoading: profileLoading } = useFarmerProfile();
   const { data: farmlands } = useFarmlands();
   const { activeCrops, readyToHarvest, pendingTransport, isLoading: statsLoading } = useDashboardStats();
+  const { t } = useLanguage();
   const remote = dashboardData || null;
   const navigate = useNavigate();
   const remoteActiveCrops = remote && remote.crops_by_status
     ? Object.values(remote.crops_by_status).reduce((s: any, v: any) => s + (v || 0), 0)
     : null;
 
-  // Calculate profile completion
   const getProfileCompletion = () => {
     if (!profile) return 0;
     let completed = 0;
@@ -53,25 +55,25 @@ const FarmerSummaryCard = ({ dashboardData }: { dashboardData?: any } ) => {
 
   const stats = [
     { 
-      label: 'Total Land', 
-      value: `${totalLandArea.toFixed(1)} acres`, 
+      label: t('dashboard.totalLand'), 
+      value: `${totalLandArea.toFixed(1)} ${t('common.acres')}`, 
       icon: LandPlot, 
       color: 'text-amber-600 bg-amber-100' 
     },
     { 
-      label: 'Active Crops', 
+      label: t('dashboard.activeCrops'), 
       value: String(remoteActiveCrops != null ? remoteActiveCrops : activeCrops), 
       icon: Sprout, 
       color: 'text-emerald-600 bg-emerald-100' 
     },
     { 
-      label: 'Ready to Harvest', 
+      label: t('dashboard.readyToHarvest'), 
       value: readyToHarvest.toString(), 
       icon: Wheat, 
       color: 'text-primary bg-primary/10' 
     },
     { 
-      label: 'Pending Transport', 
+      label: t('dashboard.pendingTransport'), 
       value: (remote?.open_transport_requests_count != null ? remote.open_transport_requests_count : pendingTransport).toString(), 
       icon: Truck, 
       color: 'text-blue-600 bg-blue-100' 
@@ -81,23 +83,21 @@ const FarmerSummaryCard = ({ dashboardData }: { dashboardData?: any } ) => {
   return (
     <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-accent/10 rounded-2xl p-4 md:p-5 border border-border shadow-soft">
       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 md:gap-5">
-        {/* Farmer Info */}
         <div className="space-y-3 flex-1 min-w-0">
           <div>
             <h1 className="text-xl md:text-2xl font-display font-bold text-foreground leading-tight">
-              Welcome, {profile?.full_name || 'Farmer'}! 🌾
+              {t('common.welcome')}, {profile?.full_name || t('roles.farmer')}!
             </h1>
             <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
               <MapPin className="h-4 w-4 shrink-0" />
               <span className="truncate">
                 {profile?.village && profile?.district 
                   ? `${profile.village}, ${profile.district}`
-                  : 'Location not set'}
+                  : t('dashboard.locationNotSet')}
               </span>
             </div>
           </div>
 
-          {/* Profile Completion */}
           {profileCompletion < 100 && (
             <div className="bg-card/80 backdrop-blur-sm rounded-xl p-3 border border-border/50 max-w-lg">
               <div className="flex items-center justify-between mb-1.5">
@@ -107,31 +107,30 @@ const FarmerSummaryCard = ({ dashboardData }: { dashboardData?: any } ) => {
                   ) : (
                     <AlertCircle className="h-4 w-4 text-amber-500" />
                   )}
-                  <span className="text-sm font-medium">Profile Completion</span>
+                  <span className="text-sm font-medium">{t('dashboard.profileCompletion')}</span>
                 </div>
                 <span className="text-sm text-muted-foreground">{profileCompletion}%</span>
               </div>
               <Progress value={profileCompletion} className="h-2" />
               <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
                 {profileCompletion < 40 
-                  ? 'Complete your profile to unlock all features'
+                  ? t('dashboard.completeProfile')
                   : profileCompletion < 80
-                    ? 'Almost there! Add a few more details'
-                    : 'Just a little more to complete your profile'}
+                    ? t('dashboard.almostThere')
+                    : t('dashboard.justALittle')}
               </p>
               <Button 
                 variant="link" 
                 size="sm" 
                 className="p-0 h-auto mt-1 text-primary"
-                onClick={() => navigate('/farmer/settings')}
+                onClick={() => navigate(ROUTES.FARMER.SETTINGS)}
               >
-                Complete Profile →
+                {t('dashboard.completeProfileLink')}
               </Button>
             </div>
           )}
         </div>
 
-        {/* Quick Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 md:gap-3 w-full lg:w-auto">
           {stats.map((stat) => (
             <div 

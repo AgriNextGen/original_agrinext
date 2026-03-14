@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useLanguage } from '@/hooks/useLanguage';
 import { toast } from 'sonner';
 
 /**
@@ -94,6 +95,7 @@ export const useTransporterProfile = () => {
 export const useCreateTransporterProfile = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { t } = useLanguage();
   
   return useMutation({
     mutationFn: async (data: Partial<Transporter>) => {
@@ -119,10 +121,10 @@ export const useCreateTransporterProfile = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transporter-profile'] });
-      toast.success('Profile created successfully');
+      toast.success(t('hookToasts.logistics.profileCreated'));
     },
     onError: (error) => {
-      toast.error('Failed to create profile: ' + error.message);
+      toast.error(t('hookToasts.logistics.profileFailed') + ': ' + error.message);
     },
   });
 };

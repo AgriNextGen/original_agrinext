@@ -2,6 +2,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/hooks/useLanguage';
 
 interface Order {
   id: string;
@@ -30,25 +31,27 @@ const statusStyles = {
 };
 
 const RecentOrders = () => {
+  const { t } = useLanguage();
+
   return (
     <div className="bg-card rounded-xl border border-border shadow-soft">
       <div className="flex items-center justify-between p-6 border-b border-border">
-        <h3 className="font-display font-semibold text-lg text-foreground">Recent Orders</h3>
-        <Button aria-label="View all orders" variant="ghost" size="sm" className="text-primary hover:text-primary/80">
-          View All
+        <h3 className="font-display font-semibold text-lg text-foreground">{t('shared.recentOrders.title')}</h3>
+        <Button aria-label={t('shared.recentOrders.viewAllOrders')} variant="ghost" size="sm" className="text-primary hover:text-primary/80">
+          {t('shared.recentOrders.viewAll')}
         </Button>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b border-border">
-              <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-6 py-3">Order ID</th>
-              <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-6 py-3">Buyer</th>
-              <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-6 py-3">Product</th>
-              <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-6 py-3">Quantity</th>
-              <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-6 py-3">Total</th>
-              <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-6 py-3">Status</th>
-              <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-6 py-3">Action</th>
+              <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-6 py-3">{t('shared.recentOrders.orderId')}</th>
+              <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-6 py-3">{t('shared.recentOrders.buyer')}</th>
+              <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-6 py-3">{t('shared.recentOrders.product')}</th>
+              <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-6 py-3">{t('shared.recentOrders.quantity')}</th>
+              <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-6 py-3">{t('shared.recentOrders.total')}</th>
+              <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-6 py-3">{t('shared.recentOrders.status')}</th>
+              <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-6 py-3">{t('shared.recentOrders.action')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -65,7 +68,7 @@ const RecentOrders = () => {
                   </Badge>
                 </td>
                 <td className="px-6 py-4">
-                  <Button aria-label={`View order ${order.id}`} variant="ghost" size="icon" className="h-8 w-8">
+                  <Button aria-label={`${t('shared.recentOrders.viewOrder')} ${order.id}`} variant="ghost" size="icon" className="h-8 w-8">
                     <Eye className="h-4 w-4" />
                   </Button>
                 </td>

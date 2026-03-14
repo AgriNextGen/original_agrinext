@@ -34,7 +34,7 @@ const AdminDashboard = () => {
   const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useAdminDashboardStats();
   const { data: recentActivity, isLoading: activityLoading } = useRecentActivity();
   const handleAIAnalysis = async (_type: string) => {
-    toast.info('AI analysis is not yet available. This feature is coming soon.');
+    toast.info(t('toast.aiAnalysisComingSoon'));
   };
 
   return (

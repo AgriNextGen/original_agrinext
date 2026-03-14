@@ -20,15 +20,16 @@ async function processUpload(u: OfflineUpload) {
         entity: { type: u.entityType, id: u.entityId, purpose: u.purpose }
       }
     });
-    if (error || data?.error) throw new Error(error?.message || data?.error || 'sign_failed');
-    const signed = data;
+    if (error) throw new Error(error?.message || 'sign_failed');
+    if (!data?.success && data?.error) throw new Error(data.error.message ?? data.error);
+    const signed = data?.data ?? data;
     const signedUrl = signed.token || signed.signed_url || signed.signedUrl;
     // 2) upload blob via PUT
     const resp = await fetch(signedUrl, { method: 'PUT', body: u.blob, headers: { 'Content-Type': u.mimeType } });
     if (!resp.ok) throw new Error(`upload_failed:${resp.status}`);
     // 3) confirm upload via RPC (files_confirm_upload_v1 expects file_id if returned; if server returned file_id earlier, include)
     if (signed.file_id) {
-      await supabase.rpc('public.files_confirm_upload_v1', { p_file_id: signed.file_id });
+      await supabase.rpc('files_confirm_upload_v1', { p_file_id: signed.file_id });
     }
     await offlineDB.uploads.delete(u.id);
     uploadEvents.dispatchEvent(new CustomEvent('succeeded', { detail: u }));

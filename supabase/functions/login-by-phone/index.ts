@@ -68,10 +68,11 @@ function temporaryBlockResponse(reqId: string, blockedUntilRaw: string) {
 
   return makeResponseWithRequestId(
     JSON.stringify({
-      error: "temporarily_blocked",
-      message: `Too many attempts. Try again at ${blockedUntilRaw}`,
-      retry_at: blockedUntilRaw,
-      retry_after_seconds: retryAfterSeconds,
+      success: false,
+      error: {
+        code: "RATE_LIMITED",
+        message: `Too many attempts. Try again at ${blockedUntilRaw}`,
+      },
     }),
     reqId,
     {
@@ -95,7 +96,7 @@ Deno.serve(async (req: Request) => {
 
     if (!phone || !password) {
       return makeResponseWithRequestId(
-        JSON.stringify({ error: "Invalid credentials" }),
+        JSON.stringify({ success: false, error: { code: "VALIDATION_ERROR", message: "Phone and password are required" } }),
         reqId,
         { status: 401, headers: jsonHeaders() },
       );
@@ -104,7 +105,7 @@ Deno.serve(async (req: Request) => {
     const normalizedPhone = normalizePhone(phone);
     if (!normalizedPhone) {
       return makeResponseWithRequestId(
-        JSON.stringify({ error: "Invalid credentials" }),
+        JSON.stringify({ success: false, error: { code: "VALIDATION_ERROR", message: "Invalid phone number" } }),
         reqId,
         { status: 401, headers: jsonHeaders() },
       );
@@ -142,8 +143,8 @@ Deno.serve(async (req: Request) => {
       if (accountStatus === "locked" || accountStatus === "under_review") {
         return makeResponseWithRequestId(
           JSON.stringify({
-            error: "account_locked",
-            message: "Account locked. Contact support.",
+            success: false,
+            error: { code: "ACCOUNT_LOCKED", message: "Account locked. Contact support." },
           }),
           reqId,
           { status: 403, headers: jsonHeaders() },
@@ -210,7 +211,7 @@ Deno.serve(async (req: Request) => {
         phone: normalizedPhone,
       });
       return makeResponseWithRequestId(
-        JSON.stringify({ error: "Invalid credentials" }),
+        JSON.stringify({ success: false, error: { code: "INVALID_CREDENTIALS", message: "Invalid credentials" } }),
         reqId,
         { status: 401, headers: jsonHeaders() },
       );
@@ -240,9 +241,12 @@ Deno.serve(async (req: Request) => {
     });
     return makeResponseWithRequestId(
       JSON.stringify({
-        access_token: tokenData.access_token,
-        refresh_token: tokenData.refresh_token,
-        expires_in: tokenData.expires_in,
+        success: true,
+        data: {
+          access_token: tokenData.access_token,
+          refresh_token: tokenData.refresh_token,
+          expires_in: tokenData.expires_in,
+        },
       }),
       reqId,
       { status: 200, headers: jsonHeaders() },
@@ -257,7 +261,7 @@ Deno.serve(async (req: Request) => {
       error: err instanceof Error ? err.message : String(err),
     });
     return makeResponseWithRequestId(
-      JSON.stringify({ error: err instanceof Error ? err.message : "Internal" }),
+      JSON.stringify({ success: false, error: { code: "INTERNAL", message: "Internal error" } }),
       reqId,
       { status: 500, headers: jsonHeaders() },
     );

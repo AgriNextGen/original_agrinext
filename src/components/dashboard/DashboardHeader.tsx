@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useCallback } from 'react';
 import { Bell, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -16,11 +16,12 @@ import { useUserProfile } from '@/hooks/useUserProfile';
 import { useLanguage } from '@/hooks/useLanguage';
 import { ROUTES } from '@/lib/routes';
 import { supabase } from '@/integrations/supabase/client';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { formatDistanceToNow } from 'date-fns';
 import { enIN } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
 import SyncIndicator from '@/components/SyncIndicator';
+import LanguageSelector from '@/components/shared/LanguageSelector';
 
 const ROLE_PATHS: Record<string, { settings: string; notifications: string }> = {
   farmer:    { settings: ROUTES.FARMER.SETTINGS,       notifications: ROUTES.FARMER.NOTIFICATIONS },
@@ -28,6 +29,7 @@ const ROLE_PATHS: Record<string, { settings: string; notifications: string }> = 
   logistics: { settings: ROUTES.LOGISTICS.PROFILE,     notifications: ROUTES.LOGISTICS.DASHBOARD },
   buyer:     { settings: ROUTES.MARKETPLACE.PROFILE,   notifications: ROUTES.MARKETPLACE.ORDERS },
   admin:     { settings: ROUTES.ADMIN.DASHBOARD,       notifications: ROUTES.ADMIN.OPS_INBOX },
+  vendor:    { settings: ROUTES.VENDOR.PROFILE,        notifications: ROUTES.VENDOR.DASHBOARD },
 };
 
 interface DashboardHeaderProps {
@@ -44,6 +46,7 @@ const DashboardHeader = ({ title, onMenuClick }: DashboardHeaderProps) => {
   const navigate = useNavigate();
 
   const paths = ROLE_PATHS[userRole ?? 'farmer'];
+  const dateLocale = enIN;
 
   const unreadCount = useMemo(() => 
     notifications?.filter(n => !n.is_read).length || 0,
@@ -79,14 +82,22 @@ const DashboardHeader = ({ title, onMenuClick }: DashboardHeaderProps) => {
     };
   }, [user?.id, queryClient]);
 
-  const markAsRead = async (id: string) => {
-    await supabase
-      .from('notifications')
-      .update({ is_read: true })
-      .eq('id', id);
-    
-    queryClient.invalidateQueries({ queryKey: ['notifications', user?.id] });
-  };
+  const markAsReadMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications', user?.id] });
+    },
+  });
+
+  const markAsRead = useCallback((id: string) => {
+    markAsReadMutation.mutate(id);
+  }, [markAsReadMutation]);
 
   const getInitials = (name: string | null | undefined, email: string | null | undefined) => {
     if (name) {
@@ -100,15 +111,18 @@ const DashboardHeader = ({ title, onMenuClick }: DashboardHeaderProps) => {
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 md:px-6">
       <div className="flex items-center gap-4">
-        <Button
-          aria-label="Open menu"
-          variant="ghost"
-          size="icon"
-          className="md:hidden"
-          onClick={onMenuClick}
-        >
-          <Menu className="h-5 w-5" />
-        </Button>
+        {/* Hamburger menu: hidden on desktop, and hidden on mobile for farmer (uses bottom tab bar instead) */}
+        {userRole !== 'farmer' && (
+          <Button
+            aria-label="Open menu"
+            variant="ghost"
+            size="icon"
+            className="md:hidden"
+            onClick={onMenuClick}
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+        )}
         <span className="font-display text-lg md:text-xl font-semibold text-foreground truncate max-w-[200px] md:max-w-none" role="heading" aria-level={2}>
           {title}
         </span>
@@ -118,6 +132,8 @@ const DashboardHeader = ({ title, onMenuClick }: DashboardHeaderProps) => {
       </div>
 
       <div className="flex items-center gap-2 md:gap-4">
+        <LanguageSelector />
+
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
             <Button aria-label="Notifications" variant="ghost" size="icon" className="relative">
@@ -166,7 +182,7 @@ const DashboardHeader = ({ title, onMenuClick }: DashboardHeaderProps) => {
                       {notification.message}
                     </span>
                     <span className="text-xs text-muted-foreground">
-                      {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true, locale: enIN })}
+                      {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true, locale: dateLocale })}
                     </span>
                   </DropdownMenuItem>
                 ))}
@@ -184,8 +200,8 @@ const DashboardHeader = ({ title, onMenuClick }: DashboardHeaderProps) => {
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button aria-label="Open profile menu" variant="ghost" className="relative h-9 w-9 rounded-full">
-              <Avatar className="h-9 w-9 border-2 border-primary/20">
+            <Button aria-label="Open profile menu" variant="ghost" className="relative h-8 w-8 md:h-9 md:w-9 rounded-full">
+              <Avatar className="h-8 w-8 md:h-9 md:w-9 border-2 border-primary/20">
                 <AvatarImage src={profile?.avatar_url || ''} />
                 <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium">
                   {initials}
@@ -204,7 +220,6 @@ const DashboardHeader = ({ title, onMenuClick }: DashboardHeaderProps) => {
             <DropdownMenuItem onClick={() => navigate(paths.settings)}>
               {t('settings.profileSettings')}
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
             <DropdownMenuItem 
               className="text-destructive focus:text-destructive"
               onClick={signOut}

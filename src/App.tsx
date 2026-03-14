@@ -26,6 +26,7 @@ import AgentRoutes from "./routes/agentRoutes";
 import LogisticsRoutes from "./routes/logisticsRoutes";
 import MarketplaceRoutes from "./routes/marketplaceRoutes";
 import AdminRoutes from "./routes/adminRoutes";
+import VendorRoutes from "./routes/vendorRoutes";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -55,6 +56,19 @@ queryClient.getQueryCache().subscribe(() => {
   clearTimeout(persistTimer);
   persistTimer = setTimeout(() => persister.persist(queryClient), 2000);
 });
+// Dev-mode: validate translation key parity between en/kn on startup
+if (import.meta.env.DEV) {
+  import('@/i18n').then(({ validateTranslations }) => {
+    const { missing, extra } = validateTranslations();
+    if (missing.length > 0 || extra.length > 0) {
+      console.groupCollapsed(`[i18n] Translation audit: ${missing.length} missing in kn, ${extra.length} extra in kn`);
+      if (missing.length > 0) console.table(missing.slice(0, 30).map(k => ({ key: k, status: 'missing in kn.ts' })));
+      if (extra.length > 0) console.table(extra.slice(0, 30).map(k => ({ key: k, status: 'extra in kn.ts' })));
+      console.groupEnd();
+    }
+  });
+}
+
 const enableDevConsoleRoute =
   import.meta.env.MODE !== "production" &&
   import.meta.env.VITE_DEV_TOOLS_ENABLED === "true";
@@ -95,11 +109,13 @@ const App = () => (
             <Route path="/buyer" element={<Navigate to={ROUTES.MARKETPLACE.DASHBOARD} replace />} />
             <Route path="/agent" element={<Navigate to={ROUTES.AGENT.DASHBOARD} replace />} />
             <Route path="/admin" element={<Navigate to={ROUTES.ADMIN.DASHBOARD} replace />} />
+            <Route path="/vendor" element={<Navigate to={ROUTES.VENDOR.DASHBOARD} replace />} />
             
             {FarmerRoutes()}
             {AgentRoutes()}
             {LogisticsRoutes()}
             {MarketplaceRoutes()}
+            {VendorRoutes()}
 
             <Route
               path="/onboard/role-select"
@@ -114,7 +130,7 @@ const App = () => (
             <Route
               path="/pending-sync"
               element={
-                <ProtectedRoute allowedRoles={["agent","farmer","buyer","logistics"]}>
+                <ProtectedRoute allowedRoles={["agent","farmer","buyer","logistics","vendor"]}>
                   <PendingSync />
                 </ProtectedRoute>
               }
@@ -122,7 +138,7 @@ const App = () => (
             <Route
               path="/uploads-manager"
               element={
-                <ProtectedRoute allowedRoles={["agent","farmer","buyer","logistics"]}>
+                <ProtectedRoute allowedRoles={["agent","farmer","buyer","logistics","vendor"]}>
                   <UploadsManager />
                 </ProtectedRoute>
               }

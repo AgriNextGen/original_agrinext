@@ -14,6 +14,8 @@ import {
   ArrowRight,
   RotateCcw,
   User,
+  DollarSign,
+  Gauge,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -23,6 +25,7 @@ import {
   useTransporterProfile,
   useCreateTransporterProfile,
 } from '@/hooks/useLogisticsDashboard';
+import { useUnifiedDashboardCounts } from '@/hooks/useUnifiedLogistics';
 import { useAuth } from '@/hooks/useAuth';
 import { format, parseISO } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
@@ -33,6 +36,8 @@ import PageHeader from '@/components/shared/PageHeader';
 import EmptyState from '@/components/shared/EmptyState';
 import KpiCard from '@/components/dashboard/KpiCard';
 import ActionPanel from '@/components/dashboard/ActionPanel';
+import OnboardingWizard from '@/components/logistics/OnboardingWizard';
+import LoadsMapView from '@/components/logistics/LoadsMapView';
 import { TRANSPORT_STATUS_COLORS } from '@/lib/constants';
 
 const LogisticsDashboard = () => {
@@ -45,21 +50,16 @@ const LogisticsDashboard = () => {
   const { data: availableLoads, isLoading: loadsLoading } = useAvailableLoads();
   const { data: profile, isLoading: profileLoading } = useTransporterProfile();
   const createProfile = useCreateTransporterProfile();
+  const { data: unifiedCounts } = useUnifiedDashboardCounts();
 
   const [aiLoading, setAiLoading] = useState(false);
   const [aiSuggestion, setAiSuggestion] = useState<string | null>(null);
   const [reverseLoading, setReverseLoading] = useState(false);
   const [reverseSuggestion, setReverseSuggestion] = useState<string | null>(null);
 
-  const handleCreateProfile = () => {
-    createProfile.mutate({
-      name: user?.email?.split('@')[0] || 'Transporter',
-    });
-  };
-
   const handleAIRouteOptimization = async () => {
     if (!availableLoads || availableLoads.length === 0) {
-      toast.error('No available loads to optimize');
+      toast.error(t('toast.noLoadsToOptimize'));
       return;
     }
 
@@ -92,10 +92,10 @@ const LogisticsDashboard = () => {
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error?.message || 'Function error');
       setAiSuggestion(data.result);
-      toast.success('Route optimization complete!');
+      toast.success(t('toast.routeOptimizationComplete'));
     } catch (error) {
       if (import.meta.env.DEV) console.error('AI error:', error);
-      toast.error('Failed to get AI suggestions');
+      toast.error(t('toast.failedAiSuggestions'));
     } finally {
       setAiLoading(false);
     }
@@ -124,10 +124,10 @@ const LogisticsDashboard = () => {
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error?.message || 'Function error');
       setReverseSuggestion(data.result);
-      toast.success('Reverse load suggestions ready!');
+      toast.success(t('toast.reverseLoadSuggestionsReady'));
     } catch (error) {
       if (import.meta.env.DEV) console.error('AI error:', error);
-      toast.error('Failed to get reverse load suggestions');
+      toast.error(t('toast.failedReverseLoadSuggestions'));
     } finally {
       setReverseLoading(false);
     }
@@ -136,12 +136,30 @@ const LogisticsDashboard = () => {
   if (profileLoading) {
     return (
       <DashboardLayout title={t('nav.dashboard')}>
-        <div className="space-y-6">
-          <Skeleton className="h-32 w-full" />
+        <div className="space-y-6 animate-pulse">
+          <div className="rounded-lg border bg-card p-5 space-y-3">
+            <Skeleton className="h-5 w-48" />
+            <Skeleton className="h-4 w-64" />
+          </div>
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
             {[1, 2, 3, 4].map((i) => (
-              <Skeleton key={i} className="h-24" />
+              <div key={i} className="rounded-lg border-2 bg-card p-4 space-y-2">
+                <Skeleton className="h-3 w-20" />
+                <Skeleton className="h-8 w-12" />
+              </div>
             ))}
+          </div>
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="rounded-lg border bg-card p-5 space-y-3">
+              <Skeleton className="h-5 w-36" />
+              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-16 w-full" />
+            </div>
+            <div className="rounded-lg border bg-card p-5 space-y-3">
+              <Skeleton className="h-5 w-36" />
+              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-16 w-full" />
+            </div>
           </div>
         </div>
       </DashboardLayout>
@@ -151,22 +169,13 @@ const LogisticsDashboard = () => {
   if (!profile) {
     return (
       <DashboardLayout title={t('nav.dashboard')}>
-        <div className="flex min-h-[60vh] items-center justify-center">
-          <Card className="w-full max-w-md">
-            <CardHeader className="text-center">
-              <Truck className="mx-auto mb-4 h-16 w-16 text-primary" />
-              <CardTitle>{t('logistics.welcomeTransporter')}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-center text-muted-foreground">
-                {t('logistics.setupTransporterProfile')}
-              </p>
-              <Button className="w-full" onClick={handleCreateProfile} disabled={createProfile.isPending}>
-                {createProfile.isPending ? t('logistics.creatingProfile') : t('logistics.createProfile')}
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+        <OnboardingWizard
+          defaultName={user?.email?.split('@')[0] || ''}
+          isSubmitting={createProfile.isPending}
+          onComplete={(data) => {
+            createProfile.mutate({ name: data.name, phone: data.phone, vehicle_type: data.vehicle_type, vehicle_capacity: data.vehicle_capacity ? parseFloat(data.vehicle_capacity) : undefined, operating_village: data.operating_village, operating_district: data.operating_district });
+          }}
+        />
       </DashboardLayout>
     );
   }
@@ -177,10 +186,15 @@ const LogisticsDashboard = () => {
         title={t('logistics.transporterDashboard')}
         subtitle={`Welcome back, ${profile.name} - ${profile.operating_village || t('logistics.setYourLocation')}`}
         actions={
-          <Button aria-label="Open profile" variant="outline" onClick={() => navigate(ROUTES.LOGISTICS.PROFILE)}>
-            <User className="mr-2 h-4 w-4" />
-            {t('nav.profile')}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button aria-label={t('common.refresh')} variant="ghost" size="icon" className="md:hidden" onClick={() => { window.location.reload(); }}>
+              <RotateCcw className="h-4 w-4" />
+            </Button>
+            <Button aria-label="Open profile" variant="outline" onClick={() => navigate(ROUTES.LOGISTICS.PROFILE)}>
+              <User className="mr-2 h-4 w-4" />
+              {t('nav.profile')}
+            </Button>
+          </div>
         }
       >
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
@@ -189,6 +203,15 @@ const LogisticsDashboard = () => {
           <KpiCard label={t('logistics.inProgress')} value={stats.tripsInProgress} icon={Truck} priority="primary" onClick={() => navigate(ROUTES.LOGISTICS.ACTIVE_TRIPS)} />
           <KpiCard label={t('logistics.completedTrips')} value={stats.completedTrips} icon={CheckCircle2} priority="success" onClick={() => navigate(ROUTES.LOGISTICS.COMPLETED_TRIPS)} />
         </div>
+
+        {unifiedCounts && (
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+            <KpiCard label={t('logistics.forwardTrips')} value={unifiedCounts.forwardTrips} icon={Truck} priority="info" onClick={() => navigate(ROUTES.LOGISTICS.FORWARD_TRIPS)} />
+            <KpiCard label={t('logistics.reverseLoads')} value={unifiedCounts.reverseLoads} icon={RotateCcw} priority="warning" onClick={() => navigate(ROUTES.LOGISTICS.REVERSE_LOADS)} />
+            <KpiCard label={t('logistics.vehicleCapacity')} value={`${unifiedCounts.activeTrips}`} icon={Gauge} priority="primary" onClick={() => navigate(ROUTES.LOGISTICS.CAPACITY)} />
+            <KpiCard label={t('logistics.earnings')} value="—" icon={DollarSign} priority="success" onClick={() => navigate(ROUTES.LOGISTICS.EARNINGS)} />
+          </div>
+        )}
 
         <div className="grid gap-6 md:grid-cols-2">
           <Card>
@@ -276,6 +299,20 @@ const LogisticsDashboard = () => {
             </CardContent>
           </Card>
         </div>
+
+        {availableLoads && availableLoads.length > 0 && (
+          <LoadsMapView
+            loads={availableLoads.slice(0, 10).map(l => ({
+              id: l.id,
+              farmer_name: l.farmer?.full_name || 'Unknown',
+              crop_name: l.crop?.crop_name || 'Crop',
+              quantity: l.quantity ?? 0,
+              quantity_unit: l.quantity_unit || 'quintals',
+              village: l.pickup_village || l.pickup_location || '',
+            }))}
+            centerVillage={profile?.operating_village}
+          />
+        )}
 
         <ActionPanel
           title={t('logistics.aiSuggestions')}

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -32,6 +33,12 @@ import {
   CheckCircle,
   CarFront,
   Sparkles,
+  ArrowRightLeft,
+  Gauge,
+  ChevronDown,
+  Store,
+  Plus,
+  History,
   type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -128,6 +135,21 @@ const DashboardSidebar = ({ onClose, isOpen = true, isMobile = false }: Dashboar
         { icon: Truck, label: t('nav.activeTrips'), href: ROUTES.LOGISTICS.ACTIVE_TRIPS },
         { icon: CheckCircle, label: t('nav.completed'), href: ROUTES.LOGISTICS.COMPLETED_TRIPS },
         { icon: CarFront, label: t('nav.myVehicles'), href: ROUTES.LOGISTICS.VEHICLES },
+      ],
+    },
+    {
+      label: t('nav.group.unifiedLogistics'),
+      items: [
+        { icon: ArrowRightLeft, label: t('nav.forwardTrips'), href: ROUTES.LOGISTICS.FORWARD_TRIPS },
+        { icon: RotateCcw, label: t('nav.reverseLoads'), href: ROUTES.LOGISTICS.REVERSE_LOADS },
+        { icon: Sparkles, label: t('nav.recommendations'), href: ROUTES.LOGISTICS.RECOMMENDATIONS },
+        { icon: Gauge, label: t('nav.capacity'), href: ROUTES.LOGISTICS.CAPACITY },
+        { icon: DollarSign, label: t('nav.earnings'), href: ROUTES.LOGISTICS.EARNINGS },
+      ],
+    },
+    {
+      label: t('nav.group.account'),
+      items: [
         { icon: MapPin, label: t('nav.serviceArea'), href: ROUTES.LOGISTICS.SERVICE_AREA },
         { icon: Settings, label: t('nav.profile'), href: ROUTES.LOGISTICS.PROFILE },
       ],
@@ -141,7 +163,18 @@ const DashboardSidebar = ({ onClose, isOpen = true, isMobile = false }: Dashboar
       items: [
         { icon: LayoutDashboard, label: t('nav.dashboard'), href: ROUTES.MARKETPLACE.DASHBOARD },
         { icon: ShoppingBag, label: t('nav.browseProducts'), href: ROUTES.MARKETPLACE.BROWSE },
+      ],
+    },
+    {
+      label: t('nav.group.orders'),
+      items: [
         { icon: Package, label: t('nav.myOrders'), href: ROUTES.MARKETPLACE.ORDERS },
+        { icon: Bell, label: t('nav.notifications'), href: ROUTES.MARKETPLACE.ORDERS, badge: unreadCount > 0 ? unreadCount : undefined },
+      ],
+    },
+    {
+      label: t('nav.group.account'),
+      items: [
         { icon: Settings, label: t('nav.profile'), href: ROUTES.MARKETPLACE.PROFILE },
       ],
     },
@@ -186,19 +219,45 @@ const DashboardSidebar = ({ onClose, isOpen = true, isMobile = false }: Dashboar
       label: t('nav.group.finance'),
       items: [
         { icon: DollarSign, label: t('nav.finance'), href: ROUTES.ADMIN.FINANCE },
-        { icon: Banknote, label: t('nav.payouts') || 'Payouts', href: ROUTES.ADMIN.PAYOUTS },
-        { icon: RotateCcw, label: t('nav.refunds') || 'Refunds', href: ROUTES.ADMIN.REFUNDS },
-        { icon: AlertTriangle, label: t('nav.disputes') || 'Disputes', href: ROUTES.ADMIN.DISPUTES },
+        { icon: Banknote, label: t('nav.payouts'), href: ROUTES.ADMIN.PAYOUTS },
+        { icon: RotateCcw, label: t('nav.refunds'), href: ROUTES.ADMIN.REFUNDS },
+        { icon: AlertTriangle, label: t('nav.disputes'), href: ROUTES.ADMIN.DISPUTES },
       ],
     },
     {
       label: t('nav.group.system'),
       items: [
-        { icon: Activity, label: t('nav.systemHealth') || 'System Health', href: ROUTES.ADMIN.SYSTEM_HEALTH },
+        { icon: Activity, label: t('nav.systemHealth'), href: ROUTES.ADMIN.SYSTEM_HEALTH },
         { icon: Database, label: t('nav.seedData'), href: ROUTES.ADMIN.SEED_DATA },
         { icon: TestTube, label: t('nav.mysuruDemo'), href: ROUTES.ADMIN.MYSURU_DEMO },
         { icon: Briefcase, label: t('nav.jobs'), href: ROUTES.ADMIN.JOBS },
         { icon: DatabaseZap, label: t('nav.dataHealth'), href: ROUTES.ADMIN.DATA_HEALTH },
+      ],
+    },
+  ];
+
+  // ── Vendor: 3 groups ─────────────────────────────────────────────
+  const vendorGroups: NavGroup[] = [
+    {
+      label: null,
+      items: [
+        { icon: LayoutDashboard, label: t('nav.dashboard'), href: ROUTES.VENDOR.DASHBOARD },
+        { icon: Plus, label: t('nav.createShipment'), href: ROUTES.VENDOR.CREATE_SHIPMENT },
+        { icon: Package, label: t('nav.activeShipments'), href: ROUTES.VENDOR.ACTIVE_SHIPMENTS },
+        { icon: History, label: t('nav.shipmentHistory'), href: ROUTES.VENDOR.SHIPMENT_HISTORY },
+      ],
+    },
+    {
+      label: t('nav.group.logistics'),
+      items: [
+        { icon: Truck, label: t('nav.logisticsRequests'), href: ROUTES.VENDOR.LOGISTICS_REQUESTS },
+        { icon: RotateCcw, label: t('nav.reverseLogistics'), href: ROUTES.VENDOR.REVERSE_LOGISTICS },
+      ],
+    },
+    {
+      label: t('nav.group.account'),
+      items: [
+        { icon: Settings, label: t('nav.profile'), href: ROUTES.VENDOR.PROFILE },
       ],
     },
   ];
@@ -208,6 +267,7 @@ const DashboardSidebar = ({ onClose, isOpen = true, isMobile = false }: Dashboar
     : userRole === 'logistics' ? logisticsGroups
     : userRole === 'buyer' ? buyerGroups
     : userRole === 'admin' ? adminGroups
+    : userRole === 'vendor' ? vendorGroups
     : farmerGroups;
 
   const dashboardTitle =
@@ -215,12 +275,18 @@ const DashboardSidebar = ({ onClose, isOpen = true, isMobile = false }: Dashboar
     : userRole === 'logistics' ? t('dashboardShell.title.logistics')
     : userRole === 'buyer' ? t('dashboardShell.title.buyer')
     : userRole === 'admin' ? t('dashboardShell.title.admin')
+    : userRole === 'vendor' ? t('dashboardShell.title.vendor')
     : t('dashboardShell.title.farmer');
+
+  const isCollapsible = userRole === 'admin';
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<number, boolean>>({});
+
+  const toggleGroup = (index: number) => {
+    setCollapsedGroups(prev => ({ ...prev, [index]: !prev[index] }));
+  };
 
   const isActive = (href: string) =>
     location.pathname === href || location.pathname.startsWith(href + '/');
-
-  const activeClass = 'bg-sidebar-accent text-sidebar-primary';
 
   const handleNavClick = () => {
     if (onClose) onClose();
@@ -244,6 +310,7 @@ const DashboardSidebar = ({ onClose, isOpen = true, isMobile = false }: Dashboar
               : userRole === 'logistics' ? <Truck className="w-5 h-5 text-sidebar-primary-foreground" />
               : userRole === 'buyer' ? <ShoppingBag className="w-5 h-5 text-sidebar-primary-foreground" />
               : userRole === 'admin' ? <Activity className="w-5 h-5 text-sidebar-primary-foreground" />
+              : userRole === 'vendor' ? <Store className="w-5 h-5 text-sidebar-primary-foreground" />
               : <Sprout className="w-5 h-5 text-sidebar-primary-foreground" />}
             </div>
             <div>
@@ -275,44 +342,68 @@ const DashboardSidebar = ({ onClose, isOpen = true, isMobile = false }: Dashboar
 
         {/* Grouped Navigation */}
         <nav className="flex-1 px-3 py-4 overflow-y-auto" aria-label="Main navigation">
-          {navGroups.map((group, gi) => (
-            <div key={gi} className={cn(gi > 0 && "mt-4")}>
-              {group.label && (
-                <p className="px-3 mb-1 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/40">
-                  {group.label}
-                </p>
-              )}
-              <div className="space-y-0.5">
-                {group.items.map((item) => {
-                  const active = isActive(item.href);
-                  return (
-                    <Link
-                      key={item.href}
-                      to={item.href}
-                      onClick={handleNavClick}
-                      aria-current={active ? 'page' : undefined}
-                      className={cn(
-                        'flex items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
-                        active
-                          ? activeClass
-                          : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground'
-                      )}
-                    >
-                      <div className="flex items-center gap-3">
-                        <item.icon className="h-5 w-5" />
-                        {item.label}
-                      </div>
-                      {item.badge != null && item.badge > 0 && (
-                        <span className="px-1.5 py-0.5 text-xs font-medium bg-destructive text-destructive-foreground rounded-full min-w-[20px] text-center">
-                          {item.badge > 9 ? '9+' : item.badge}
-                        </span>
-                      )}
-                    </Link>
-                  );
-                })}
+          {navGroups.map((group, gi) => {
+            const isGroupCollapsed = isCollapsible && group.label && collapsedGroups[gi];
+            const hasActiveChild = group.items.some(item => isActive(item.href));
+
+            return (
+              <div key={gi} className={cn(gi > 0 && "mt-4")}>
+                {group.label && isCollapsible ? (
+                  <button
+                    type="button"
+                    onClick={() => toggleGroup(gi)}
+                    className="flex w-full items-center justify-between px-3 mb-1.5 group"
+                  >
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-sidebar-foreground/40 group-hover:text-sidebar-foreground/60 transition-colors">
+                      {group.label}
+                    </span>
+                    <ChevronDown className={cn(
+                      "h-3 w-3 text-sidebar-foreground/30 transition-transform duration-200",
+                      isGroupCollapsed && "-rotate-90"
+                    )} />
+                  </button>
+                ) : group.label ? (
+                  <p className="px-3 mb-2 text-[11px] font-semibold uppercase tracking-wider text-sidebar-foreground/40">
+                    {group.label}
+                  </p>
+                ) : gi > 0 ? (
+                  <div className="mx-3 mb-2 border-t border-sidebar-border" />
+                ) : null}
+                <div className={cn(
+                  "space-y-0.5 transition-all duration-200 overflow-hidden",
+                  isGroupCollapsed ? "max-h-0 opacity-0" : "max-h-[1000px] opacity-100"
+                )}>
+                  {group.items.map((item) => {
+                    const active = isActive(item.href);
+                    return (
+                      <Link
+                        key={item.href}
+                        to={item.href}
+                        onClick={handleNavClick}
+                        aria-current={active ? 'page' : undefined}
+                        className={cn(
+                          'flex items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150 min-h-[44px]',
+                          active
+                            ? 'bg-sidebar-primary/15 text-sidebar-primary font-semibold border-l-[3px] border-sidebar-primary shadow-sm'
+                            : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
+                        )}
+                      >
+                        <div className="flex items-center gap-3">
+                          <item.icon className={cn("h-5 w-5 transition-transform", active && "scale-110")} />
+                          {item.label}
+                        </div>
+                        {item.badge != null && item.badge > 0 && (
+                          <span className="px-1.5 py-0.5 text-xs font-medium bg-destructive text-destructive-foreground rounded-full min-w-[20px] text-center">
+                            {item.badge > 9 ? '9+' : item.badge}
+                          </span>
+                        )}
+                      </Link>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </nav>
 
         {/* Sign Out */}

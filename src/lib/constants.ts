@@ -18,6 +18,7 @@ export const ROLES = {
   LOGISTICS: 'logistics',
   BUYER: 'buyer',
   ADMIN: 'admin',
+  VENDOR: 'vendor',
 } as const;
 
 export type RoleKey = keyof typeof ROLES;
@@ -27,8 +28,10 @@ export type RoleKey = keyof typeof ROLES;
 // ---------------------------------------------------------------------------
 
 export const STORAGE_KEYS = {
-  /** Active user language preference ('en' | 'kn') */
+  /** Authenticated user language preference ('en' | 'kn') — scoped to logged-in user */
   LANGUAGE: 'agrinext_language',
+  /** Public/unauthenticated page language preference — isolated from dashboard language */
+  PUBLIC_LANGUAGE: 'agrinext_public_language',
   /** Active profile ID for multi-profile accounts */
   ACTIVE_PROFILE_ID: 'agrinext_active_profile_id',
   /** Recently accessed accounts list */
@@ -36,6 +39,12 @@ export const STORAGE_KEYS = {
   /** Dev role override (from dev-switch-role Edge Function) */
   DEV_ROLE_OVERRIDE: 'agrinext_dev_role',
 } as const;
+
+/** Legacy localStorage keys that may exist from older versions. Used for one-time migration. */
+export const LEGACY_LANGUAGE_KEYS = [
+  'agri-mitra-language',
+  'agrinext-language',
+] as const;
 
 // ---------------------------------------------------------------------------
 // Supabase Storage buckets
@@ -118,6 +127,20 @@ export const TRANSPORT_STATUS_COLORS: Record<string, string> = {
   delivered: 'bg-green-100 text-green-800',
   completed: 'bg-emerald-100 text-emerald-800',
   cancelled: 'bg-destructive/10 text-destructive',
+};
+
+// ---------------------------------------------------------------------------
+// Crop status colors — consistent palette across dashboard and pages
+// ---------------------------------------------------------------------------
+export const CROP_STATUS_COLORS: Record<string, { bg: string; text: string; border: string }> = {
+  growing: { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
+  vegetative: { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200' },
+  flowering: { bg: 'bg-violet-50', text: 'text-violet-700', border: 'border-violet-200' },
+  harvest_ready: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
+  ready: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
+  harvested: { bg: 'bg-slate-50', text: 'text-slate-600', border: 'border-slate-200' },
+  diseased: { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' },
+  dormant: { bg: 'bg-gray-50', text: 'text-gray-600', border: 'border-gray-200' },
 };
 
 // ---------------------------------------------------------------------------

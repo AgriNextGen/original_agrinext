@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useLanguage } from '@/hooks/useLanguage';
 import { toast } from 'sonner';
 export interface FarmerProfile {
   id: string;
@@ -282,6 +283,7 @@ export const useFarmerOrders = () => {
 // Farmer Update Order Status - uses secure RPC function
 export const useFarmerUpdateOrderStatus = () => {
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async ({ orderId, newStatus }: { orderId: string; newStatus: string }) => {
@@ -301,10 +303,10 @@ export const useFarmerUpdateOrderStatus = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['farmer-orders'] });
-      toast.success('Order status updated!');
+      toast.success(t('hookToasts.farmerDashboard.orderUpdated'));
     },
     onError: (error) => {
-      toast.error('Failed to update order: ' + error.message);
+      toast.error(t('hookToasts.farmerDashboard.orderFailed') + ': ' + error.message);
     },
   });
 };

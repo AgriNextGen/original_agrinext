@@ -14,7 +14,7 @@ import PageHeader from '@/components/shared/PageHeader';
 import EmptyState from '@/components/shared/EmptyState';
 
 export default function AgentServiceArea() {
-  const { language } = useLanguage();
+  const { t } = useLanguage();
   const { data: areas, isLoading } = useMyServiceAreas('agent');
   const upsert = useUpsertServiceArea();
   const remove = useDeleteServiceArea();
@@ -25,7 +25,7 @@ export default function AgentServiceArea() {
 
   const handleAdd = () => {
     if (!selectedDistrict && !selectedState) {
-      toast.error('Select at least a state or district');
+      toast.error(t('agent.serviceArea.selectRequired'));
       return;
     }
     upsert.mutate(
@@ -36,7 +36,7 @@ export default function AgentServiceArea() {
       },
       {
         onSuccess: () => {
-          toast.success(language === 'kn' ? 'ಸೇವಾ ಪ್ರದೇಶ ಸೇರಿಸಲಾಗಿದೆ' : 'Service area added');
+          toast.success(t('agent.serviceArea.areaAdded'));
           setAddMode(false);
           setSelectedState('');
           setSelectedDistrict('');
@@ -48,25 +48,25 @@ export default function AgentServiceArea() {
 
   const handleRemove = (id: string) => {
     remove.mutate(id, {
-      onSuccess: () => toast.success('Service area removed'),
+      onSuccess: () => toast.success(t('agent.serviceArea.areaRemoved')),
       onError: (e) => toast.error(e.message),
     });
   };
 
   return (
-    <DashboardLayout title={language === 'kn' ? 'ಸೇವಾ ಪ್ರದೇಶ' : 'Service Area'}>
-      <PageHeader title={language === 'kn' ? 'ನನ್ನ ಸೇವಾ ಪ್ರದೇಶಗಳು' : 'My Service Areas'} subtitle={language === 'kn' ? 'ನೀವು ಸೇವೆ ನೀಡುವ ಜಿಲ್ಲೆಗಳನ್ನು ನಿರ್ವಹಿಸಿ' : 'Manage the districts you serve. Farmers in these areas can be assigned to you.'}>
+    <DashboardLayout title={t('agent.serviceArea.title')}>
+      <PageHeader title={t('agent.serviceArea.myAreas')} subtitle={t('agent.serviceArea.subtitle')}>
       <div className="max-w-2xl mx-auto space-y-6">
 
         {/* Current areas */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg">
-              {language === 'kn' ? 'ಸಕ್ರಿಯ ಪ್ರದೇಶಗಳು' : 'Active Areas'}
+              {t('agent.serviceArea.activeAreas')}
             </CardTitle>
             {!addMode && (
               <Button size="sm" onClick={() => setAddMode(true)}>
-                <Plus className="h-4 w-4 mr-1" /> {language === 'kn' ? 'ಸೇರಿಸಿ' : 'Add'}
+                <Plus className="h-4 w-4 mr-1" /> {t('agent.serviceArea.add')}
               </Button>
             )}
           </CardHeader>
@@ -75,9 +75,9 @@ export default function AgentServiceArea() {
             {!isLoading && (!areas || areas.length === 0) && (
               <EmptyState
                 icon={MapPin}
-                title={language === 'kn' ? 'ಯಾವುದೇ ಸೇವಾ ಪ್ರದೇಶಗಳು ಸೇರಿಸಲಾಗಿಲ್ಲ' : 'No service areas configured'}
-                description={language === 'kn' ? 'ನಿಮ್ಮ ಸೇವಾ ಜಿಲ್ಲೆಗಳನ್ನು ಸೇರಿಸಿ' : 'Add your districts to get farmer assignments.'}
-                actionLabel={language === 'kn' ? 'ಸೇರಿಸಿ' : 'Add Area'}
+                title={t('agent.serviceArea.noAreas')}
+                description={t('agent.serviceArea.noAreasDescription')}
+                actionLabel={t('agent.serviceArea.addArea')}
                 onAction={() => setAddMode(true)}
               />
             )}
@@ -90,7 +90,7 @@ export default function AgentServiceArea() {
                   <MapPin className="h-4 w-4 text-primary" />
                   <span className="font-medium">{area.district_name || 'State-level coverage'}</span>
                   <Badge variant={area.is_active ? 'default' : 'secondary'} className="text-xs">
-                    {area.is_active ? 'Active' : 'Inactive'}
+                    {area.is_active ? t('agent.serviceArea.active') : t('agent.serviceArea.inactive')}
                   </Badge>
                 </div>
                 <Button
@@ -112,19 +112,19 @@ export default function AgentServiceArea() {
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">
-                {language === 'kn' ? 'ಹೊಸ ಪ್ರದೇಶ ಸೇರಿಸಿ' : 'Add Service Area'}
+                {t('agent.serviceArea.addServiceArea')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>{language === 'kn' ? 'ರಾಜ್ಯ' : 'State'}</Label>
+                <Label>{t('agent.serviceArea.state')}</Label>
                 <GeoStateSelect
                   value={selectedState}
                   onValueChange={(v) => { setSelectedState(v); setSelectedDistrict(''); }}
                 />
               </div>
               <div className="space-y-2">
-                <Label>{language === 'kn' ? 'ಜಿಲ್ಲೆ' : 'District'}</Label>
+                <Label>{t('agent.serviceArea.district')}</Label>
                 <GeoDistrictSelect
                   stateId={selectedState || null}
                   value={selectedDistrict}
@@ -134,10 +134,10 @@ export default function AgentServiceArea() {
               <div className="flex gap-2">
                 <Button onClick={handleAdd} disabled={upsert.isPending}>
                   {upsert.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Plus className="h-4 w-4 mr-1" />}
-                  {language === 'kn' ? 'ಸೇರಿಸಿ' : 'Add Area'}
+                  {t('agent.serviceArea.addArea')}
                 </Button>
                 <Button variant="outline" onClick={() => { setAddMode(false); setSelectedState(''); setSelectedDistrict(''); }}>
-                  {language === 'kn' ? 'ರದ್ದು' : 'Cancel'}
+                  {t('agent.serviceArea.cancel')}
                 </Button>
               </div>
             </CardContent>

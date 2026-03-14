@@ -6,8 +6,10 @@ import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Calendar, Wheat, TrendingUp, ChevronDown } from 'lucide-react';
 import { format, addDays, isWithinInterval } from 'date-fns';
+import { useLanguage } from '@/hooks/useLanguage';
 
 const HarvestTimeline = () => {
+  const { t } = useLanguage();
   const { data: crops, isLoading } = useCrops();
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -52,7 +54,7 @@ const HarvestTimeline = () => {
             <div className="flex items-center justify-between cursor-pointer group">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Calendar className="h-5 w-5 text-primary" />
-                Upcoming Harvests
+                {t('farmer.harvest.title')}
                 {upcomingHarvests.length > 0 && (
                   <Badge variant="secondary" className="ml-2">
                     {upcomingHarvests.length} in 14 days
@@ -69,7 +71,7 @@ const HarvestTimeline = () => {
           {!isExpanded && (
             <div className="space-y-2">
               {upcomingHarvests.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No harvests in the next 2 weeks</p>
+                <p className="text-sm text-muted-foreground">{t('farmer.harvest.noHarvestsSoon')}</p>
               ) : nearestHarvest ? (
                 <div className="flex items-center justify-between p-2 bg-muted/30 rounded-lg">
                   <div className="flex items-center gap-2">
@@ -86,12 +88,12 @@ const HarvestTimeline = () => {
                         ? 'bg-amber-100 text-amber-700' 
                         : 'bg-muted text-muted-foreground'
                   }>
-                    {nearestDaysUntil === 0 ? 'Today' : nearestDaysUntil === 1 ? 'Tomorrow' : `${nearestDaysUntil} days`}
+                    {nearestDaysUntil === 0 ? t('common.today') : nearestDaysUntil === 1 ? t('common.tomorrow') : `${nearestDaysUntil} ${t('common.days')}`}
                   </Badge>
                 </div>
               ) : null}
               {upcomingHarvests.length > 1 && (
-                <p className="text-xs text-muted-foreground">+{upcomingHarvests.length - 1} more harvests coming up</p>
+                <p className="text-xs text-muted-foreground">+{upcomingHarvests.length - 1} {t('farmer.harvest.moreHarvestsSoon')}</p>
               )}
             </div>
           )}
@@ -149,13 +151,13 @@ const HarvestTimeline = () => {
                             ? 'bg-amber-100 text-amber-700' 
                             : 'bg-muted text-muted-foreground'
                       }`}>
-                        {daysUntil === 0 ? 'Today' : daysUntil === 1 ? 'Tomorrow' : `${daysUntil} days`}
+                        {daysUntil === 0 ? t('common.today') : daysUntil === 1 ? t('common.tomorrow') : `${daysUntil} ${t('common.days')}`}
                       </div>
 
                       {/* Action hint */}
                       <div className="hidden sm:flex items-center gap-1 text-xs text-muted-foreground">
                         <TrendingUp className="h-3 w-3" />
-                        <span>Monitor price</span>
+                        <span>{t('farmer.harvest.monitorPrice')}</span>
                       </div>
                     </div>
                   );

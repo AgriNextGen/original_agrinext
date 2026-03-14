@@ -14,7 +14,7 @@ export default function AssignModal({ open, onClose, disputeId, onAssigned }: { 
     if (!disputeId || !selectedAdmin) return;
     setLoading(true);
     try {
-      const { error } = await supabase.rpc('admin.assign_dispute_v1', { p_dispute_id: disputeId, p_admin_id: selectedAdmin });
+      const { error } = await (supabase as any).schema('admin').rpc('assign_dispute_v1', { p_dispute_id: disputeId, p_admin_id: selectedAdmin });
       if (error) throw error;
       toast({ title: 'Assigned' });
       onAssigned && onAssigned();

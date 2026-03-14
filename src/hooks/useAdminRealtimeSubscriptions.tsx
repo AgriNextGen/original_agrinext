@@ -3,10 +3,12 @@ import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
+import { useLanguage } from '@/hooks/useLanguage';
 
 export const useAdminRealtimeSubscriptions = () => {
   const queryClient = useQueryClient();
   const { userRole } = useAuth();
+  const { t } = useLanguage();
 
   useEffect(() => {
     // Only subscribe if user is admin
@@ -28,7 +30,7 @@ export const useAdminRealtimeSubscriptions = () => {
           queryClient.invalidateQueries({ queryKey: ['admin-dashboard-stats'] });
           
           if (payload.eventType === 'INSERT') {
-            toast.info('New user registered', {
+            toast.info(t('hookToasts.adminRealtime.newUser'), {
               description: 'A new user has joined the platform',
             });
           }
@@ -57,7 +59,7 @@ export const useAdminRealtimeSubscriptions = () => {
           
           if (payload.eventType === 'INSERT') {
             const crop = payload.new as { crop_name?: string };
-            toast.info('New crop added', {
+            toast.info(t('hookToasts.adminRealtime.newCrop'), {
               description: `Crop: ${crop.crop_name || 'Unknown'}`,
             });
           }
@@ -74,12 +76,12 @@ export const useAdminRealtimeSubscriptions = () => {
           queryClient.invalidateQueries({ queryKey: ['admin-recent-activity'] });
           
           if (payload.eventType === 'INSERT') {
-            toast.info('New transport request', {
+            toast.info(t('hookToasts.adminRealtime.newTransport'), {
               description: 'A farmer has requested transport',
             });
           } else if (payload.eventType === 'UPDATE') {
             const req = payload.new as { status?: string };
-            toast.info('Transport status updated', {
+            toast.info(t('hookToasts.adminRealtime.transportStatusUpdated'), {
               description: `Status: ${req.status || 'Unknown'}`,
             });
           }
@@ -96,12 +98,12 @@ export const useAdminRealtimeSubscriptions = () => {
           queryClient.invalidateQueries({ queryKey: ['admin-recent-activity'] });
           
           if (payload.eventType === 'INSERT') {
-            toast.info('New market order', {
+            toast.info(t('hookToasts.adminRealtime.newOrder'), {
               description: 'A new order has been placed',
             });
           } else if (payload.eventType === 'UPDATE') {
             const order = payload.new as { status?: string };
-            toast.info('Order status updated', {
+            toast.info(t('hookToasts.adminRealtime.orderStatusUpdated'), {
               description: `Status: ${order.status || 'Unknown'}`,
             });
           }
@@ -117,7 +119,7 @@ export const useAdminRealtimeSubscriptions = () => {
           queryClient.invalidateQueries({ queryKey: ['admin-dashboard-stats'] });
           
           if (payload.eventType === 'INSERT') {
-            toast.info('New buyer registered', {
+            toast.info(t('hookToasts.adminRealtime.newBuyer'), {
               description: 'A new buyer has joined the marketplace',
             });
           }
@@ -133,7 +135,7 @@ export const useAdminRealtimeSubscriptions = () => {
           queryClient.invalidateQueries({ queryKey: ['admin-dashboard-stats'] });
           
           if (payload.eventType === 'INSERT') {
-            toast.info('New transporter registered', {
+            toast.info(t('hookToasts.adminRealtime.newTransporter'), {
               description: 'A new logistics partner has joined',
             });
           }
@@ -157,7 +159,7 @@ export const useAdminRealtimeSubscriptions = () => {
       if (import.meta.env.DEV) console.log('[Admin Realtime] Cleaning up subscriptions...');
       supabase.removeChannel(channel);
     };
-  }, [queryClient, userRole]);
+  }, [queryClient, userRole, t]);
 };
 
 export default useAdminRealtimeSubscriptions;

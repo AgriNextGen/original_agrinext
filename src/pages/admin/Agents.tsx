@@ -8,6 +8,7 @@ import { Users, Search, CheckCircle, ClipboardList, Inbox } from 'lucide-react';
 import EmptyState from '@/components/shared/EmptyState';
 import { useAllAgents } from '@/hooks/useAdminDashboard';
 import { useState } from 'react';
+import { useLanguage } from '@/hooks/useLanguage';
 import {
   Table,
   TableBody,
@@ -18,6 +19,7 @@ import {
 } from '@/components/ui/table';
 
 const AdminAgents = () => {
+  const { t } = useLanguage();
   const { data: agents, isLoading } = useAllAgents();
   const [search, setSearch] = useState('');
 
@@ -28,15 +30,15 @@ const AdminAgents = () => {
   ) || [];
 
   return (
-    <DashboardLayout title="Agent Management">
+    <DashboardLayout title={t('admin.agents.title')}>
       <PageShell
-        title="Agent Management"
-        subtitle="View and manage field agents"
+        title={t('admin.agents.title')}
+        subtitle={t('admin.agents.subtitle')}
         actions={
           <div className="relative w-full md:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Search agents..."
+              placeholder={t('admin.agents.search')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9"
@@ -46,7 +48,7 @@ const AdminAgents = () => {
       >
         <Card>
           <CardHeader>
-            <CardTitle>All Agents ({filteredAgents.length})</CardTitle>
+            <CardTitle>{t('admin.agents.allAgents')} ({filteredAgents.length})</CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -56,28 +58,28 @@ const AdminAgents = () => {
                 ))}
               </div>
             ) : filteredAgents.length === 0 ? (
-                <EmptyState icon={Inbox} title="No agents found" />
+                <EmptyState icon={Inbox} title={t('admin.agents.noAgents')} />
             ) : (
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Phone</TableHead>
-                        <TableHead>District</TableHead>
-                        <TableHead>Farmers Handled</TableHead>
-                        <TableHead>Tasks</TableHead>
-                        <TableHead>Completion Rate</TableHead>
+                        <TableHead>{t('admin.agents.name')}</TableHead>
+                        <TableHead>{t('admin.agents.phone')}</TableHead>
+                        <TableHead>{t('admin.agents.district')}</TableHead>
+                        <TableHead>{t('admin.agents.farmersHandled')}</TableHead>
+                        <TableHead>{t('admin.agents.tasks')}</TableHead>
+                        <TableHead>{t('admin.agents.completionRate')}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {filteredAgents.map((agent) => (
                         <TableRow key={agent.id}>
                           <TableCell className="font-medium">
-                            {agent.full_name || 'Unnamed'}
+                            {agent.full_name || t('admin.agents.unnamed')}
                           </TableCell>
                           <TableCell>{agent.phone || '-'}</TableCell>
-                          <TableCell>{agent.district || agent.village || 'Unknown'}</TableCell>
+                          <TableCell>{agent.district || agent.village || t('admin.farmers.unknown')}</TableCell>
                           <TableCell>
                             <Badge variant="secondary">
                               <Users className="w-3 h-3 mr-1" />

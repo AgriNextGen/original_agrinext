@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { Route } from 'react-router-dom';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import ErrorBoundary from '@/components/shared/ErrorBoundary';
+import RouteErrorBoundary from '@/components/shared/RouteErrorBoundary';
 import { ROUTES } from '@/lib/routes';
 import { Loader2 } from 'lucide-react';
 
@@ -39,30 +39,30 @@ const SystemHealthPage = lazy(() => import('@/pages/admin/SystemHealth'));
 export default function AdminRoutes() {
   return (
     <>
-      <Route path={ROUTES.ADMIN.DASHBOARD} element={<ProtectedRoute allowedRoles={["admin"]}><ErrorBoundary><Suspense fallback={<Fallback />}><AdminDashboard /></Suspense></ErrorBoundary></ProtectedRoute>} />
-      <Route path={ROUTES.ADMIN.FARMERS} element={<ProtectedRoute allowedRoles={["admin"]}><ErrorBoundary><Suspense fallback={<Fallback />}><AdminFarmers /></Suspense></ErrorBoundary></ProtectedRoute>} />
-      <Route path={ROUTES.ADMIN.AGENTS} element={<ProtectedRoute allowedRoles={["admin"]}><ErrorBoundary><Suspense fallback={<Fallback />}><AdminAgents /></Suspense></ErrorBoundary></ProtectedRoute>} />
-      <Route path={ROUTES.ADMIN.TRANSPORTERS} element={<ProtectedRoute allowedRoles={["admin"]}><ErrorBoundary><Suspense fallback={<Fallback />}><AdminTransporters /></Suspense></ErrorBoundary></ProtectedRoute>} />
-      <Route path={ROUTES.ADMIN.BUYERS} element={<ProtectedRoute allowedRoles={["admin"]}><ErrorBoundary><Suspense fallback={<Fallback />}><AdminBuyers /></Suspense></ErrorBoundary></ProtectedRoute>} />
-      <Route path={ROUTES.ADMIN.CROPS} element={<ProtectedRoute allowedRoles={["admin"]}><ErrorBoundary><Suspense fallback={<Fallback />}><AdminCrops /></Suspense></ErrorBoundary></ProtectedRoute>} />
-      <Route path={ROUTES.ADMIN.TRANSPORT} element={<ProtectedRoute allowedRoles={["admin"]}><ErrorBoundary><Suspense fallback={<Fallback />}><AdminTransport /></Suspense></ErrorBoundary></ProtectedRoute>} />
-      <Route path={ROUTES.ADMIN.ORDERS} element={<ProtectedRoute allowedRoles={["admin"]}><ErrorBoundary><Suspense fallback={<Fallback />}><AdminOrders /></Suspense></ErrorBoundary></ProtectedRoute>} />
-      <Route path={ROUTES.ADMIN.AI_CONSOLE} element={<ProtectedRoute allowedRoles={["admin"]}><ErrorBoundary><Suspense fallback={<Fallback />}><AIConsole /></Suspense></ErrorBoundary></ProtectedRoute>} />
-      <Route path={ROUTES.ADMIN.SEED_DATA} element={<ProtectedRoute allowedRoles={["admin"]}><ErrorBoundary><Suspense fallback={<Fallback />}><SeedData /></Suspense></ErrorBoundary></ProtectedRoute>} />
-      <Route path={ROUTES.ADMIN.DATA_HEALTH} element={<ProtectedRoute allowedRoles={["admin"]}><ErrorBoundary><Suspense fallback={<Fallback />}><DataHealth /></Suspense></ErrorBoundary></ProtectedRoute>} />
-      <Route path={ROUTES.ADMIN.MYSURU_DEMO} element={<ProtectedRoute allowedRoles={["admin"]}><ErrorBoundary><Suspense fallback={<Fallback />}><MysuruDemoSeed /></Suspense></ErrorBoundary></ProtectedRoute>} />
-      <Route path={ROUTES.ADMIN.PENDING_UPDATES} element={<ProtectedRoute allowedRoles={["admin"]}><ErrorBoundary><Suspense fallback={<Fallback />}><PendingUpdates /></Suspense></ErrorBoundary></ProtectedRoute>} />
-      <Route path={ROUTES.ADMIN.OPS_INBOX} element={<ProtectedRoute allowedRoles={["admin"]}><ErrorBoundary><Suspense fallback={<Fallback />}><AdminOpsInbox /></Suspense></ErrorBoundary></ProtectedRoute>} />
-      <Route path="/admin/entity/:type/:id" element={<ProtectedRoute allowedRoles={["admin"]}><ErrorBoundary><Suspense fallback={<Fallback />}><AdminEntity360 /></Suspense></ErrorBoundary></ProtectedRoute>} />
-      <Route path={ROUTES.ADMIN.DISPUTES} element={<ProtectedRoute allowedRoles={["admin"]}><ErrorBoundary><Suspense fallback={<Fallback />}><AdminDisputes /></Suspense></ErrorBoundary></ProtectedRoute>} />
-      <Route path={ROUTES.ADMIN.SYSTEM_HEALTH} element={<ProtectedRoute allowedRoles={["admin"]}><ErrorBoundary><Suspense fallback={<Fallback />}><SystemHealthPage /></Suspense></ErrorBoundary></ProtectedRoute>} />
-      <Route path={ROUTES.ADMIN.TICKETS} element={<ProtectedRoute allowedRoles={["admin"]}><ErrorBoundary><Suspense fallback={<Fallback />}><AdminTickets /></Suspense></ErrorBoundary></ProtectedRoute>} />
-      <Route path={ROUTES.ADMIN.AI_REVIEW} element={<ProtectedRoute allowedRoles={["admin"]}><ErrorBoundary><Suspense fallback={<Fallback />}><AdminAiReview /></Suspense></ErrorBoundary></ProtectedRoute>} />
-      <Route path={ROUTES.ADMIN.JOBS} element={<ProtectedRoute allowedRoles={["admin"]}><ErrorBoundary><Suspense fallback={<Fallback />}><AdminJobs /></Suspense></ErrorBoundary></ProtectedRoute>} />
-      <Route path={ROUTES.ADMIN.FINANCE} element={<ProtectedRoute allowedRoles={["admin"]}><ErrorBoundary><Suspense fallback={<Fallback />}><AdminFinance /></Suspense></ErrorBoundary></ProtectedRoute>} />
-      <Route path={ROUTES.ADMIN.FINANCE_OPS} element={<ProtectedRoute allowedRoles={["admin"]}><ErrorBoundary><Suspense fallback={<Fallback />}><FinanceOps /></Suspense></ErrorBoundary></ProtectedRoute>} />
-      <Route path={ROUTES.ADMIN.REFUNDS} element={<ProtectedRoute allowedRoles={["admin"]}><ErrorBoundary><Suspense fallback={<Fallback />}><Refunds /></Suspense></ErrorBoundary></ProtectedRoute>} />
-      <Route path={ROUTES.ADMIN.PAYOUTS} element={<ProtectedRoute allowedRoles={["admin"]}><ErrorBoundary><Suspense fallback={<Fallback />}><Payouts /></Suspense></ErrorBoundary></ProtectedRoute>} />
+      <Route path={ROUTES.ADMIN.DASHBOARD} element={<ProtectedRoute allowedRoles={["admin"]}><RouteErrorBoundary dashboardPath="/admin/dashboard"><Suspense fallback={<Fallback />}><AdminDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+      <Route path={ROUTES.ADMIN.FARMERS} element={<ProtectedRoute allowedRoles={["admin"]}><RouteErrorBoundary dashboardPath="/admin/dashboard"><Suspense fallback={<Fallback />}><AdminFarmers /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+      <Route path={ROUTES.ADMIN.AGENTS} element={<ProtectedRoute allowedRoles={["admin"]}><RouteErrorBoundary dashboardPath="/admin/dashboard"><Suspense fallback={<Fallback />}><AdminAgents /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+      <Route path={ROUTES.ADMIN.TRANSPORTERS} element={<ProtectedRoute allowedRoles={["admin"]}><RouteErrorBoundary dashboardPath="/admin/dashboard"><Suspense fallback={<Fallback />}><AdminTransporters /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+      <Route path={ROUTES.ADMIN.BUYERS} element={<ProtectedRoute allowedRoles={["admin"]}><RouteErrorBoundary dashboardPath="/admin/dashboard"><Suspense fallback={<Fallback />}><AdminBuyers /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+      <Route path={ROUTES.ADMIN.CROPS} element={<ProtectedRoute allowedRoles={["admin"]}><RouteErrorBoundary dashboardPath="/admin/dashboard"><Suspense fallback={<Fallback />}><AdminCrops /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+      <Route path={ROUTES.ADMIN.TRANSPORT} element={<ProtectedRoute allowedRoles={["admin"]}><RouteErrorBoundary dashboardPath="/admin/dashboard"><Suspense fallback={<Fallback />}><AdminTransport /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+      <Route path={ROUTES.ADMIN.ORDERS} element={<ProtectedRoute allowedRoles={["admin"]}><RouteErrorBoundary dashboardPath="/admin/dashboard"><Suspense fallback={<Fallback />}><AdminOrders /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+      <Route path={ROUTES.ADMIN.AI_CONSOLE} element={<ProtectedRoute allowedRoles={["admin"]}><RouteErrorBoundary dashboardPath="/admin/dashboard"><Suspense fallback={<Fallback />}><AIConsole /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+      <Route path={ROUTES.ADMIN.SEED_DATA} element={<ProtectedRoute allowedRoles={["admin"]}><RouteErrorBoundary dashboardPath="/admin/dashboard"><Suspense fallback={<Fallback />}><SeedData /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+      <Route path={ROUTES.ADMIN.DATA_HEALTH} element={<ProtectedRoute allowedRoles={["admin"]}><RouteErrorBoundary dashboardPath="/admin/dashboard"><Suspense fallback={<Fallback />}><DataHealth /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+      <Route path={ROUTES.ADMIN.MYSURU_DEMO} element={<ProtectedRoute allowedRoles={["admin"]}><RouteErrorBoundary dashboardPath="/admin/dashboard"><Suspense fallback={<Fallback />}><MysuruDemoSeed /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+      <Route path={ROUTES.ADMIN.PENDING_UPDATES} element={<ProtectedRoute allowedRoles={["admin"]}><RouteErrorBoundary dashboardPath="/admin/dashboard"><Suspense fallback={<Fallback />}><PendingUpdates /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+      <Route path={ROUTES.ADMIN.OPS_INBOX} element={<ProtectedRoute allowedRoles={["admin"]}><RouteErrorBoundary dashboardPath="/admin/dashboard"><Suspense fallback={<Fallback />}><AdminOpsInbox /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+      <Route path="/admin/entity/:type/:id" element={<ProtectedRoute allowedRoles={["admin"]}><RouteErrorBoundary dashboardPath="/admin/dashboard"><Suspense fallback={<Fallback />}><AdminEntity360 /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+      <Route path={ROUTES.ADMIN.DISPUTES} element={<ProtectedRoute allowedRoles={["admin"]}><RouteErrorBoundary dashboardPath="/admin/dashboard"><Suspense fallback={<Fallback />}><AdminDisputes /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+      <Route path={ROUTES.ADMIN.SYSTEM_HEALTH} element={<ProtectedRoute allowedRoles={["admin"]}><RouteErrorBoundary dashboardPath="/admin/dashboard"><Suspense fallback={<Fallback />}><SystemHealthPage /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+      <Route path={ROUTES.ADMIN.TICKETS} element={<ProtectedRoute allowedRoles={["admin"]}><RouteErrorBoundary dashboardPath="/admin/dashboard"><Suspense fallback={<Fallback />}><AdminTickets /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+      <Route path={ROUTES.ADMIN.AI_REVIEW} element={<ProtectedRoute allowedRoles={["admin"]}><RouteErrorBoundary dashboardPath="/admin/dashboard"><Suspense fallback={<Fallback />}><AdminAiReview /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+      <Route path={ROUTES.ADMIN.JOBS} element={<ProtectedRoute allowedRoles={["admin"]}><RouteErrorBoundary dashboardPath="/admin/dashboard"><Suspense fallback={<Fallback />}><AdminJobs /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+      <Route path={ROUTES.ADMIN.FINANCE} element={<ProtectedRoute allowedRoles={["admin"]}><RouteErrorBoundary dashboardPath="/admin/dashboard"><Suspense fallback={<Fallback />}><AdminFinance /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+      <Route path={ROUTES.ADMIN.FINANCE_OPS} element={<ProtectedRoute allowedRoles={["admin"]}><RouteErrorBoundary dashboardPath="/admin/dashboard"><Suspense fallback={<Fallback />}><FinanceOps /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+      <Route path={ROUTES.ADMIN.REFUNDS} element={<ProtectedRoute allowedRoles={["admin"]}><RouteErrorBoundary dashboardPath="/admin/dashboard"><Suspense fallback={<Fallback />}><Refunds /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+      <Route path={ROUTES.ADMIN.PAYOUTS} element={<ProtectedRoute allowedRoles={["admin"]}><RouteErrorBoundary dashboardPath="/admin/dashboard"><Suspense fallback={<Fallback />}><Payouts /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
     </>
   );
 }

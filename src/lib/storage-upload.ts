@@ -52,9 +52,9 @@ export async function signAndUpload(
   });
 
   if (error) throw new Error(`Sign upload failed: ${error.message}`);
-  if (data?.error) throw new Error(data.error);
+  if (!data?.success && data?.error) throw new Error(data.error.message ?? data.error);
 
-  const result = data as SignUploadResult & { file_id?: string };
+  const result = (data?.data ?? data) as SignUploadResult & { file_id?: string };
   
   const uploadRes = await supabase.storage
     .from(params.bucket)

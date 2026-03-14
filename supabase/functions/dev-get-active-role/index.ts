@@ -66,26 +66,26 @@ Deno.serve(async (req: Request) => {
   }
 
   if (req.method !== "GET") {
-    return jsonResponse(405, { success: false, errorCode: "METHOD_NOT_ALLOWED", message: "Method not allowed" });
+    return jsonResponse(405, { success: false, error: { code: "METHOD_NOT_ALLOWED", message: "Method not allowed" } });
   }
 
   if (DEV_TOOLS_ENABLED !== "true") {
-    return jsonResponse(404, { success: false, errorCode: "NOT_FOUND", message: "Not found" });
+    return jsonResponse(404, { success: false, error: { code: "NOT_FOUND", message: "Not found" } });
   }
 
   const maybeSecret = req.headers.get("x-dev-secret") || "";
   if (DEV_TOOLS_SECRET && DEV_TOOLS_SECRET !== "" && maybeSecret !== DEV_TOOLS_SECRET) {
-    return jsonResponse(403, { success: false, errorCode: "FORBIDDEN", message: "Forbidden" });
+    return jsonResponse(403, { success: false, error: { code: "FORBIDDEN", message: "Forbidden" } });
   }
 
   const token = extractBearerToken(req);
   if (!token) {
-    return jsonResponse(401, { success: false, errorCode: "UNAUTHORIZED", message: "Missing authorization" });
+    return jsonResponse(401, { success: false, error: { code: "UNAUTHORIZED", message: "Missing authorization" } });
   }
 
   const userId = await resolveUserId(token);
   if (!userId) {
-    return jsonResponse(401, { success: false, errorCode: "UNAUTHORIZED", message: "Invalid token" });
+    return jsonResponse(401, { success: false, error: { code: "UNAUTHORIZED", message: "Invalid token" } });
   }
 
   const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
@@ -98,7 +98,7 @@ Deno.serve(async (req: Request) => {
       .maybeSingle();
 
     if (roleErr) {
-      return jsonResponse(500, { success: false, errorCode: "ROLE_CHECK_FAILED", message: "role_check_failed" });
+      return jsonResponse(500, { success: false, error: { code: "ROLE_CHECK_FAILED", message: "role_check_failed" } });
     }
 
     const realRole = roleData?.role ?? null;
@@ -111,11 +111,11 @@ Deno.serve(async (req: Request) => {
       .maybeSingle();
 
     if (allowErr) {
-      return jsonResponse(500, { success: false, errorCode: "ALLOWLIST_CHECK_FAILED", message: "allowlist_check_failed" });
+      return jsonResponse(500, { success: false, error: { code: "ALLOWLIST_CHECK_FAILED", message: "allowlist_check_failed" } });
     }
 
     if (!isAdmin && !allowRow) {
-      return jsonResponse(403, { success: false, errorCode: "FORBIDDEN", message: "Forbidden" });
+      return jsonResponse(403, { success: false, error: { code: "FORBIDDEN", message: "Forbidden" } });
     }
 
     const nowIso = new Date().toISOString();
@@ -130,7 +130,7 @@ Deno.serve(async (req: Request) => {
       .maybeSingle();
 
     if (sessionErr) {
-      return jsonResponse(500, { success: false, errorCode: "SESSION_LOOKUP_FAILED", message: "session_lookup_failed" });
+      return jsonResponse(500, { success: false, error: { code: "SESSION_LOOKUP_FAILED", message: "session_lookup_failed" } });
     }
 
     const activeRole = sessionRow?.acting_as_role ?? realRole;
@@ -147,8 +147,7 @@ Deno.serve(async (req: Request) => {
     console.error("dev-get-active-role error:", error);
     return jsonResponse(500, {
       success: false,
-      errorCode: "INTERNAL_ERROR",
-      message: error instanceof Error ? error.message : "server_error",
+      error: { code: "INTERNAL_ERROR", message: error instanceof Error ? error.message : "server_error" },
     });
   }
 });

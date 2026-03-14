@@ -16,8 +16,26 @@ AgriNext Gen is a **multi-role agricultural supply-chain platform** for Karnatak
 | `logistics` | Accept loads, execute trips with proof | `/logistics/*` |
 | `buyer` | Browse listings, place market orders | `/marketplace/*` |
 | `admin` | Monitoring, data health, ops governance | `/admin/*` |
+| `vendor` | Supplies agricultural inputs (fertilizer, seeds, pesticides) | `/vendor/*` (future) |
+
+> Vendor dashboard is planned but not yet implemented.
 
 Region: Karnataka, India. Primary language: Kannada + English (bilingual). Phone-first UX (PWA, low-bandwidth).
+
+### 1.1 Platform Philosophy
+
+This platform is **NOT a marketplace** — it is a **coordination infrastructure**.
+
+The goal is to optimise system-wide outcomes:
+
+- Reduce post-harvest losses
+- Stabilise prices through predictive coordination
+- Increase logistics efficiency (load aggregation, reverse logistics)
+- Improve farmer income via direct market access
+
+AI agents must preserve this philosophy. Features should coordinate actors and optimise the network, not simply list products for sale.
+
+**Long-term vision:** AgriNext aims to become *the operating system of agricultural logistics* — a predictive coordination network connecting farms, markets, and supply chains across rural India.
 
 ---
 
@@ -115,6 +133,42 @@ created_at  timestamptz DEFAULT now()
 updated_at  timestamptz DEFAULT now()
 ```
 
+### 4.1 Logistics Domain Model (Target State)
+
+Logistics is treated as a **predictive network problem**, not simple point-to-point delivery. The following domain entities define the target-state logistics engine. Some exist in the DB today (`trips`, `transport_requests`, `vehicles`); others are planned extensions.
+
+#### Domain Entities
+
+| Entity | Purpose | Status |
+|--------|---------|--------|
+| `ShipmentRequest` | Logistics demand from any actor (farmer, buyer, vendor, admin) | Planned — currently `transport_requests` covers farmer-only |
+| `ShipmentItems` | Line items inside a shipment | Planned |
+| `LoadPool` | Grouped shipments from multiple actors for shared transport | Planned |
+| `Trip` | Vehicle trip execution | **Exists** (`trips` table) |
+| `TripLeg` | Individual stops inside a multi-stop trip | Planned |
+| `VehicleCapacityBlock` | Remaining capacity on a vehicle for a trip | Planned |
+| `ReverseLoadCandidate` | Return-trip shipment opportunity | Planned |
+| `Booking` | Shipment assigned to a specific trip | Planned |
+
+#### Reverse Logistics Principle
+
+Vehicles are **round-trip assets**. Every trip has two legs:
+
+- **Forward:** Village → Market (produce)
+- **Return:** Market → Village (fertilizer, seeds, inputs, goods)
+
+AI agents must always consider reverse logistics when designing trip-related features. Never model vehicles as one-way assets.
+
+#### Engine Services (Target Architecture)
+
+| Service | Responsibility |
+|---------|---------------|
+| `LogisticsOrchestratorService` | Shipment creation, load pooling, trip generation |
+| `TripManagementService` | Trip lifecycle, trip legs, capacity tracking |
+| `ReverseLogisticsService` | Detecting return trips, matching reverse loads |
+
+These services should be implemented as modular backend services or Edge Functions. Domain logic must not leak into controllers or UI components.
+
 ---
 
 ## 5. RLS Rules (Summary)
@@ -178,9 +232,32 @@ Shared utilities available at `supabase/functions/_shared/`:
 ### Edge Function Standard Response Format
 ```json
 { "success": true, "data": { ... } }
-{ "success": false, "error": "HUMAN_READABLE", "code": "ERROR_CODE" }
+{ "success": false, "error": { "code": "ERROR_CODE", "message": "Human readable" } }
 ```
-Full standard: `docs/all_imp_rules/ENTERPRISE_EDGE_FUNCTION_STANDARD.md`
+Use `successResponse()` and `errorResponse()` from `_shared/errors.ts`.
+Full standard: `docs/all_imp_rules/API_CONTRACTS.md` Section 2.
+
+### 6.1 API Design Rules
+
+All APIs (Edge Functions, RPCs, future REST endpoints) must be **role-agnostic**. Shipments, trips, and bookings are created by multiple actor types — the API layer must not couple to a single role.
+
+**Do this:**
+```
+POST /shipments          — any actor creates a shipment
+GET  /shipments/{id}     — filtered by RLS
+POST /trips              — orchestrator creates trips
+GET  /trips/{id}         — filtered by RLS
+POST /bookings           — assign shipment to trip
+```
+
+**Do NOT do this:**
+```
+POST /farmer-logistics-only
+POST /buyer-only-shipment
+GET  /admin-trips
+```
+
+Role-based access control is enforced at the RLS and JWT layer, not at the endpoint naming layer. This keeps the API surface clean and extensible as new roles (e.g., vendor) are added.
 
 ---
 
@@ -465,7 +542,24 @@ All rules in `docs/all_imp_rules/` override anything else:
 
 ---
 
-## 16. What NOT to Do (AI Safety Rules)
+## 16. Scalability Constraints
+
+The platform must scale to serve:
+
+- **Millions** of farmers across Karnataka and eventually other states
+- **Thousands** of transport partners and vehicles
+- **Large logistics networks** with multi-stop, multi-actor coordination
+
+Design choices must prioritise:
+
+- **Horizontal scalability** — stateless Edge Functions, no server-side sessions
+- **Async processing** — use `job-worker` and background queues for heavy operations (load pooling, route optimisation, reconciliation)
+- **Partitioned data** — `trip_location_events` is already partitioned; apply the same pattern to high-volume tables as they grow
+- **Offline-first** — rural connectivity is unreliable; all farmer-facing flows must work offline via IndexedDB + action queue
+
+---
+
+## 17. What NOT to Do (AI Safety Rules)
 
 - Do NOT call Supabase from Edge Functions with the **anon key** — use service_role for server-side DB writes.
 - Do NOT add `.select('*')` on tables with sensitive columns — be explicit.
@@ -474,3 +568,5 @@ All rules in `docs/all_imp_rules/` override anything else:
 - Do NOT modify `src/integrations/supabase/types.ts` manually — always regenerate.
 - Do NOT commit to `main` directly — always use a feature branch.
 - Do NOT add raw `console.log` with user data — use structured logging.
+- Do NOT build role-specific API endpoints — use unified, role-agnostic endpoints with RLS for access control.
+- Do NOT model vehicles as one-way assets — always consider reverse logistics.

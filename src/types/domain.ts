@@ -12,10 +12,10 @@
 // Roles
 // ---------------------------------------------------------------------------
 
-/** The 5 user roles in AgriNext. Stored in `public.user_roles` table. */
-export type AppRole = 'farmer' | 'agent' | 'logistics' | 'buyer' | 'admin';
+/** The 6 user roles in AgriNext. Stored in `public.user_roles` table. */
+export type AppRole = 'farmer' | 'agent' | 'logistics' | 'buyer' | 'admin' | 'vendor';
 
-export const APP_ROLES: AppRole[] = ['farmer', 'agent', 'logistics', 'buyer', 'admin'];
+export const APP_ROLES: AppRole[] = ['farmer', 'agent', 'logistics', 'buyer', 'admin', 'vendor'];
 
 // ---------------------------------------------------------------------------
 // Crop Status

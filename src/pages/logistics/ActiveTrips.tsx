@@ -1,5 +1,6 @@
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -8,9 +9,11 @@ import {
   Calendar, 
   Phone,
   Package,
-  ExternalLink
+  ExternalLink,
+  ArrowRight,
 } from 'lucide-react';
 import { useTrips } from '@/hooks/useTrips';
+import { useActiveUnifiedTrips } from '@/hooks/useUnifiedLogistics';
 import { format, parseISO } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/lib/routes';
@@ -18,18 +21,49 @@ import PageShell from '@/components/layout/PageShell';
 import DataState from '@/components/ui/DataState';
 import { useLanguage } from '@/hooks/useLanguage';
 import { TRANSPORT_STATUS_COLORS } from '@/lib/constants';
+import TripCard from '@/components/logistics/TripCard';
 
 const ActiveTrips = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const { data: trips, isLoading } = useTrips(['accepted', 'pickup_done', 'in_transit']);
+  const { data: unifiedTrips } = useActiveUnifiedTrips();
 
   const openGoogleMaps = (location: string) => {
     window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`, '_blank');
   };
 
   if (isLoading) {
-    return <DashboardLayout title={t('logistics.activeTrips')}><DataState loading><></></DataState></DashboardLayout>;
+    return (
+      <DashboardLayout title={t('logistics.activeTrips')}>
+        <PageShell title={t('logistics.activeTrips')}>
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <Card key={i}>
+                <CardContent className="p-4 md:p-6">
+                  <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                    <div className="flex-1 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Skeleton className="h-6 w-32" />
+                        <Skeleton className="h-6 w-20 rounded-full" />
+                      </div>
+                      <div className="grid md:grid-cols-2 gap-3">
+                        <Skeleton className="h-10 w-full" />
+                        <Skeleton className="h-10 w-full" />
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-2 min-w-[180px]">
+                      <Skeleton className="h-10 w-full" />
+                      <Skeleton className="h-8 w-full" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </PageShell>
+      </DashboardLayout>
+    );
   }
 
   return (
@@ -46,7 +80,7 @@ const ActiveTrips = () => {
         emptyMessage={t('logistics.acceptToStart')}
       >
         <div className="space-y-4">
-          {trips.map((trip) => {
+          {(trips ?? []).map((trip) => {
             const request = trip.transport_request;
             
             return (
@@ -150,6 +184,29 @@ const ActiveTrips = () => {
           <Button onClick={() => navigate(ROUTES.LOGISTICS.AVAILABLE_LOADS)}>{t('logistics.browseAvailableLoads')}</Button>
         </div>
       ) : null}
+
+      {unifiedTrips && unifiedTrips.length > 0 && (
+        <div className="mt-6">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              <Truck className="h-5 w-5 text-primary" />
+              {t('logistics.unifiedActiveTrips')}
+            </h3>
+            <Button variant="ghost" size="sm" onClick={() => navigate(ROUTES.LOGISTICS.FORWARD_TRIPS)}>
+              {t('common.viewAll')} <ArrowRight className="ml-1 h-4 w-4" />
+            </Button>
+          </div>
+          <div className="space-y-3">
+            {unifiedTrips.slice(0, 5).map((trip) => (
+              <TripCard
+                key={trip.id}
+                trip={trip}
+                onViewDetail={(id) => navigate(ROUTES.LOGISTICS.UNIFIED_TRIP_DETAIL(id))}
+              />
+            ))}
+          </div>
+        </div>
+      )}
       </PageShell>
     </DashboardLayout>
   );

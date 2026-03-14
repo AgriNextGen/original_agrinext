@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useLanguage } from '@/hooks/useLanguage';
 import { toast } from 'sonner';
 
 // Types
@@ -228,6 +229,7 @@ export const useAllTransportRequests = () => {
 // Update task status (direct query, guarded by RLS: agent can only update own tasks)
 export const useUpdateTaskStatus = () => {
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
   
   return useMutation({
     mutationFn: async ({ taskId, status, notes }: { taskId: string; status: 'pending' | 'in_progress' | 'completed'; notes?: string }) => {
@@ -248,10 +250,10 @@ export const useUpdateTaskStatus = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['agent-tasks'] });
       queryClient.invalidateQueries({ queryKey: ['today-tasks'] });
-      toast.success('Task updated successfully');
+      toast.success(t('hookToasts.agentDashboard.taskUpdated'));
     },
     onError: (error) => {
-      toast.error('Failed to update task');
+      toast.error(t('hookToasts.agentDashboard.taskUpdateFailed'));
       if (import.meta.env.DEV) console.error(error);
     },
   });
@@ -260,6 +262,7 @@ export const useUpdateTaskStatus = () => {
 // Create new task (direct insert, guarded by RLS: agent must have active farmer assignment)
 export const useCreateTask = () => {
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
   
   return useMutation({
     mutationFn: async (task: { 
@@ -294,10 +297,10 @@ export const useCreateTask = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['agent-tasks'] });
       queryClient.invalidateQueries({ queryKey: ['today-tasks'] });
-      toast.success('Task created successfully');
+      toast.success(t('hookToasts.agentDashboard.taskCreated'));
     },
     onError: (error) => {
-      toast.error('Failed to create task');
+      toast.error(t('hookToasts.agentDashboard.taskCreateFailed'));
       if (import.meta.env.DEV) console.error(error);
     },
   });
@@ -306,6 +309,7 @@ export const useCreateTask = () => {
 // Update crop status (direct query, agent access governed by RLS)
 export const useUpdateCropStatus = () => {
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
   
   return useMutation({
     mutationFn: async ({ cropId, status, quantity, notes }: { 
@@ -333,10 +337,10 @@ export const useUpdateCropStatus = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['all-crops-agent'] });
-      toast.success('Crop status updated');
+      toast.success(t('hookToasts.agentDashboard.cropStatusUpdated'));
     },
     onError: (error) => {
-      toast.error('Failed to update crop');
+      toast.error(t('hookToasts.agentDashboard.cropStatusFailed'));
       if (import.meta.env.DEV) console.error(error);
     },
   });
@@ -345,6 +349,7 @@ export const useUpdateCropStatus = () => {
 // AI Visit Prioritization
 export const useAIVisitPrioritization = () => {
   const { user } = useAuth();
+  const { language } = useLanguage();
   
   return useMutation({
     mutationFn: async (tasks: AgentTask[]) => {
@@ -360,6 +365,7 @@ export const useAIVisitPrioritization = () => {
         },
         body: JSON.stringify({
           type: 'visit_prioritization',
+          ui_language: language,
           context: {
             tasks: tasks.map(t => ({
               id: t.id,
@@ -393,6 +399,7 @@ export const useAIVisitPrioritization = () => {
 // AI Cluster Summary
 export const useAIClusterSummary = () => {
   const { user } = useAuth();
+  const { language } = useLanguage();
   
   return useMutation({
     mutationFn: async (clusterData: any) => {
@@ -408,6 +415,7 @@ export const useAIClusterSummary = () => {
         },
         body: JSON.stringify({
           type: 'cluster_summary',
+          ui_language: language,
           context: { clusterData },
         }),
       });

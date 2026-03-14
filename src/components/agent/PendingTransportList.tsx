@@ -8,6 +8,7 @@ import { format, parseISO } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/hooks/useLanguage';
 import { ROUTES } from '@/lib/routes';
+import { useLoadingTimeout } from '@/hooks/useLoadingTimeout';
 
 const statusColors: Record<string, string> = {
   requested: 'bg-amber-100 text-amber-800',
@@ -22,12 +23,13 @@ const PendingTransportList = () => {
   const { t } = useLanguage();
   const { data: requests, isLoading } = useAllTransportRequests();
   const navigate = useNavigate();
+  const loadingTimedOut = useLoadingTimeout(isLoading);
 
   const pendingRequests = requests
     ?.filter((r) => r.status === 'requested' || r.status === 'assigned')
     .slice(0, 4);
 
-  if (isLoading) {
+  if (isLoading && !loadingTimedOut) {
     return (
       <Card>
         <CardHeader>

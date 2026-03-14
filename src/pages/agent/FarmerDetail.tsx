@@ -45,7 +45,7 @@ import { format, parseISO } from 'date-fns';
 export default function AgentFarmerDetail() {
   const { farmerId } = useParams<{ farmerId: string }>();
   const navigate = useNavigate();
-  const { language } = useLanguage();
+  const { t } = useLanguage();
   const startVisit = useStartVisit();
   const { data: activeVisit } = useActiveVisit();
   const [activeTab, setActiveTab] = useState('overview');
@@ -120,11 +120,7 @@ export default function AgentFarmerDetail() {
   const handleStartVisit = () => {
     if (!farmerId) return;
     if (activeVisit) {
-      toast.error(
-        language === 'kn'
-          ? 'ದಯವಿಟ್ಟು ಮೊದಲು ಪ್ರಸ್ತುತ ಭೇಟಿಯನ್ನು ಮುಗಿಸಿ'
-          : 'Please end your current visit first'
-      );
+      toast.error(t('agent.farmerDetail.endVisitFirst'));
       return;
     }
     startVisit.mutate({ farmerId });
@@ -145,25 +141,26 @@ export default function AgentFarmerDetail() {
   };
 
   const getStatusBadge = (status: string) => {
-    const statusConfig: Record<string, { label: string; className: string }> = {
-      growing: { label: 'Growing', className: 'bg-blue-100 text-blue-800' },
-      one_week: { label: '1 Week', className: 'bg-amber-100 text-amber-800' },
-      ready: { label: 'Ready', className: 'bg-green-100 text-green-800' },
-      harvested: { label: 'Harvested', className: 'bg-gray-100 text-gray-800' },
-      requested: { label: 'Requested', className: 'bg-amber-100 text-amber-800' },
-      assigned: { label: 'Assigned', className: 'bg-blue-100 text-blue-800' },
-      en_route: { label: 'En Route', className: 'bg-purple-100 text-purple-800' },
-      picked_up: { label: 'Picked Up', className: 'bg-cyan-100 text-cyan-800' },
-      delivered: { label: 'Delivered', className: 'bg-green-100 text-green-800' },
-      cancelled: { label: 'Cancelled', className: 'bg-red-100 text-red-800' },
+    const statusConfig: Record<string, { className: string }> = {
+      growing: { className: 'bg-blue-100 text-blue-800' },
+      one_week: { className: 'bg-amber-100 text-amber-800' },
+      ready: { className: 'bg-green-100 text-green-800' },
+      harvested: { className: 'bg-gray-100 text-gray-800' },
+      requested: { className: 'bg-amber-100 text-amber-800' },
+      assigned: { className: 'bg-blue-100 text-blue-800' },
+      en_route: { className: 'bg-purple-100 text-purple-800' },
+      picked_up: { className: 'bg-cyan-100 text-cyan-800' },
+      delivered: { className: 'bg-green-100 text-green-800' },
+      cancelled: { className: 'bg-red-100 text-red-800' },
     };
-    const config = statusConfig[status] || { label: status, className: 'bg-gray-100 text-gray-800' };
-    return <Badge className={config.className}>{config.label}</Badge>;
+    const config = statusConfig[status] || { className: 'bg-gray-100 text-gray-800' };
+    const label = t(`agent.farmerDetail.statusLabels.${status}`) || status;
+    return <Badge className={config.className}>{label}</Badge>;
   };
 
   if (farmerLoading) {
     return (
-      <DashboardLayout title={language === 'kn' ? 'ರೈತ ವಿವರಗಳು' : 'Farmer Details'}>
+      <DashboardLayout title={t('agent.farmerDetail.title')}>
         <div className="space-y-6">
           <Skeleton className="h-10 w-48" />
           <Skeleton className="h-40 w-full" />
@@ -174,13 +171,13 @@ export default function AgentFarmerDetail() {
 
   if (!farmer) {
     return (
-      <DashboardLayout title={language === 'kn' ? 'ರೈತ ವಿವರಗಳು' : 'Farmer Details'}>
+      <DashboardLayout title={t('agent.farmerDetail.title')}>
         <div className="text-center py-12">
           <EmptyState
             icon={User}
-            title={language === 'kn' ? 'ರೈತ ಕಂಡುಬಂದಿಲ್ಲ' : 'Farmer not found'}
-            description={language === 'kn' ? 'ರೈತ ವಿವರಗಳನ್ನು ಲೋಡ್ ಮಾಡಲು ವಿಫಲವಾಗಿದೆ' : "This farmer doesn't exist or you don't have access to it."}
-            actionLabel={language === 'kn' ? 'ಹಿಂತಿರುಗಿ' : 'Go Back'}
+            title={t('agent.farmerDetail.notFound')}
+            description={t('agent.farmerDetail.notFoundDescription')}
+            actionLabel={t('agent.farmerDetail.goBack')}
             onAction={() => navigate(ROUTES.AGENT.MY_FARMERS)}
           />
         </div>
@@ -189,19 +186,19 @@ export default function AgentFarmerDetail() {
   }
 
   return (
-    <DashboardLayout title={farmer.full_name || (language === 'kn' ? 'ರೈತ' : 'Farmer')}>
-      <PageHeader title={farmer.full_name || (language === 'kn' ? 'ರೈತ' : 'Farmer')}>
+    <DashboardLayout title={farmer.full_name || t('agent.farmerDetail.farmer')}>
+      <PageHeader title={farmer.full_name || t('agent.farmerDetail.farmer')}>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <Button variant="ghost" onClick={() => navigate(ROUTES.AGENT.MY_FARMERS)} aria-label="Back to farmers">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            {language === 'kn' ? 'ಹಿಂತಿರುಗಿ' : 'Back'}
+            {t('agent.farmerDetail.back')}
           </Button>
           <div className="flex gap-2">
             <Button aria-label="Call farmer" variant="outline" size="sm" onClick={handleCall} disabled={!farmer.phone}>
               <Phone className="h-4 w-4 mr-1" />
-              {language === 'kn' ? 'ಕರೆ' : 'Call'}
+              {t('agent.farmerDetail.call')}
             </Button>
             <Button
               aria-label="WhatsApp farmer"
@@ -221,7 +218,7 @@ export default function AgentFarmerDetail() {
               disabled={startVisit.isPending || !!activeVisit}
             >
               <Play className="h-4 w-4 mr-1" />
-              {language === 'kn' ? 'ಭೇಟಿ ಪ್ರಾರಂಭಿಸಿ' : 'Start Visit'}
+              {t('agent.farmerDetail.startVisit')}
             </Button>
             <Button
               aria-label="Upload soil report"
@@ -230,7 +227,7 @@ export default function AgentFarmerDetail() {
               onClick={() => setSoilReportOpen(true)}
             >
               <FlaskConical className="h-4 w-4 mr-1" />
-              {language === 'kn' ? 'ಮಣ್ಣಿನ ವರದಿ' : 'Soil Report'}
+              {t('agent.farmerDetail.soilReport')}
             </Button>
           </div>
         </div>
@@ -244,7 +241,7 @@ export default function AgentFarmerDetail() {
               </div>
               <div className="flex-1">
                 <h2 className="text-xl font-semibold">
-                  {farmer.full_name || (language === 'kn' ? 'ಅಪರಿಚಿತ' : 'Unknown')}
+                  {farmer.full_name || t('agent.farmerDetail.unknown')}
                 </h2>
                 {farmer.phone && (
                   <p className="text-muted-foreground flex items-center gap-1 mt-1">
@@ -260,7 +257,7 @@ export default function AgentFarmerDetail() {
               <div className="text-right">
                 <div className="text-2xl font-display font-semibold text-primary">{crops?.length || 0}</div>
                 <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  {language === 'kn' ? 'ಸಕ್ರಿಯ ಬೆಳೆಗಳು' : 'Active Crops'}
+                  {t('agent.farmerDetail.activeCrops')}
                 </p>
               </div>
             </div>
@@ -272,46 +269,46 @@ export default function AgentFarmerDetail() {
           <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6">
             <TabsTrigger value="overview" className="flex items-center gap-1">
               <User className="h-4 w-4" />
-              <span className="hidden sm:inline">{language === 'kn' ? 'ಅವಲೋಕನ' : 'Overview'}</span>
+              <span className="hidden sm:inline">{t('agent.farmerDetail.overview')}</span>
             </TabsTrigger>
             <TabsTrigger value="update" className="flex items-center gap-1">
               <Edit className="h-4 w-4" />
-              <span className="hidden sm:inline">{language === 'kn' ? 'ನವೀಕರಣ' : 'Update'}</span>
+              <span className="hidden sm:inline">{t('agent.farmerDetail.update')}</span>
             </TabsTrigger>
             <TabsTrigger value="tasks" className="flex items-center gap-1">
               <ClipboardList className="h-4 w-4" />
-              <span className="hidden sm:inline">{language === 'kn' ? 'ಕಾರ್ಯಗಳು' : 'Tasks'}</span>
+              <span className="hidden sm:inline">{t('agent.farmerDetail.tasks')}</span>
             </TabsTrigger>
             <TabsTrigger value="crops" className="flex items-center gap-1">
               <Sprout className="h-4 w-4" />
-              <span className="hidden sm:inline">{language === 'kn' ? 'ಬೆಳೆಗಳು' : 'Crops'}</span>
+              <span className="hidden sm:inline">{t('agent.farmerDetail.crops')}</span>
             </TabsTrigger>
             <TabsTrigger value="transport" className="flex items-center gap-1">
               <Truck className="h-4 w-4" />
-              <span className="hidden sm:inline">{language === 'kn' ? 'ಸಾರಿಗೆ' : 'Transport'}</span>
+              <span className="hidden sm:inline">{t('agent.farmerDetail.transport')}</span>
             </TabsTrigger>
             <TabsTrigger value="farmlands" className="flex items-center gap-1">
               <FileText className="h-4 w-4" />
-              <span className="hidden sm:inline">{language === 'kn' ? 'ಜಮೀನುಗಳು' : 'Farmlands'}</span>
+              <span className="hidden sm:inline">{t('agent.farmerDetail.farmlands')}</span>
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="mt-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <KpiCard
-                label={language === 'kn' ? 'ಒಟ್ಟು ಭೂಮಿ' : 'Total Land'}
+                label={t('agent.farmerDetail.totalLand')}
                 value={`${farmer.total_land_area || 0} acres`}
                 icon={FileText}
                 priority="primary"
               />
               <KpiCard
-                label={language === 'kn' ? 'ಜಮೀನುಗಳು' : 'Farmlands'}
+                label={t('agent.farmerDetail.farmlands')}
                 value={farmlands?.length || 0}
                 icon={MapPin}
                 priority="info"
               />
               <KpiCard
-                label={language === 'kn' ? 'ಬಾಕಿ ಸಾರಿಗೆ' : 'Pending Transport'}
+                label={t('agent.farmerDetail.pendingTransport')}
                 value={transport?.filter((t) => t.status === 'requested').length || 0}
                 icon={Truck}
                 priority="warning"
@@ -340,17 +337,17 @@ export default function AgentFarmerDetail() {
                   <div className="text-center py-12">
                     <Sprout className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
                     <p className="text-muted-foreground">
-                      {language === 'kn' ? 'ಯಾವುದೇ ಬೆಳೆಗಳಿಲ್ಲ' : 'No crops found'}
+                      {t('agent.farmerDetail.noCrops')}
                     </p>
                   </div>
                 ) : (
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>{language === 'kn' ? 'ಬೆಳೆ' : 'Crop'}</TableHead>
-                        <TableHead>{language === 'kn' ? 'ಪ್ರಮಾಣ' : 'Quantity'}</TableHead>
-                        <TableHead>{language === 'kn' ? 'ಸ್ಥಿತಿ' : 'Status'}</TableHead>
-                        <TableHead>{language === 'kn' ? 'ಕೊಯ್ಲು' : 'Harvest'}</TableHead>
+                        <TableHead>{t('agent.farmerDetail.crop')}</TableHead>
+                        <TableHead>{t('agent.farmerDetail.quantity')}</TableHead>
+                        <TableHead>{t('agent.farmerDetail.status')}</TableHead>
+                        <TableHead>{t('agent.farmerDetail.harvest')}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -388,17 +385,17 @@ export default function AgentFarmerDetail() {
                   <div className="text-center py-12">
                     <Truck className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
                     <p className="text-muted-foreground">
-                      {language === 'kn' ? 'ಯಾವುದೇ ಸಾರಿಗೆ ವಿನಂತಿಗಳಿಲ್ಲ' : 'No transport requests'}
+                      {t('agent.farmerDetail.noTransport')}
                     </p>
                   </div>
                 ) : (
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>{language === 'kn' ? 'ಸ್ಥಳ' : 'Location'}</TableHead>
-                        <TableHead>{language === 'kn' ? 'ಪ್ರಮಾಣ' : 'Quantity'}</TableHead>
-                        <TableHead>{language === 'kn' ? 'ಸ್ಥಿತಿ' : 'Status'}</TableHead>
-                        <TableHead>{language === 'kn' ? 'ದಿನಾಂಕ' : 'Date'}</TableHead>
+                        <TableHead>{t('agent.farmerDetail.location')}</TableHead>
+                        <TableHead>{t('agent.farmerDetail.quantity')}</TableHead>
+                        <TableHead>{t('agent.farmerDetail.status')}</TableHead>
+                        <TableHead>{t('agent.farmerDetail.date')}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -438,17 +435,17 @@ export default function AgentFarmerDetail() {
                   <div className="text-center py-12">
                     <FileText className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
                     <p className="text-muted-foreground">
-                      {language === 'kn' ? 'ಯಾವುದೇ ಜಮೀನುಗಳಿಲ್ಲ' : 'No farmlands found'}
+                      {t('agent.farmerDetail.noFarmlands')}
                     </p>
                   </div>
                 ) : (
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>{language === 'kn' ? 'ಹೆಸರು' : 'Name'}</TableHead>
-                        <TableHead>{language === 'kn' ? 'ವಿಸ್ತೀರ್ಣ' : 'Area'}</TableHead>
-                        <TableHead>{language === 'kn' ? 'ಮಣ್ಣಿನ ಪ್ರಕಾರ' : 'Soil Type'}</TableHead>
-                        <TableHead>{language === 'kn' ? 'ಸ್ಥಳ' : 'Location'}</TableHead>
+                        <TableHead>{t('agent.farmerDetail.name')}</TableHead>
+                        <TableHead>{t('agent.farmerDetail.area')}</TableHead>
+                        <TableHead>{t('agent.farmerDetail.soilType')}</TableHead>
+                        <TableHead>{t('agent.farmerDetail.location')}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>

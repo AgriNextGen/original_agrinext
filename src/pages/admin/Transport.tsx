@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Truck, MapPin, Calendar, Inbox } from 'lucide-react';
 import EmptyState from '@/components/shared/EmptyState';
 import { useAllTransportRequests, useUpdateTransportStatus } from '@/hooks/useAdminDashboard';
+import { useLanguage } from '@/hooks/useLanguage';
 import {
   Table,
   TableBody,
@@ -24,6 +25,7 @@ import {
 } from '@/components/ui/select';
 
 const AdminTransport = () => {
+  const { t } = useLanguage();
   const { data: requests, isLoading } = useAllTransportRequests();
   const updateStatus = useUpdateTransportStatus();
 
@@ -45,14 +47,14 @@ const AdminTransport = () => {
   };
 
   return (
-    <DashboardLayout title="Transport Management">
+    <DashboardLayout title={t('admin.transport.title')}>
       <PageShell
-        title="Transport Management"
-        subtitle="Manage all transport requests across the ecosystem"
+        title={t('admin.transport.title')}
+        subtitle={t('admin.transport.subtitle')}
       >
         <Card>
           <CardHeader>
-            <CardTitle>All Transport Requests ({requests?.length || 0})</CardTitle>
+            <CardTitle>{t('admin.transport.allRequests')} ({requests?.length || 0})</CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -62,27 +64,27 @@ const AdminTransport = () => {
                 ))}
               </div>
             ) : (!requests || requests.length === 0) ? (
-                <EmptyState icon={Inbox} title="No transport requests found" />
+                <EmptyState icon={Inbox} title={t('admin.transport.noRequests')} />
             ) : (
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Farmer</TableHead>
-                        <TableHead>Crop</TableHead>
-                        <TableHead>Quantity</TableHead>
-                        <TableHead>Pickup</TableHead>
-                        <TableHead>Date</TableHead>
+                        <TableHead>{t('admin.transport.farmer')}</TableHead>
+                        <TableHead>{t('admin.transport.crop')}</TableHead>
+                        <TableHead>{t('admin.transport.quantity')}</TableHead>
+                        <TableHead>{t('admin.transport.pickup')}</TableHead>
+                        <TableHead>{t('admin.transport.date')}</TableHead>
                         <TableHead>Transporter</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Actions</TableHead>
+                        <TableHead>{t('admin.transport.status')}</TableHead>
+                        <TableHead>{t('admin.orders.actions')}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {requests.map((req) => (
                         <TableRow key={req.id}>
                           <TableCell className="font-medium">
-                            {req.farmer?.full_name || 'Unknown'}
+                            {req.farmer?.full_name || t('admin.farmers.unknown')}
                           </TableCell>
                           <TableCell>{req.crop?.crop_name || '-'}</TableCell>
                           <TableCell>
@@ -91,7 +93,7 @@ const AdminTransport = () => {
                           <TableCell>
                             <div className="flex items-center gap-1 text-sm">
                               <MapPin className="w-3 h-3" />
-                              {req.pickup_village || req.pickup_location || 'Unknown'}
+                              {req.pickup_village || req.pickup_location || t('admin.farmers.unknown')}
                             </div>
                           </TableCell>
                           <TableCell>

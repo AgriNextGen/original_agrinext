@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { AlertTriangle, Loader2 } from 'lucide-react';
 import { useUpdateTripStatusSecure } from '@/hooks/useTrips';
+import { useLanguage } from '@/hooks/useLanguage';
 
 interface IssueReportDialogProps {
   open: boolean;
@@ -20,25 +21,26 @@ interface IssueReportDialogProps {
   onSuccess?: () => void;
 }
 
-const issueTypes = [
-  { value: 'farmer_unavailable', label: 'Farmer not available' },
-  { value: 'wrong_quantity', label: 'Wrong quantity/quality' },
-  { value: 'road_block', label: 'Road blocked/inaccessible' },
-  { value: 'vehicle_problem', label: 'Vehicle breakdown' },
-  { value: 'weather', label: 'Bad weather' },
-  { value: 'other', label: 'Other issue' },
-];
-
 export default function IssueReportDialog({
   open,
   onOpenChange,
   tripId,
   onSuccess,
 }: IssueReportDialogProps) {
+  const { t } = useLanguage();
   const [issueCode, setIssueCode] = useState('');
   const [issueNotes, setIssueNotes] = useState('');
 
   const updateStatus = useUpdateTripStatusSecure();
+
+  const issueTypes = [
+    { value: 'farmer_unavailable', label: t('logisticsComponents.issues.farmerNotAvailable') },
+    { value: 'wrong_quantity', label: t('logisticsComponents.issues.wrongQuantity') },
+    { value: 'road_block', label: t('logisticsComponents.issues.roadBlocked') },
+    { value: 'vehicle_problem', label: t('logisticsComponents.issues.vehicleBreakdown') },
+    { value: 'weather', label: t('logisticsComponents.issues.badWeather') },
+    { value: 'other', label: t('logisticsComponents.issues.otherIssue') },
+  ];
 
   const handleSubmit = async () => {
     if (!issueCode) return;
@@ -66,13 +68,13 @@ export default function IssueReportDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-amber-600">
             <AlertTriangle className="h-5 w-5" />
-            Report Issue
+            {t('logisticsComponents.issues.title')}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           <div className="space-y-3">
-            <Label>What's the issue?</Label>
+            <Label>{t('logisticsComponents.issues.whatIssue')}</Label>
             <RadioGroup value={issueCode} onValueChange={setIssueCode}>
               {issueTypes.map((type) => (
                 <div key={type.value} className="flex items-center space-x-3">
@@ -86,10 +88,10 @@ export default function IssueReportDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="notes">Additional Details</Label>
+            <Label htmlFor="notes">{t('logisticsComponents.issues.details')}</Label>
             <Textarea
               id="notes"
-              placeholder="Describe the issue in detail..."
+              placeholder={t('logisticsComponents.issues.detailsPlaceholder')}
               value={issueNotes}
               onChange={(e) => setIssueNotes(e.target.value)}
               rows={3}
@@ -97,13 +99,13 @@ export default function IssueReportDialog({
           </div>
 
           <p className="text-xs text-muted-foreground">
-            The farmer and admin will be notified about this issue.
+            {t('logisticsComponents.issues.notifyHint')}
           </p>
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t('logisticsComponents.issues.cancel')}
           </Button>
           <Button
             variant="destructive"
@@ -113,10 +115,10 @@ export default function IssueReportDialog({
             {updateStatus.isPending ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Reporting...
+                {t('logisticsComponents.issues.reporting')}
               </>
             ) : (
-              'Report Issue'
+              t('logisticsComponents.issues.report')
             )}
           </Button>
         </DialogFooter>

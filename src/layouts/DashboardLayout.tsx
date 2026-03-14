@@ -2,13 +2,16 @@ import { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import DashboardSidebar from '@/components/dashboard/DashboardSidebar';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
+import BottomTabBar from '@/components/dashboard/BottomTabBar';
+import { useLanguage } from '@/hooks/useLanguage';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
-  title: string;
+  title?: string;
 }
 
-const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
+const DashboardLayout = ({ children, title = '' }: DashboardLayoutProps) => {
+  const { t } = useLanguage();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
 
@@ -20,12 +23,10 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
     setSidebarOpen(true);
   }, []);
 
-  // Auto-close sidebar on route change (mobile)
   useEffect(() => {
     closeSidebar();
   }, [location.pathname, closeSidebar]);
 
-  // Body scroll lock when sidebar is open on mobile
   useEffect(() => {
     if (sidebarOpen) {
       document.body.style.overflow = 'hidden';
@@ -33,13 +34,11 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
       document.body.style.overflow = '';
     }
     
-    // Cleanup on unmount
     return () => {
       document.body.style.overflow = '';
     };
   }, [sidebarOpen]);
 
-  // ESC key to close sidebar
   useEffect(() => {
     const handleEscKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && sidebarOpen) {
@@ -54,7 +53,7 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
   return (
     <div className="min-h-screen bg-background">
       <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[60] focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-lg focus:text-sm focus:font-medium">
-        Skip to main content
+        {t('shared.skipToContent')}
       </a>
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
@@ -71,7 +70,7 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
         <DashboardSidebar onClose={closeSidebar} isOpen={true} isMobile={false} />
       </div>
 
-      {/* Mobile Sidebar Drawer - only rendered on mobile */}
+      {/* Mobile Sidebar Drawer - opened from "More" tab or header menu */}
       <div className="md:hidden">
         <DashboardSidebar onClose={closeSidebar} isOpen={sidebarOpen} isMobile={true} />
       </div>
@@ -79,10 +78,13 @@ const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
       {/* Main content */}
       <div className="md:pl-64">
         <DashboardHeader title={title} onMenuClick={openSidebar} />
-        <main id="main-content" className="p-4 md:p-6">
+        <main id="main-content" className="p-4 md:p-6 pb-20 md:pb-6">
           {children}
         </main>
       </div>
+
+      {/* Mobile Bottom Tab Bar */}
+      <BottomTabBar onMoreClick={openSidebar} />
     </div>
   );
 };

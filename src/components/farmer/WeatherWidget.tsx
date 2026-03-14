@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { useFarmerProfile } from '@/hooks/useFarmerDashboard';
 import { useWeather } from '@/hooks/useWeather';
+import { useLanguage } from '@/hooks/useLanguage';
 import { formatDistanceToNow } from 'date-fns';
 
 const getWeatherIcon = (icon: string, size: 'sm' | 'lg' = 'lg') => {
@@ -44,6 +45,7 @@ const getWeatherIcon = (icon: string, size: 'sm' | 'lg' = 'lg') => {
 };
 
 const WeatherWidget = () => {
+  const { t } = useLanguage();
   const { data: profile } = useFarmerProfile();
   const {
     weather, isCached, isStale, isLoading,
@@ -57,7 +59,7 @@ const WeatherWidget = () => {
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-white">
             <Cloud className="h-5 w-5" />
-            Weather
+            {t('weather.title')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -76,13 +78,13 @@ const WeatherWidget = () => {
         <CardHeader className="pb-2 relative">
           <CardTitle className="flex items-center gap-2 text-white/90 text-base">
             <Cloud className="h-4 w-4" />
-            Weather Today
+            {t('weather.title')}
           </CardTitle>
         </CardHeader>
         <CardContent className="relative">
           <div className="flex flex-col items-center justify-center py-2 text-center">
             <MapPin className="h-6 w-6 text-white/80 mb-2" />
-            <p className="text-white/90 text-sm">Set your location</p>
+            <p className="text-white/90 text-sm">{t('weather.setLocation')}</p>
           </div>
         </CardContent>
       </Card>
@@ -95,14 +97,14 @@ const WeatherWidget = () => {
         <CardHeader className="pb-2 relative">
           <CardTitle className="flex items-center gap-2 text-white/90 text-base">
             <Cloud className="h-4 w-4" />
-            Weather Today
+            {t('weather.title')}
           </CardTitle>
         </CardHeader>
         <CardContent className="relative">
           <div className="flex items-center gap-3">
             <AlertCircle className="h-6 w-6 text-white/80" />
             <div>
-              <p className="text-white/90 text-sm">Unavailable</p>
+              <p className="text-white/90 text-sm">{t('weather.unavailable')}</p>
               <Button 
                 variant="ghost" 
                 size="sm" 
@@ -111,7 +113,7 @@ const WeatherWidget = () => {
                 className="text-white/70 hover:text-white p-0 h-auto text-xs"
               >
                 <RefreshCw className={`h-3 w-3 mr-1 ${isRefreshing ? 'animate-spin' : ''}`} />
-                Retry
+                {t('weather.retry')}
               </Button>
             </div>
           </div>
@@ -135,7 +137,7 @@ const WeatherWidget = () => {
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-white/90 text-base">
               <Cloud className="h-4 w-4" />
-              Weather Today
+              {t('weather.title')}
             </CardTitle>
             <div className="flex items-center gap-1">
               <Button
@@ -167,7 +169,7 @@ const WeatherWidget = () => {
                 </div>
               </div>
               <div className="flex items-center gap-2 text-white/60">
-                <span className="text-xs">{isExpanded ? 'Less' : 'More'}</span>
+                <span className="text-xs">{isExpanded ? t('weather.less') : t('weather.more')}</span>
                 <ChevronDown className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
               </div>
             </div>
@@ -177,7 +179,7 @@ const WeatherWidget = () => {
             <div className="pt-3 space-y-3">
               <div className="flex items-center gap-1 text-white/70 text-xs">
                 <MapPin className="h-3 w-3" />
-                <span>{weather.location || profile?.village || 'Your Location'}</span>
+                <span>{weather.location || profile?.village || t('weather.yourLocation')}</span>
               </div>
 
               {weather.forecast_short && (
@@ -190,21 +192,21 @@ const WeatherWidget = () => {
                 <div className="flex items-center gap-2">
                   <Droplets className="h-4 w-4 text-white/70" />
                   <div>
-                    <p className="text-xs text-white/60">Humidity</p>
+                    <p className="text-xs text-white/60">{t('weather.humidity')}</p>
                     <p className="text-sm font-medium">{weather.humidity}%</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <Wind className="h-4 w-4 text-white/70" />
                   <div>
-                    <p className="text-xs text-white/60">Wind</p>
+                    <p className="text-xs text-white/60">{t('weather.wind')}</p>
                     <p className="text-sm font-medium">{weather.wind_kmh} km/h</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <Thermometer className="h-4 w-4 text-white/70" />
                   <div>
-                    <p className="text-xs text-white/60">Feels</p>
+                    <p className="text-xs text-white/60">{t('weather.feels')}</p>
                     <p className="text-sm font-medium">{weather.temp_c + 2}°C</p>
                   </div>
                 </div>
@@ -212,8 +214,8 @@ const WeatherWidget = () => {
 
               <div className="flex items-center gap-1 pt-2 border-t border-white/10 text-white/50 text-[10px]">
                 <Clock className="h-3 w-3" />
-                <span>Updated {lastUpdated}</span>
-                {isStale && <span className="text-amber-300 ml-1">(cached)</span>}
+                <span>{t('weather.updated')} {lastUpdated}</span>
+                {isStale && <span className="text-amber-300 ml-1">{t('weather.cached')}</span>}
               </div>
             </div>
           </CollapsibleContent>

@@ -19,9 +19,10 @@ import {
   Truck,
   Navigation,
   AlertTriangle,
-  MessageCircle
+  MessageCircle,
+  ImageIcon
 } from 'lucide-react';
-import { useTripDetail, useTripStatusEvents, useUpdateTripStatusSecure } from '@/hooks/useTrips';
+import { useTripDetail, useTripStatusEvents, useUpdateTripStatusSecure, useProofSignedUrl } from '@/hooks/useTrips';
 import { format, parseISO } from 'date-fns';
 import EmptyState from '@/components/shared/EmptyState';
 import TripStatusStepper from '@/components/logistics/TripStatusStepper';
@@ -303,7 +304,7 @@ const TripDetail = () => {
           </div>
         </div>
 
-        {/* Trip History */}
+        {/* Trip History with Proof Photos */}
         {events && events.length > 0 && (
           <Card>
             <CardHeader>
@@ -313,23 +314,29 @@ const TripDetail = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <ol className="relative border-l border-muted ml-2 space-y-4">
-                {events.map((event) => (
-                  <li key={event.id} className="ml-4">
-                    <div className="absolute -left-1.5 mt-1 h-3 w-3 rounded-full bg-primary/60" />
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium capitalize text-sm">
-                        {event.new_status.replace(/_/g, ' ')}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        {format(parseISO(event.created_at), 'MMM d, h:mm a')}
-                      </span>
-                    </div>
-                    {event.note && (
-                      <p className="text-xs text-muted-foreground mt-0.5">{event.note}</p>
-                    )}
-                  </li>
-                ))}
+              <ol className="relative border-l-2 border-muted ml-3 space-y-6">
+                {events.map((event) => {
+                  const hasProof = event.new_status === 'pickup_done' || event.new_status === 'delivered';
+                  return (
+                    <li key={event.id} className="ml-5 relative">
+                      <div className="absolute -left-[1.6rem] mt-1.5 h-3 w-3 rounded-full bg-primary ring-4 ring-background" />
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold capitalize text-sm">
+                          {event.new_status.replace(/_/g, ' ')}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {format(parseISO(event.created_at), 'MMM d, h:mm a')}
+                        </span>
+                      </div>
+                      {event.note && (
+                        <p className="text-xs text-muted-foreground mt-0.5">{event.note}</p>
+                      )}
+                      {hasProof && (
+                        <ProofThumbnails tripId={trip.id} type={event.new_status === 'pickup_done' ? 'pickup' : 'delivery'} />
+                      )}
+                    </li>
+                  );
+                })}
               </ol>
             </CardContent>
           </Card>
@@ -353,5 +360,38 @@ const TripDetail = () => {
     </DashboardLayout>
   );
 };
+
+function ProofThumbnails({ tripId, type }: { tripId: string; type: 'pickup' | 'delivery' }) {
+  const proofPaths = [`${type}_proof_1.jpg`, `${type}_proof_2.jpg`, `${type}_proof_3.jpg`];
+
+  return (
+    <div className="mt-2 flex gap-2 flex-wrap">
+      {proofPaths.map((path) => (
+        <ProofImage key={path} tripId={tripId} path={`trips/${tripId}/${path}`} />
+      ))}
+    </div>
+  );
+}
+
+function ProofImage({ tripId, path }: { tripId: string; path: string }) {
+  const { data: url, isLoading, isError } = useProofSignedUrl(path);
+
+  if (isLoading) {
+    return <Skeleton className="h-16 w-16 rounded-lg" />;
+  }
+
+  if (isError || !url) return null;
+
+  return (
+    <a href={url} target="_blank" rel="noopener noreferrer" className="block">
+      <img
+        src={url}
+        alt="Proof photo"
+        className="h-16 w-16 rounded-lg object-cover border hover:ring-2 hover:ring-primary/50 transition-shadow"
+        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+      />
+    </a>
+  );
+}
 
 export default TripDetail;

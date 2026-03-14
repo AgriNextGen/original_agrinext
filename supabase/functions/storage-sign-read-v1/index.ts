@@ -37,7 +37,7 @@ Deno.serve(async (req: Request) => {
     const { data: signed, error: signErr } = await admin.storage.from(f.bucket).createSignedUrl(f.object_path, 300);
     if (signErr || !signed) return errorResponse("internal_error", "failed to create signed url", 500);
 
-    return new Response(JSON.stringify({ signed_read_url: signed.signedUrl, expires_in: 300 }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" }});
+    return new Response(JSON.stringify({ success: true, data: { signed_read_url: signed.signedUrl, expires_in: 300 } }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" }});
   } catch (err) {
     return errorResponse("internal_error", err instanceof Error ? err.message : "unexpected error", 500);
   }

@@ -8,6 +8,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { useLanguage } from '@/hooks/useLanguage';
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -26,12 +27,16 @@ const ConfirmDialog = ({
   onOpenChange,
   title,
   description,
-  confirmText = 'Confirm',
-  cancelText = 'Cancel',
+  confirmText,
+  cancelText,
   variant = 'default',
   onConfirm,
   loading = false,
 }: ConfirmDialogProps) => {
+  const { t } = useLanguage();
+  const resolvedConfirmText = confirmText ?? t('confirm.confirm');
+  const resolvedCancelText = cancelText ?? t('confirm.cancel');
+
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
@@ -40,7 +45,7 @@ const ConfirmDialog = ({
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={loading}>{cancelText}</AlertDialogCancel>
+          <AlertDialogCancel disabled={loading}>{resolvedCancelText}</AlertDialogCancel>
           <AlertDialogAction
             onClick={(e) => {
               e.preventDefault();
@@ -49,7 +54,7 @@ const ConfirmDialog = ({
             disabled={loading}
             className={variant === 'destructive' ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90' : ''}
           >
-            {loading ? 'Please wait...' : confirmText}
+            {loading ? t('confirm.pleaseWait') : resolvedConfirmText}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

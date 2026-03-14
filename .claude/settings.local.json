@@ -2,7 +2,15 @@
   "permissions": {
     "allow": [
       "Bash(ls -1d \"c:\\\\Users\\\\shiva basavesh a s\\\\Downloads\\\\GitHub\\\\og_agri2_with github_clone\\\\original_agrinext\"/*)",
-      "Bash(grep -v \"^[^/]*$\")"
+      "Bash(grep -v \"^[^/]*$\")",
+      "Bash(npm run:*)",
+      "Bash(grep -n \"useMarket\\\\|useBuyer\" src/hooks/*.tsx)",
+      "Bash(grep -r \"CREATE VIEW\\\\|CREATE MATERIALIZED VIEW\" supabase/migrations/*.sql)",
+      "Bash(grep -r \"auth_email\" supabase/migrations/*.sql)",
+      "Bash(grep -i \"admin schema\\\\|schema.*admin\" supabase/migrations/*.sql)",
+      "Bash(grep -n \"auth_email\" supabase/migrations/*.sql)",
+      "Bash(grep -n \"CREATE OR REPLACE FUNCTION.*rpc.*confirm_order\\\\|CREATE OR REPLACE FUNCTION.*rpc.*reject_order\" supabase/migrations/*.sql)",
+      "Bash(grep -n \"confirm_order_v1\\\\|reject_order_v1\" supabase/migrations/*.sql)"
     ]
   }
 }

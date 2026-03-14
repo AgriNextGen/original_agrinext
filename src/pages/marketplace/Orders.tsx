@@ -3,6 +3,7 @@ import DashboardLayout from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import PageShell from '@/components/layout/PageShell';
 import DataState from '@/components/ui/DataState';
 import {
@@ -15,19 +16,20 @@ import {
 } from '@/components/ui/table';
 import { ShoppingCart, Package, CheckCircle2, XCircle, Clock, BoxIcon, type LucideIcon } from 'lucide-react';
 import EmptyState from '@/components/shared/EmptyState';
+import OrderStepper from '@/components/marketplace/OrderStepper';
 import { useOrdersInfinite } from '@/hooks/useOrders';
 import { format, parseISO } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/lib/routes';
 
-const statusConfig: Record<string, { label: string; color: string; icon: LucideIcon }> = {
-  placed: { label: 'Placed', color: 'bg-amber-100 text-amber-800', icon: Clock },
-  confirmed: { label: 'Confirmed', color: 'bg-blue-100 text-blue-800', icon: CheckCircle2 },
-  packed: { label: 'Packed', color: 'bg-indigo-100 text-indigo-800', icon: BoxIcon },
-  ready_for_pickup: { label: 'Ready for Pickup', color: 'bg-purple-100 text-purple-800', icon: Package },
-  delivered: { label: 'Delivered', color: 'bg-green-100 text-green-800', icon: CheckCircle2 },
-  cancelled: { label: 'Cancelled', color: 'bg-red-100 text-red-800', icon: XCircle },
-  rejected: { label: 'Rejected', color: 'bg-red-100 text-red-800', icon: XCircle },
+const statusConfig: Record<string, { labelKey: string; color: string; icon: LucideIcon }> = {
+  placed: { labelKey: 'marketplace.placed', color: 'bg-amber-100 text-amber-800', icon: Clock },
+  confirmed: { labelKey: 'marketplace.confirmed', color: 'bg-blue-100 text-blue-800', icon: CheckCircle2 },
+  packed: { labelKey: 'marketplace.packed', color: 'bg-indigo-100 text-indigo-800', icon: BoxIcon },
+  ready_for_pickup: { labelKey: 'marketplace.readyForPickup', color: 'bg-purple-100 text-purple-800', icon: Package },
+  delivered: { labelKey: 'marketplace.delivered', color: 'bg-green-100 text-green-800', icon: CheckCircle2 },
+  cancelled: { labelKey: 'marketplace.cancelled', color: 'bg-red-100 text-red-800', icon: XCircle },
+  rejected: { labelKey: 'marketplace.rejected', color: 'bg-red-100 text-red-800', icon: XCircle },
 };
 
 const PROGRESS_STEPS = ['placed', 'confirmed', 'packed', 'delivered'];
@@ -39,26 +41,56 @@ const Orders = () => {
   const orders = ordersList ? ordersList.pages.flatMap((p: any) => p.items || []) : [];
 
   if (ordersLoading) {
-    return <DashboardLayout title="My Orders"><DataState loading><></></DataState></DashboardLayout>;
+    return (
+      <DashboardLayout title={t('marketplace.myOrders')}>
+        <div className="space-y-6">
+          <div className="flex justify-between items-start">
+            <div>
+              <Skeleton className="h-8 w-36 mb-2" />
+              <Skeleton className="h-4 w-24" />
+            </div>
+            <Skeleton className="h-10 w-28 rounded-lg" />
+          </div>
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-6 w-44" />
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="rounded-lg border p-4 space-y-3">
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="h-5 w-32" />
+                    <Skeleton className="h-5 w-20 rounded-full" />
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-full" />
+                  </div>
+                  <Skeleton className="h-6 w-full" />
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
+      </DashboardLayout>
+    );
   }
 
   const activeOrders = orders?.filter(o => !['delivered', 'cancelled', 'rejected'].includes(o.status)) || [];
   const pastOrders = orders?.filter(o => ['delivered', 'cancelled', 'rejected'].includes(o.status)) || [];
 
-  const getProgressIndex = (status: string) => {
-    if (status === 'ready_for_pickup') return PROGRESS_STEPS.indexOf('packed') + 0.5;
-    return PROGRESS_STEPS.indexOf(status);
-  };
+  
 
   return (
-    <DashboardLayout title="My Orders">
+    <DashboardLayout title={t('marketplace.myOrders')}>
       <PageShell
-        title="My Orders"
-        subtitle={`${orders?.length || 0} total orders`}
+        title={t('marketplace.myOrders')}
+        subtitle={`${orders?.length || 0} ${t('marketplace.totalOrders')}`}
         actions={(
           <Button variant="default" onClick={() => navigate(ROUTES.MARKETPLACE.BROWSE)}>
             <ShoppingCart className="h-4 w-4 mr-2" />
-            Shop More
+            {t('marketplace.shopMore')}
           </Button>
         )}
       >
@@ -67,70 +99,49 @@ const Orders = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Package className="h-5 w-5 text-primary" />
-            Active Orders ({activeOrders.length})
+            {t('marketplace.activeOrdersTitle')} ({activeOrders.length})
           </CardTitle>
         </CardHeader>
         <CardContent>
           {activeOrders.length === 0 ? (
-            <EmptyState icon={ShoppingCart} title="No active orders" description="Browse the marketplace to place your first order." />
+            <EmptyState icon={ShoppingCart} title={t('marketplace.noActiveOrders')} description={t('marketplace.noActiveOrdersDesc')} />
           ) : (
             <div className="space-y-4">
               {activeOrders.map(order => {
                 const status = statusConfig[order.status] || statusConfig.placed;
                 const StatusIcon = status.icon;
-                const progressIdx = getProgressIndex(order.status);
 
                 return (
                   <div
                     key={order.id}
                     className="p-4 rounded-lg border hover:bg-accent/50 transition-colors"
                   >
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="font-semibold text-lg">{order.crop?.crop_name || 'Order'}</h3>
-                          <Badge className={status.color}>
-                            <StatusIcon className="h-3 w-3 mr-1" />
-                            {status.label}
-                          </Badge>
+                    <div className="flex items-center gap-3 mb-3">
+                      <h3 className="font-semibold text-lg">{order.crop?.crop_name || t('marketplace.placeOrder')}</h3>
+                      <Badge className={status.color}>
+                        <StatusIcon className="h-3 w-3 mr-1" />
+                        {t(status.labelKey)}
+                      </Badge>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm text-muted-foreground mb-4">
+                      {order.total_amount != null && Number(order.total_amount) > 0 && (
+                        <div>
+                          <span className="block text-xs">{t('marketplace.orderAmount')}</span>
+                          <span className="font-medium text-foreground">₹{Number(order.total_amount).toLocaleString()}</span>
                         </div>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm text-muted-foreground">
-                          {order.total_amount != null && Number(order.total_amount) > 0 && (
-                            <div>
-                              <span className="block text-xs">Amount</span>
-                              <span className="font-medium text-foreground">₹{Number(order.total_amount).toLocaleString()}</span>
-                            </div>
-                          )}
-                          <div>
-                            <span className="block text-xs">Farmer</span>
-                            <span className="font-medium text-foreground">{order.farmer?.full_name || 'Unknown'}</span>
-                          </div>
-                          <div>
-                            <span className="block text-xs">Updated</span>
-                            <span className="font-medium text-foreground">
-                              {order.updated_at ? format(parseISO(order.updated_at), 'MMM d, yyyy') : '-'}
-                            </span>
-                          </div>
-                        </div>
+                      )}
+                      <div>
+                        <span className="block text-xs">{t('marketplace.orderFarmer')}</span>
+                        <span className="font-medium text-foreground">{order.farmer?.full_name || t('common.unknown')}</span>
                       </div>
-
-                      <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-1">
-                          {PROGRESS_STEPS.map((step, idx) => (
-                            <div key={step} className="flex items-center">
-                              <div className={`w-3 h-3 rounded-full ${
-                                progressIdx >= idx ? 'bg-primary' : 'bg-muted'
-                              }`} />
-                              {idx < PROGRESS_STEPS.length - 1 && (
-                                <div className={`w-6 h-0.5 ${
-                                  progressIdx > idx ? 'bg-primary' : 'bg-muted'
-                                }`} />
-                              )}
-                            </div>
-                          ))}
-                        </div>
+                      <div>
+                        <span className="block text-xs">{t('marketplace.orderUpdated')}</span>
+                        <span className="font-medium text-foreground">
+                          {order.updated_at ? format(parseISO(order.updated_at), 'MMM d, yyyy') : '-'}
+                        </span>
                       </div>
                     </div>
+                    <OrderStepper status={order.status} updatedAt={order.updated_at} />
                   </div>
                 );
               })}
@@ -152,19 +163,20 @@ const Orders = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <CheckCircle2 className="h-5 w-5 text-green-600" />
-              Past Orders ({pastOrders.length})
+              {t('marketplace.pastOrdersTitle')} ({pastOrders.length})
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
+            {/* Desktop table */}
+            <div className="hidden md:block overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Product</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Farmer</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead>{t('marketplace.orderProduct')}</TableHead>
+                    <TableHead>{t('marketplace.orderAmount')}</TableHead>
+                    <TableHead>{t('marketplace.orderFarmer')}</TableHead>
+                    <TableHead>{t('marketplace.orderDate')}</TableHead>
+                    <TableHead>{t('marketplace.orderStatus')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -172,18 +184,37 @@ const Orders = () => {
                     const status = statusConfig[order.status] || statusConfig.placed;
                     return (
                       <TableRow key={order.id}>
-                        <TableCell className="font-medium">{order.crop?.crop_name || 'Order'}</TableCell>
+                        <TableCell className="font-medium">{order.crop?.crop_name || t('marketplace.placeOrder')}</TableCell>
                         <TableCell>{order.total_amount != null ? `₹${Number(order.total_amount).toLocaleString()}` : '-'}</TableCell>
-                        <TableCell>{order.farmer?.full_name || 'Unknown'}</TableCell>
+                        <TableCell>{order.farmer?.full_name || t('common.unknown')}</TableCell>
                         <TableCell>{order.updated_at ? format(parseISO(order.updated_at), 'MMM d, yyyy') : '-'}</TableCell>
                         <TableCell>
-                          <Badge className={status.color}>{status.label}</Badge>
+                          <Badge className={status.color}>{t(status.labelKey)}</Badge>
                         </TableCell>
                       </TableRow>
                     );
                   })}
                 </TableBody>
               </Table>
+            </div>
+            {/* Mobile cards */}
+            <div className="md:hidden space-y-3">
+              {pastOrders.map(order => {
+                const status = statusConfig[order.status] || statusConfig.placed;
+                return (
+                  <div key={order.id} className="rounded-lg border p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium">{order.crop?.crop_name || t('marketplace.placeOrder')}</span>
+                      <Badge className={status.color}>{t(status.labelKey)}</Badge>
+                    </div>
+                    <div className="grid grid-cols-2 gap-1 text-sm text-muted-foreground">
+                      <span>{t('marketplace.orderAmount')}: {order.total_amount != null ? `₹${Number(order.total_amount).toLocaleString()}` : '-'}</span>
+                      <span>{order.farmer?.full_name || t('common.unknown')}</span>
+                      <span>{order.updated_at ? format(parseISO(order.updated_at), 'MMM d, yyyy') : '-'}</span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </CardContent>
         </Card>

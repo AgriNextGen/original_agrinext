@@ -9,7 +9,9 @@ import PageHeader from '@/components/shared/PageHeader';
 import { useAgentDashboardStats } from '@/hooks/useAgentDashboard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, RefreshCw } from 'lucide-react';
+import { AlertCircle, RefreshCw, CalendarDays, ClipboardList, UserPlus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ROUTES } from '@/lib/routes';
 
 const DashboardSkeleton = () => (
   <div className="space-y-6 animate-pulse">
@@ -28,11 +30,15 @@ const DashboardSkeleton = () => (
 const AgentDashboard = () => {
   const { t } = useLanguage();
   const { isLoading, isError, refetch } = useAgentDashboardStats();
+  const navigate = useNavigate();
+
+  const dashTitle = t('agent.dashboard');
+  const dashSubtitle = t('agent.dashboardSubtitle');
 
   if (isLoading) {
     return (
-      <DashboardLayout title={t('agent.dashboard')}>
-        <PageHeader title={t('agent.dashboard')} subtitle={t('agent.assignedFarmers')}>
+      <DashboardLayout title={dashTitle}>
+        <PageHeader title={dashTitle} subtitle={dashSubtitle}>
           <DashboardSkeleton />
         </PageHeader>
       </DashboardLayout>
@@ -41,9 +47,9 @@ const AgentDashboard = () => {
 
   if (isError) {
     return (
-      <DashboardLayout title={t('agent.dashboard')}>
-        <PageHeader title={t('agent.dashboard')} subtitle={t('agent.assignedFarmers')}>
-          <div className="flex flex-col items-center justify-center py-16 text-center">
+      <DashboardLayout title={dashTitle}>
+        <PageHeader title={dashTitle} subtitle={dashSubtitle}>
+          <div className="flex flex-col items-center justify-center py-16 text-center" role="alert">
             <AlertCircle className="h-12 w-12 text-destructive mb-4" />
             <p className="text-lg font-medium mb-2">{t('common.loadError')}</p>
             <p className="text-sm text-muted-foreground mb-4">{t('common.retryMessage')}</p>
@@ -58,8 +64,24 @@ const AgentDashboard = () => {
   }
 
   return (
-    <DashboardLayout title={t('agent.dashboard')}>
-      <PageHeader title={t('agent.dashboard')} subtitle={t('agent.assignedFarmers')}>
+    <DashboardLayout title={dashTitle}>
+      <PageHeader title={dashTitle} subtitle={dashSubtitle}>
+        {/* Quick Actions */}
+        <div className="flex flex-wrap gap-3">
+          <Button onClick={() => navigate(ROUTES.AGENT.TODAY)} variant="default" size="sm">
+            <CalendarDays className="h-4 w-4 mr-2" />
+            {t('agent.quickActions.todaysPlan')}
+          </Button>
+          <Button onClick={() => navigate(ROUTES.AGENT.TASKS)} variant="outline" size="sm">
+            <ClipboardList className="h-4 w-4 mr-2" />
+            {t('agent.quickActions.createTask')}
+          </Button>
+          <Button onClick={() => navigate(ROUTES.AGENT.FARMERS)} variant="outline" size="sm">
+            <UserPlus className="h-4 w-4 mr-2" />
+            {t('agent.quickActions.browseFarmers')}
+          </Button>
+        </div>
+
         <AgentSummaryCards />
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">

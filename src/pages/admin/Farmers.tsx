@@ -8,6 +8,7 @@ import { Search, MapPin, Sprout, LandPlot, Inbox } from 'lucide-react';
 import EmptyState from '@/components/shared/EmptyState';
 import { useAllFarmers } from '@/hooks/useAdminDashboard';
 import { useState } from 'react';
+import { useLanguage } from '@/hooks/useLanguage';
 import {
   Table,
   TableBody,
@@ -18,6 +19,7 @@ import {
 } from '@/components/ui/table';
 
 const AdminFarmers = () => {
+  const { t } = useLanguage();
   const { data: farmers, isLoading } = useAllFarmers();
   const [search, setSearch] = useState('');
 
@@ -28,15 +30,15 @@ const AdminFarmers = () => {
   ) || [];
 
   return (
-    <DashboardLayout title="Farmer Management">
+    <DashboardLayout title={t('admin.farmers.title')}>
       <PageShell
-        title="Farmer Management"
-        subtitle="View and manage all registered farmers"
+        title={t('admin.farmers.title')}
+        subtitle={t('admin.farmers.subtitle')}
         actions={
           <div className="relative w-full md:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Search farmers..."
+              placeholder={t('admin.farmers.search')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9"
@@ -46,7 +48,7 @@ const AdminFarmers = () => {
       >
         <Card>
           <CardHeader>
-            <CardTitle>All Farmers ({filteredFarmers.length})</CardTitle>
+            <CardTitle>{t('admin.farmers.allFarmers')} ({filteredFarmers.length})</CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -56,31 +58,31 @@ const AdminFarmers = () => {
                 ))}
               </div>
             ) : filteredFarmers.length === 0 ? (
-                <EmptyState icon={Inbox} title="No farmers found" />
+                <EmptyState icon={Inbox} title={t('admin.farmers.noFarmers')} />
             ) : (
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Phone</TableHead>
-                        <TableHead>Location</TableHead>
-                        <TableHead>Land (acres)</TableHead>
-                        <TableHead>Active Crops</TableHead>
-                        <TableHead>Registered</TableHead>
+                        <TableHead>{t('admin.farmers.name')}</TableHead>
+                        <TableHead>{t('admin.farmers.phone')}</TableHead>
+                        <TableHead>{t('admin.farmers.location')}</TableHead>
+                        <TableHead>{t('admin.farmers.land')}</TableHead>
+                        <TableHead>{t('admin.farmers.activeCrops')}</TableHead>
+                        <TableHead>{t('admin.farmers.registered')}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {filteredFarmers.map((farmer) => (
                         <TableRow key={farmer.id}>
                           <TableCell className="font-medium">
-                            {farmer.full_name || 'Unnamed'}
+                            {farmer.full_name || t('admin.farmers.unnamed')}
                           </TableCell>
                           <TableCell>{farmer.phone || '-'}</TableCell>
                           <TableCell>
                             <div className="flex items-center gap-1 text-sm">
                               <MapPin className="w-3 h-3" />
-                              {farmer.village || farmer.district || 'Unknown'}
+                              {farmer.village || farmer.district || t('admin.farmers.unknown')}
                             </div>
                           </TableCell>
                           <TableCell>

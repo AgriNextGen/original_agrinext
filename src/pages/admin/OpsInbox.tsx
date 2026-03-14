@@ -18,15 +18,15 @@ import GeoStateSelect from '@/components/geo/GeoStateSelect';
 import GeoDistrictSelect from '@/components/geo/GeoDistrictSelect';
 import { useLanguage } from '@/hooks/useLanguage';
 
-const ITEM_TYPE_TABS = [
-  { value: '', label: 'All' },
-  { value: 'ticket', label: 'Tickets' },
-  { value: 'stuck_trip', label: 'Stuck Trips' },
-  { value: 'stuck_order', label: 'Stuck Orders' },
-  { value: 'kyc_pending', label: 'KYC Pending' },
-  { value: 'payout_pending', label: 'Payouts' },
-  { value: 'dead_job', label: 'Dead Jobs' },
-  { value: 'security_alert', label: 'Security' },
+const ITEM_TYPE_TAB_KEYS = [
+  { value: '', key: 'all' },
+  { value: 'ticket', key: 'tickets' },
+  { value: 'stuck_trip', key: 'stuckTrips' },
+  { value: 'stuck_order', key: 'stuckOrders' },
+  { value: 'kyc_pending', key: 'kycPending' },
+  { value: 'payout_pending', key: 'payoutsPending' },
+  { value: 'dead_job', key: 'deadJobs' },
+  { value: 'security_alert', key: 'security' },
 ];
 
 const SEVERITY_COLORS: Record<string, string> = {
@@ -66,18 +66,18 @@ export default function OpsInbox() {
     if (!suggestedFilters) return;
     if (suggestedFilters.item_type) setActiveTab(suggestedFilters.item_type);
     setSuggestedFilters(null);
-    toast({ title: 'Filters applied', description: 'Search suggestion applied to inbox filters.' });
+    toast({ title: t('admin.opsInbox.filtersApplied'), description: t('admin.opsInbox.searchApplied') });
   };
 
   const handleResolve = (id: string) => {
     resolveItem.mutate({ id, status: 'resolved' }, {
-      onSuccess: () => toast({ title: 'Resolved' }),
+      onSuccess: () => toast({ title: t('admin.opsInbox.resolved') }),
     });
   };
 
   return (
     <DashboardLayout>
-      <PageShell title="Ops Inbox">
+      <PageShell title={t('admin.opsInbox.title')}>
         {/* Smart Search */}
         <Card>
           <CardContent className="pt-4">
@@ -85,7 +85,7 @@ export default function OpsInbox() {
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Smart search: e.g. 'stuck orders in last week', 'urgent tickets'..."
+                  placeholder={t('admin.opsInbox.search')}
                   className="pl-9"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -94,18 +94,18 @@ export default function OpsInbox() {
               </div>
               <Button onClick={handleSmartSearch} disabled={isSearching || !searchQuery.trim()}>
                 <Sparkles className="h-4 w-4 mr-1" />
-                {isSearching ? 'Analyzing...' : 'AI Search'}
+                {isSearching ? t('admin.opsInbox.analyzing') : t('admin.opsInbox.aiSearch')}
               </Button>
             </div>
             {suggestedFilters && (
               <div className="mt-3 flex items-center gap-2 flex-wrap">
-                <span className="text-xs text-muted-foreground">AI suggested:</span>
+                <span className="text-xs text-muted-foreground">{t('admin.opsInbox.aiSuggested')}</span>
                 {Object.entries(suggestedFilters).map(([key, value]) => (
                   <Badge key={key} variant="secondary" className="text-xs">
                     {key}: {value}
                   </Badge>
                 ))}
-                <Button size="sm" variant="outline" onClick={applySmartFilters}>Apply</Button>
+                <Button size="sm" variant="outline" onClick={applySmartFilters}>{t('admin.opsInbox.apply')}</Button>
                 <Button size="sm" variant="ghost" onClick={() => setSuggestedFilters(null)}><X className="h-3 w-3" /></Button>
               </div>
             )}
@@ -121,7 +121,7 @@ export default function OpsInbox() {
                 <GeoStateSelect
                   value={geoStateId}
                   onValueChange={(v) => { setGeoStateId(v); setGeoDistrictId(''); }}
-                  placeholder="Filter by state"
+                  placeholder={t('admin.opsInbox.filterByState')}
                 />
               </div>
               <div className="w-44">
@@ -129,12 +129,12 @@ export default function OpsInbox() {
                   stateId={geoStateId || null}
                   value={geoDistrictId}
                   onValueChange={setGeoDistrictId}
-                  placeholder="Filter by district"
+                  placeholder={t('admin.opsInbox.filterByDistrict')}
                 />
               </div>
               {(geoStateId || geoDistrictId) && (
                 <Button size="sm" variant="ghost" onClick={() => { setGeoStateId(''); setGeoDistrictId(''); }}>
-                  <X className="h-3 w-3 mr-1" /> Clear geo
+                  <X className="h-3 w-3 mr-1" /> {t('admin.opsInbox.clearGeo')}
                 </Button>
               )}
             </div>
@@ -144,9 +144,9 @@ export default function OpsInbox() {
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="flex-wrap h-auto gap-1">
-            {ITEM_TYPE_TABS.map((tab) => (
+            {ITEM_TYPE_TAB_KEYS.map((tab) => (
               <TabsTrigger key={tab.value} value={tab.value} className="text-xs">
-                {tab.label}
+                {t(`admin.opsInbox.${tab.key}`)}
               </TabsTrigger>
             ))}
           </TabsList>
@@ -159,7 +159,7 @@ export default function OpsInbox() {
           ))}
 
           {!isLoading && items.length === 0 && (
-            <EmptyState icon={CheckCircle} title="All clear!" description="No open items in the ops inbox." />
+            <EmptyState icon={CheckCircle} title={t('admin.opsInbox.noItems')} description={t('admin.opsInbox.noItemsDesc')} />
           )}
 
           {items.map((item) => (
@@ -180,7 +180,7 @@ export default function OpsInbox() {
                         <Badge className={`text-xs ${SEVERITY_COLORS[item.severity] || ''}`}>{item.severity}</Badge>
                         <span className="text-xs text-muted-foreground">{item.entity_type}/{item.entity_id.slice(0, 8)}</span>
                       </div>
-                      <p className="text-sm mt-1 truncate">{item.summary || 'No summary'}</p>
+                      <p className="text-sm mt-1 truncate">{item.summary || t('admin.opsInbox.noSummary')}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">

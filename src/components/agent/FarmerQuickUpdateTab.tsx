@@ -27,7 +27,7 @@ interface FarmerQuickUpdateTabProps {
 }
 
 export default function FarmerQuickUpdateTab({ farmer }: FarmerQuickUpdateTabProps) {
-  const { language } = useLanguage();
+  const { t } = useLanguage();
   const quickUpdate = useAgentQuickUpdate();
   const sensitiveUpdate = useCreateSensitiveUpdateTask();
 
@@ -90,18 +90,16 @@ export default function FarmerQuickUpdateTab({ farmer }: FarmerQuickUpdateTabPro
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             <Save className="h-4 w-4 text-primary" />
-            {language === 'kn' ? 'ತ್ವರಿತ ನವೀಕರಣ' : 'Quick Update'}
+            {t('agent.quickUpdate.title')}
           </CardTitle>
           <p className="text-sm text-muted-foreground">
-            {language === 'kn'
-              ? 'ಈ ಬದಲಾವಣೆಗಳು ತಕ್ಷಣ ಅನ್ವಯವಾಗುತ್ತವೆ'
-              : 'These changes apply immediately'}
+            {t('agent.quickUpdate.description')}
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <Label>{language === 'kn' ? 'ಫೋನ್' : 'Phone'}</Label>
+              <Label>{t('agent.quickUpdate.phone')}</Label>
               <Input
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
@@ -109,7 +107,7 @@ export default function FarmerQuickUpdateTab({ farmer }: FarmerQuickUpdateTabPro
               />
             </div>
             <div>
-              <Label>{language === 'kn' ? 'ಹಳ್ಳಿ' : 'Village'}</Label>
+              <Label>{t('agent.quickUpdate.village')}</Label>
               <Input
                 value={village}
                 onChange={(e) => setVillage(e.target.value)}
@@ -117,7 +115,7 @@ export default function FarmerQuickUpdateTab({ farmer }: FarmerQuickUpdateTabPro
               />
             </div>
             <div>
-              <Label>{language === 'kn' ? 'ತಾಲೂಕು' : 'Taluk'}</Label>
+              <Label>{t('agent.quickUpdate.taluk')}</Label>
               <Input
                 value={taluk}
                 onChange={(e) => setTaluk(e.target.value)}
@@ -125,7 +123,7 @@ export default function FarmerQuickUpdateTab({ farmer }: FarmerQuickUpdateTabPro
               />
             </div>
             <div>
-              <Label>{language === 'kn' ? 'ಭಾಷೆ' : 'Language'}</Label>
+              <Label>{t('agent.quickUpdate.language')}</Label>
               <Select value={preferredLanguage} onValueChange={setPreferredLanguage}>
                 <SelectTrigger>
                   <SelectValue />
@@ -147,7 +145,7 @@ export default function FarmerQuickUpdateTab({ farmer }: FarmerQuickUpdateTabPro
             ) : (
               <Save className="h-4 w-4 mr-2" />
             )}
-            {language === 'kn' ? 'ಉಳಿಸಿ' : 'Save Changes'}
+            {t('agent.quickUpdate.saveChanges')}
           </Button>
         </CardContent>
       </Card>
@@ -157,18 +155,16 @@ export default function FarmerQuickUpdateTab({ farmer }: FarmerQuickUpdateTabPro
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             <Shield className="h-4 w-4 text-amber-600" />
-            {language === 'kn' ? 'ಅನುಮೋದನೆ ಬೇಕು' : 'Requires Approval'}
+            {t('agent.quickUpdate.requiresApproval')}
           </CardTitle>
           <p className="text-sm text-muted-foreground">
-            {language === 'kn'
-              ? 'ಈ ಬದಲಾವಣೆಗಳಿಗೆ ನಿರ್ವಾಹಕ ಅನುಮೋದನೆ ಅಗತ್ಯ'
-              : 'These changes need admin approval before applying'}
+            {t('agent.quickUpdate.approvalDescription')}
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <Label>{language === 'kn' ? 'ಒಟ್ಟು ಭೂಮಿ (ಎಕರೆ)' : 'Total Land Area (acres)'}</Label>
+              <Label>{t('agent.quickUpdate.totalLand')}</Label>
               <Input
                 type="number"
                 value={totalLandArea}
@@ -177,16 +173,14 @@ export default function FarmerQuickUpdateTab({ farmer }: FarmerQuickUpdateTabPro
               />
             </div>
             <div>
-              <Label>{language === 'kn' ? 'ಜಿಲ್ಲೆ' : 'District'}</Label>
+              <Label>{t('agent.quickUpdate.district')}</Label>
               <Input
                 value={farmer.district || ''}
                 disabled
                 className="opacity-60"
               />
               <p className="text-xs text-muted-foreground mt-1">
-                {language === 'kn'
-                  ? 'ಜಿಲ್ಲೆ ಬದಲಾವಣೆ ನಿರ್ವಾಹಕರಿಂದ ಮಾತ್ರ'
-                  : 'District can only be changed by admin'}
+                {t('agent.quickUpdate.districtAdminOnly')}
               </p>
             </div>
           </div>
@@ -201,7 +195,7 @@ export default function FarmerQuickUpdateTab({ farmer }: FarmerQuickUpdateTabPro
             ) : (
               <Shield className="h-4 w-4 mr-2" />
             )}
-            {language === 'kn' ? 'ಅನುಮೋದನೆಗೆ ಕಳುಹಿಸಿ' : 'Submit for Approval'}
+            {t('agent.quickUpdate.submitForApproval')}
           </Button>
         </CardContent>
       </Card>

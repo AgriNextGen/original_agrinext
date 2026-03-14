@@ -45,6 +45,9 @@ test-visual.mjs
 test_pages.html
 test_pages.mjs
 
+# Generated reports (keep directory, ignore output)
+reports/*.md
+
 # Build outputs
 output/
 backups/

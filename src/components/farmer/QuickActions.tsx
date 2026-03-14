@@ -11,14 +11,16 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/lib/routes';
 import { useFarmerAgent } from '@/hooks/useAgentAssignments';
+import { useLanguage } from '@/hooks/useLanguage';
 
 const QuickActions = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const { data: agentData } = useFarmerAgent();
 
   const staticActions = [
     {
-      label: 'Add Crop',
+      label: t('dashboard.quickAction.addCrop'),
       icon: Plus,
       color: 'bg-primary hover:bg-primary/90 text-primary-foreground',
       onClick: () => navigate(ROUTES.FARMER.CROPS),
@@ -26,7 +28,7 @@ const QuickActions = () => {
       tooltip: null,
     },
     {
-      label: 'Add Farmland',
+      label: t('dashboard.quickAction.addFarmland'),
       icon: LandPlot,
       color: 'bg-amber-600 hover:bg-amber-700 text-white',
       onClick: () => navigate(ROUTES.FARMER.FARMLANDS),
@@ -34,7 +36,7 @@ const QuickActions = () => {
       tooltip: null,
     },
     {
-      label: 'Request Transport',
+      label: t('dashboard.quickAction.requestTransport'),
       icon: Truck,
       color: 'bg-blue-600 hover:bg-blue-700 text-white',
       onClick: () => navigate(ROUTES.FARMER.TRANSPORT),
@@ -42,7 +44,7 @@ const QuickActions = () => {
       tooltip: null,
     },
     {
-      label: 'Create Listing',
+      label: t('dashboard.quickAction.createListing'),
       icon: ShoppingBag,
       color: 'bg-emerald-600 hover:bg-emerald-700 text-white',
       onClick: () => navigate(ROUTES.FARMER.LISTINGS),
@@ -53,7 +55,7 @@ const QuickActions = () => {
 
   const agentPhone = agentData?.agent_phone;
   const callAgentAction = {
-    label: 'Call Agent',
+    label: t('dashboard.quickAction.callAgent'),
     icon: Phone,
     color: agentPhone
       ? 'bg-purple-600 hover:bg-purple-700 text-white'
@@ -62,7 +64,7 @@ const QuickActions = () => {
       if (agentPhone) window.location.href = `tel:${agentPhone}`;
     },
     disabled: !agentPhone,
-    tooltip: agentPhone ? null : 'No agent assigned',
+    tooltip: agentPhone ? null : t('dashboard.quickAction.noAgentAssigned'),
   };
 
   const actions = [...staticActions, callAgentAction];
@@ -71,7 +73,7 @@ const QuickActions = () => {
     <TooltipProvider>
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-lg">Quick Actions</CardTitle>
+          <CardTitle className="text-lg">{t('dashboard.quickActions')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">

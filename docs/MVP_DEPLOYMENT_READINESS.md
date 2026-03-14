@@ -1,13 +1,13 @@
 # AgriNext Gen — MVP Deployment Readiness Report
 
-> **Generated:** 2026-03-13 | **Covers:** Phases F1–F4 + testing fixes
+> **Generated:** 2026-03-14 | **Covers:** Phases F1–F4 + F10 (UX production-readiness)
 > **Purpose:** Enumerate every remaining task before real-user onboarding.
 
 ---
 
 ## Executive Summary
 
-Phases F1–F4 fixed the core buyer-farmer-admin order pipeline, the logistics trip status vocabulary, admin login/navigation, and farmer loading states. The MVP is **~75% deployment-ready**. The remaining work falls into 5 phases (F5–F9), ordered by blast radius — do them in order.
+Phases F1–F4 fixed the core buyer-farmer-admin order pipeline, the logistics trip status vocabulary, admin login/navigation, and farmer loading states. **Phase F10** added production-ready UX improvements: per-route error boundaries, mobile touch targets, admin sidebar collapsibility, dashboard progressive disclosure, and React Query optimization. The MVP is now **~85% deployment-ready**. The remaining work falls into phases F5–F9 (original) plus minor polish items.
 
 ### What Works Today (Post F1–F4)
 
@@ -247,12 +247,119 @@ Per user direction, these are NOT in scope for MVP deployment:
 
 ---
 
+## Phase F10: UX Production-Readiness (COMPLETED — 2026-03-14)
+
+Full platform UX audit with 139 screenshots across all roles, followed by targeted production fixes.
+
+### F10-1: RouteErrorBoundary (per-route crash isolation)
+
+**Files:** `src/components/shared/RouteErrorBoundary.tsx` (new), all 5 route files in `src/routes/`
+
+Created `RouteErrorBoundary` component with retry + "Go to Dashboard" buttons. Upgraded all route files (`farmerRoutes.tsx`, `agentRoutes.tsx`, `logisticsRoutes.tsx`, `marketplaceRoutes.tsx`, `adminRoutes.tsx`) from generic `ErrorBoundary` to role-specific `RouteErrorBoundary` with correct `dashboardPath` per role.
+
+**Impact:** A single component crash no longer blanks the entire app; users see a recovery UI with clear next actions.
+
+### F10-2: BottomTabBar active indicator fix
+
+**File:** `src/components/dashboard/BottomTabBar.tsx`
+
+- Added `relative` positioning to `Link` parents so the active indicator positions correctly above each tab
+- Moved indicator `span` before the icon (not after) for proper visual stacking
+- Set `min-h-[48px] min-w-[48px]` on all tab items and the More button for touch compliance
+
+### F10-3: DashboardHeader improvements
+
+**File:** `src/components/dashboard/DashboardHeader.tsx`
+
+- Replaced raw `supabase.from('notifications').update()` with `useMutation` hook for proper loading/error states and cache invalidation
+- Used `useCallback` for `markAsRead` to prevent re-renders
+- Removed redundant `DropdownMenuSeparator` before sign out
+- Cleaned up unused variables
+
+### F10-4: Farmer Dashboard progressive disclosure
+
+**File:** `src/pages/farmer/Dashboard.tsx`
+
+- Changed weather/prices grid from 3-column to 2-column (removed agent notes for empty users)
+- Farm Data zone now keyed to `hasFarmData` (farmlands or crops) instead of `hasAnyData`
+- Support zone keyed to `hasTransportOrOrders` instead of generic data check
+- Agent Notes section only rendered when user has activity data
+- Query key aligned with MyDay (`['farmer-dashboard', user?.id]`) and gated by `enabled: !!user?.id`
+- Wrapped data checks in `useMemo` to prevent recalculation
+
+### F10-5: Farmer My Day enhancements
+
+**File:** `src/pages/farmer/MyDay.tsx`
+
+- Added quick action grid (Add Crop, Add Farmland, Request Transport, Create Listing) shown when no pending actions
+- Added dark mode support to Daily Tip card colors
+- Uses existing i18n keys from `dashboard.quickAction.*`
+
+### F10-6: Admin sidebar collapsible groups
+
+**File:** `src/components/dashboard/DashboardSidebar.tsx`
+
+- Added `ChevronDown` import and collapse state management
+- Admin sidebar groups (Network, Operations, AI, Finance, System) are now collapsible with animated expand/collapse
+- Non-admin roles retain their original flat group structure
+- All sidebar nav items now have `min-h-[44px]` for mobile touch compliance
+
+### F10-7: Global mobile touch targets
+
+**File:** `src/index.css`
+
+- Added media query rule: on screens < 768px, all `button` and `a[role="button"]` elements get `min-height: 44px` unless they already have explicit `min-h` classes
+- Ensures WCAG-compliant touch targets across the entire app without modifying individual components
+
+### F10-8: React Query defaults (already in place)
+
+**File:** `src/App.tsx`
+
+Verified that sensible defaults are already configured:
+- `staleTime: 2 min` — reduces refetches on 2G
+- `gcTime: 10 min` — longer cache
+- `retry: 2` with exponential backoff
+- `refetchOnWindowFocus: false`
+
+### F10-9: Transport state transitions (already fixed)
+
+Transport pages no longer use direct `.update()` calls. Verified that `src/pages/agent/Tasks.tsx` uses `actionQueue.enqueueAction()` with RPC names, and no transport pages contain raw status updates.
+
+---
+
+### Screenshot Documentation
+
+139 pre-fix screenshots captured to `screenshots/full-audit-2026-03-14/`:
+- 17 public pages (landing, login, signup)
+- 42 farmer pages (10 pages x desktop/mobile x top/bottom + bottom tab)
+- 32 agent pages (8 pages x 4 views)
+- 28 logistics pages (7 pages x 4 views)
+- 20 buyer pages (4 pages x 4 views + bottom tab)
+
+16 post-fix screenshots captured to `screenshots/post-fix-2026-03-14/`.
+
+---
+
+## What Still Needs Work
+
+| Item | Severity | Status |
+|------|----------|--------|
+| ~50+ hardcoded English strings need i18n | MEDIUM | Pending (F8) |
+| ~12 hardcoded route strings | MEDIUM | Pending (F7) |
+| PWA setup (manifest + service worker) | MEDIUM | Pending (F6-3) |
+| WeatherWidget migration to useQuery | LOW | Pending (F9-1) |
+| Admin pages loading skeletons (3 pages) | LOW | Pending (F9-2) |
+| Unify offline queues | LOW | Pending (F9-3) |
+| Listing status alignment (active vs approved) | LOW | Pending (F9-4) |
+| Admin DataHealth sync buttons (no Edge Functions) | LOW | Pending (F9-5) |
+
+---
+
 ## Current Build Health
 
 ```
 TypeScript:     0 errors
 Lint:           0 errors
-Vite build:     SUCCESS (39s)
-Bundle size:    1.2 MB main chunk (gzipped: 329 KB)
+Vite build:     SUCCESS
 Pre-existing:   4 duplicate key warnings in i18n (agent, weather in both en.ts and kn.ts)
 ```

@@ -5,10 +5,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Wheat, Calendar, MapPin } from 'lucide-react';
 import { differenceInDays, parseISO } from 'date-fns';
 import { useLanguage } from '@/hooks/useLanguage';
+import { useLoadingTimeout } from '@/hooks/useLoadingTimeout';
 
 const CropsNearHarvest = () => {
   const { t } = useLanguage();
   const { data: crops, isLoading } = useAllCrops();
+  const loadingTimedOut = useLoadingTimeout(isLoading);
 
   const today = new Date();
   const nearHarvestCrops = crops
@@ -25,7 +27,7 @@ const CropsNearHarvest = () => {
     .sort((a, b) => a.daysToHarvest - b.daysToHarvest)
     .slice(0, 5);
 
-  if (isLoading) {
+  if (isLoading && !loadingTimedOut) {
     return (
       <Card>
         <CardHeader>

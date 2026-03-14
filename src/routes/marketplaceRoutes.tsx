@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { Route } from 'react-router-dom';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import ErrorBoundary from '@/components/shared/ErrorBoundary';
+import RouteErrorBoundary from '@/components/shared/RouteErrorBoundary';
 import { ROUTES } from '@/lib/routes';
 import { Loader2 } from 'lucide-react';
 
@@ -20,11 +20,11 @@ const MarketplaceProfile = lazy(() => import('@/pages/marketplace/Profile'));
 export default function MarketplaceRoutes() {
   return (
     <>
-      <Route path={ROUTES.MARKETPLACE.DASHBOARD} element={<ProtectedRoute allowedRoles={["buyer"]}><ErrorBoundary><Suspense fallback={<Fallback />}><MarketplaceDashboard /></Suspense></ErrorBoundary></ProtectedRoute>} />
-      <Route path={ROUTES.MARKETPLACE.BROWSE} element={<ProtectedRoute allowedRoles={["buyer"]}><ErrorBoundary><Suspense fallback={<Fallback />}><BrowseProducts /></Suspense></ErrorBoundary></ProtectedRoute>} />
-      <Route path="/marketplace/product/:id" element={<ProtectedRoute allowedRoles={["buyer"]}><ErrorBoundary><Suspense fallback={<Fallback />}><ProductDetail /></Suspense></ErrorBoundary></ProtectedRoute>} />
-      <Route path={ROUTES.MARKETPLACE.ORDERS} element={<ProtectedRoute allowedRoles={["buyer"]}><ErrorBoundary><Suspense fallback={<Fallback />}><MarketplaceOrders /></Suspense></ErrorBoundary></ProtectedRoute>} />
-      <Route path={ROUTES.MARKETPLACE.PROFILE} element={<ProtectedRoute allowedRoles={["buyer"]}><ErrorBoundary><Suspense fallback={<Fallback />}><MarketplaceProfile /></Suspense></ErrorBoundary></ProtectedRoute>} />
+      <Route path={ROUTES.MARKETPLACE.DASHBOARD} element={<ProtectedRoute allowedRoles={["buyer"]}><RouteErrorBoundary dashboardPath="/marketplace/dashboard"><Suspense fallback={<Fallback />}><MarketplaceDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+      <Route path={ROUTES.MARKETPLACE.BROWSE} element={<ProtectedRoute allowedRoles={["buyer"]}><RouteErrorBoundary dashboardPath="/marketplace/dashboard"><Suspense fallback={<Fallback />}><BrowseProducts /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+      <Route path="/marketplace/product/:id" element={<ProtectedRoute allowedRoles={["buyer"]}><RouteErrorBoundary dashboardPath="/marketplace/dashboard"><Suspense fallback={<Fallback />}><ProductDetail /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+      <Route path={ROUTES.MARKETPLACE.ORDERS} element={<ProtectedRoute allowedRoles={["buyer"]}><RouteErrorBoundary dashboardPath="/marketplace/dashboard"><Suspense fallback={<Fallback />}><MarketplaceOrders /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+      <Route path={ROUTES.MARKETPLACE.PROFILE} element={<ProtectedRoute allowedRoles={["buyer"]}><RouteErrorBoundary dashboardPath="/marketplace/dashboard"><Suspense fallback={<Fallback />}><MarketplaceProfile /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
     </>
   );
 }

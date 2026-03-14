@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,17 +11,17 @@ import {
   ArrowRight,
   MapPin,
   User,
+  X,
+  Search,
+  Truck,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { rpcJson } from '@/lib/readApi';
 import {
   useBuyerProfile,
   useCreateBuyerProfile,
   useMarketProducts,
-  useMarketplaceDashboardStats,
-  useBuyerOrders,
 } from '@/hooks/useMarketplaceDashboard';
+import { useOrdersInfinite } from '@/hooks/useOrders';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -40,22 +40,25 @@ const MarketplaceDashboard = () => {
   const { data: profile, isLoading: profileLoading } = useBuyerProfile();
   const createProfile = useCreateBuyerProfile();
   const { data: products } = useMarketProducts();
-  const { data: orders } = useBuyerOrders();
-  const { data: rpcStats, isLoading: rpcLoading } = useQuery({
-    queryKey: ['buyer-dashboard'],
-    queryFn: async () => {
-      return await rpcJson('buyer_dashboard_v1');
-    }
-  });
+  const { data: ordersData } = useOrdersInfinite();
+  const orders = ordersData ? ordersData.pages.flatMap((p: any) => p.items || []) : [];
+  const freshProducts_ = products?.filter((p) => p.is_active !== false && p.available_qty > 0) || [];
+  const activeOrders_ = orders.filter((o: any) => !['delivered', 'cancelled'].includes(o.status));
   const stats = {
     totalProducts: products?.length || 0,
-    freshHarvest: rpcStats?.recent_orders_top10 ? rpcStats.recent_orders_top10.length : 0,
-    oneWeekAway: 0,
-    activeOrders: rpcStats?.recent_orders_top10 ? rpcStats.recent_orders_top10.length : 0,
+    freshHarvest: freshProducts_.length,
+    activeOrders: activeOrders_.length,
   };
 
   const [aiLoading, setAiLoading] = useState(false);
   const [stockAdvice, setStockAdvice] = useState<string | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  useEffect(() => {
+    if (profile && !localStorage.getItem('agrinext_buyer_onboarded')) {
+      setShowOnboarding(true);
+    }
+  }, [profile]);
 
   const handleCreateProfile = () => {
     createProfile.mutate({
@@ -102,8 +105,8 @@ const MarketplaceDashboard = () => {
       <DashboardLayout title={t('nav.dashboard')}>
         <div className="space-y-6">
           <Skeleton className="h-32 w-full rounded-lg" />
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-            {[1, 2, 3, 4].map((i) => (
+          <div className="grid grid-cols-3 gap-3 md:gap-4">
+            {[1, 2, 3].map((i) => (
               <Skeleton key={i} className="h-24 rounded-lg" />
             ))}
           </div>
@@ -135,8 +138,8 @@ const MarketplaceDashboard = () => {
     );
   }
 
-  const freshProducts = products?.filter((p) => p.is_active && p.available_qty > 0).slice(0, 4) || [];
-  const activeOrders = orders?.filter((o) => !['delivered', 'cancelled'].includes(o.status)).slice(0, 3) || [];
+  const freshProducts = freshProducts_.slice(0, 4);
+  const activeOrders = activeOrders_.slice(0, 3);
   const subtitleParts = [
     profile.name ? `${t('common.welcome')}, ${profile.name}` : t('common.welcome'),
     profile.company_name || profile.buyer_type || '',
@@ -154,7 +157,34 @@ const MarketplaceDashboard = () => {
           </Button>
         }
       >
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+        {showOnboarding && (
+          <Card className="border-primary/30 bg-gradient-to-r from-primary/5 to-transparent">
+            <CardContent className="p-4">
+              <div className="flex items-start justify-between mb-3">
+                <h3 className="font-display font-semibold text-lg">{t('marketplace.getStarted')}</h3>
+                <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => { setShowOnboarding(false); localStorage.setItem('agrinext_buyer_onboarded', '1'); }}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <button type="button" onClick={() => navigate(ROUTES.MARKETPLACE.BROWSE)} className="flex items-center gap-3 p-3 rounded-lg border bg-background hover:bg-accent/50 transition-colors text-left">
+                  <div className="rounded-full bg-primary/10 p-2"><Search className="h-4 w-4 text-primary" /></div>
+                  <div><p className="text-sm font-medium">{t('marketplace.onboardStep1')}</p><p className="text-xs text-muted-foreground">{t('marketplace.onboardStep1Desc')}</p></div>
+                </button>
+                <button type="button" onClick={() => navigate(ROUTES.MARKETPLACE.BROWSE)} className="flex items-center gap-3 p-3 rounded-lg border bg-background hover:bg-accent/50 transition-colors text-left">
+                  <div className="rounded-full bg-primary/10 p-2"><ShoppingCart className="h-4 w-4 text-primary" /></div>
+                  <div><p className="text-sm font-medium">{t('marketplace.onboardStep2')}</p><p className="text-xs text-muted-foreground">{t('marketplace.onboardStep2Desc')}</p></div>
+                </button>
+                <button type="button" onClick={() => navigate(ROUTES.MARKETPLACE.ORDERS)} className="flex items-center gap-3 p-3 rounded-lg border bg-background hover:bg-accent/50 transition-colors text-left">
+                  <div className="rounded-full bg-primary/10 p-2"><Truck className="h-4 w-4 text-primary" /></div>
+                  <div><p className="text-sm font-medium">{t('marketplace.onboardStep3')}</p><p className="text-xs text-muted-foreground">{t('marketplace.onboardStep3Desc')}</p></div>
+                </button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        <div className="grid grid-cols-3 gap-3 md:gap-4">
           <KpiCard label={t('marketplace.available')} value={stats.totalProducts} icon={Package} priority="primary" onClick={() => navigate(ROUTES.MARKETPLACE.BROWSE)} />
           <KpiCard label={t('marketplace.freshHarvest')} value={stats.freshHarvest} icon={Leaf} priority="success" />
           <KpiCard label={t('marketplace.activeOrdersLabel')} value={stats.activeOrders} icon={ShoppingCart} priority="info" onClick={() => navigate(ROUTES.MARKETPLACE.ORDERS)} />
@@ -175,7 +205,7 @@ const MarketplaceDashboard = () => {
             </CardHeader>
             <CardContent>
               {freshProducts.length === 0 ? (
-                <EmptyState icon={Leaf} title={t('marketplace.noProductsFound')} description={t('marketplace.tryDifferentFilters')} />
+                <EmptyState icon={Leaf} title={t('marketplace.noProductsFound')} description={t('marketplace.checkBackSoon')} actionLabel={t('marketplace.browseProducts')} onAction={() => navigate(ROUTES.MARKETPLACE.BROWSE)} />
               ) : (
                 <div className="space-y-3">
                   {freshProducts.map((product) => (

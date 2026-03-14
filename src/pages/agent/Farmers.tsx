@@ -39,11 +39,13 @@ import {
 import { toast } from 'sonner';
 import PageHeader from '@/components/shared/PageHeader';
 import EmptyState from '@/components/shared/EmptyState';
+import { useLoadingTimeout } from '@/hooks/useLoadingTimeout';
 
 const AgentFarmers = () => {
   const { user } = useAuth();
-  const { language } = useLanguage();
+  const { t } = useLanguage();
   const { data: farmers, isLoading: farmersLoading } = useAllFarmers();
+  const loadingTimedOut = useLoadingTimeout(farmersLoading);
   const { data: crops } = useAllCrops();
   const assignFarmer = useAssignFarmerToAgent();
 
@@ -100,11 +102,7 @@ const AgentFarmers = () => {
       { farmerId, agentId: user.id },
       {
         onSuccess: () => {
-          toast.success(
-            language === 'kn'
-              ? 'ರೈತ ನಿಮಗೆ ನಿಯೋಜಿಸಲಾಗಿದೆ'
-              : 'Farmer assigned to you successfully'
-          );
+          toast.success(t('agent.farmers.assignSuccess'));
         },
       }
     );
@@ -115,20 +113,20 @@ const AgentFarmers = () => {
       return (
         <Badge className="bg-green-100 text-green-800 flex items-center gap-1">
           <UserCheck className="h-3 w-3" />
-          {language === 'kn' ? 'ನಿಮಗೆ' : 'Yours'}
+          {t('agent.farmers.yours')}
         </Badge>
       );
     }
     if (farmer.is_assigned_to_other) {
       return (
         <Badge variant="secondary" className="opacity-60">
-          {language === 'kn' ? 'ಇನ್ನೊಬ್ಬರಿಗೆ' : 'Other Agent'}
+          {t('agent.farmers.otherAgent')}
         </Badge>
       );
     }
     return (
       <Badge variant="outline" className="text-muted-foreground">
-        {language === 'kn' ? 'ನಿಯೋಜಿಸಿಲ್ಲ' : 'Unassigned'}
+        {t('agent.farmers.unassignedBadge')}
       </Badge>
     );
   };
@@ -137,8 +135,8 @@ const AgentFarmers = () => {
   const myCount = farmers?.filter((f: any) => f.is_assigned_to_me).length || 0;
 
   return (
-    <DashboardLayout title={language === 'kn' ? 'ರೈತ ಡೈರೆಕ್ಟರಿ' : 'Farmer Directory'}>
-      <PageHeader title={language === 'kn' ? 'ರೈತ ಡೈರೆಕ್ಟರಿ' : 'Farmer Directory'} subtitle={language === 'kn' ? 'ನಿಮ್ಮ ಜಿಲ್ಲೆಯ ರೈತರನ್ನು ಹುಡುಕಿ ಮತ್ತು ನಿಯೋಜಿಸಿ' : 'Find and assign farmers in your district'}>
+    <DashboardLayout title={t('agent.farmers.title')}>
+      <PageHeader title={t('agent.farmers.title')} subtitle={t('agent.farmers.subtitle')}>
       <div className="space-y-6">
 
         {/* Search + Village Filter */}
@@ -146,11 +144,7 @@ const AgentFarmers = () => {
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder={
-                language === 'kn'
-                  ? 'ಹೆಸರು, ಹಳ್ಳಿ, ಫೋನ್‌ನಿಂದ ಹುಡುಕಿ...'
-                  : 'Search by name, village, phone...'
-              }
+              placeholder={t('agent.farmers.searchPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9"
@@ -158,11 +152,11 @@ const AgentFarmers = () => {
           </div>
           <Select value={villageFilter} onValueChange={setVillageFilter}>
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder={language === 'kn' ? 'ಎಲ್ಲಾ ಹಳ್ಳಿಗಳು' : 'All Villages'} />
+              <SelectValue placeholder={t('agent.farmers.allVillages')} />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">
-                {language === 'kn' ? 'ಎಲ್ಲಾ ಹಳ್ಳಿಗಳು' : 'All Villages'}
+                {t('agent.farmers.allVillages')}
               </SelectItem>
               {villages.map((v) => (
                 <SelectItem key={v} value={v}>
@@ -178,23 +172,24 @@ const AgentFarmers = () => {
           <TabsList>
             <TabsTrigger value="unassigned" className="flex items-center gap-2">
               <UserPlus className="h-4 w-4" />
-              {language === 'kn' ? 'ನಿಯೋಜಿಸಿಲ್ಲ' : 'Unassigned'} ({unassignedCount})
+              {t('agent.farmers.unassigned')} ({unassignedCount})
             </TabsTrigger>
             <TabsTrigger value="mine" className="flex items-center gap-2">
               <UserCheck className="h-4 w-4" />
-              {language === 'kn' ? 'ನನ್ನವರು' : 'Assigned to Me'} ({myCount})
+              {t('agent.farmers.assignedToMe')} ({myCount})
             </TabsTrigger>
             <TabsTrigger value="all" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
-              {language === 'kn' ? 'ಎಲ್ಲಾ' : 'All'} ({farmers?.length || 0})
+              {t('agent.farmers.all')} ({farmers?.length || 0})
             </TabsTrigger>
           </TabsList>
 
-          {/* Content for all tabs uses same table */}
-          <TabsContent value={activeTab} className="mt-4">
+          {/* All three tab values render the same table (filtered by activeTab) */}
+          {['unassigned', 'mine', 'all'].map((tabVal) => (
+          <TabsContent key={tabVal} value={tabVal} className="mt-4">
             <Card>
               <CardContent className="p-0">
-                {farmersLoading ? (
+                {farmersLoading && !loadingTimedOut ? (
                   <div className="p-6 space-y-4">
                     {[1, 2, 3, 4, 5].map((i) => (
                       <Skeleton key={i} className="h-16 w-full" />
@@ -204,16 +199,16 @@ const AgentFarmers = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>{language === 'kn' ? 'ಹೆಸರು' : 'Name'}</TableHead>
-                        <TableHead>{language === 'kn' ? 'ಹಳ್ಳಿ' : 'Village'}</TableHead>
+                        <TableHead>{t('agent.farmers.name')}</TableHead>
+                        <TableHead>{t('agent.farmers.village')}</TableHead>
                         <TableHead className="hidden sm:table-cell">
-                          {language === 'kn' ? 'ಫೋನ್' : 'Phone'}
+                          {t('agent.farmers.phone')}
                         </TableHead>
                         <TableHead className="hidden md:table-cell">
-                          {language === 'kn' ? 'ಬೆಳೆಗಳು' : 'Crops'}
+                          {t('agent.farmers.crops')}
                         </TableHead>
-                        <TableHead>{language === 'kn' ? 'ಸ್ಥಿತಿ' : 'Status'}</TableHead>
-                        <TableHead>{language === 'kn' ? 'ಕ್ರಿಯೆ' : 'Action'}</TableHead>
+                        <TableHead>{t('agent.farmers.status')}</TableHead>
+                        <TableHead>{t('agent.farmers.action')}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -222,8 +217,8 @@ const AgentFarmers = () => {
                           <TableCell colSpan={6} className="p-0">
                             <EmptyState
                               icon={Users}
-                              title={language === 'kn' ? 'ಯಾವುದೇ ರೈತರು ಕಂಡುಬಂದಿಲ್ಲ' : 'No farmers found'}
-                              description={language === 'kn' ? 'ಯಾವುದೇ ರೈತರು ಲಭ್ಯವಿಲ್ಲ' : 'No farmers found for your filters.'}
+                              title={t('agent.farmers.noFarmers')}
+                              description={t('agent.farmers.noFarmersDescription')}
                             />
                           </TableCell>
                         </TableRow>
@@ -231,7 +226,7 @@ const AgentFarmers = () => {
                         filteredFarmers.map((farmer: any) => (
                           <TableRow key={farmer.id}>
                             <TableCell className="font-medium">
-                              {farmer.full_name || (language === 'kn' ? 'ಅಪರಿಚಿತ' : 'Unknown')}
+                              {farmer.full_name || t('agent.farmers.unknown')}
                             </TableCell>
                             <TableCell>
                               <span className="flex items-center gap-1 text-sm">
@@ -271,14 +266,14 @@ const AgentFarmers = () => {
                                   ) : (
                                     <>
                                       <UserPlus className="h-3 w-3 mr-1" />
-                                      {language === 'kn' ? 'ನಿಯೋಜಿಸಿ' : 'Assign'}
+                                      {t('agent.farmers.assign')}
                                     </>
                                   )}
                                 </Button>
                               ) : farmer.is_assigned_to_me ? (
                                 <Badge className="bg-green-100 text-green-800">
                                   <CheckCircle className="h-3 w-3 mr-1" />
-                                  {language === 'kn' ? 'ನಿಯೋಜಿತ' : 'Assigned'}
+                                  {t('agent.farmers.assigned')}
                                 </Badge>
                               ) : (
                                 <span className="text-sm text-muted-foreground">—</span>
@@ -293,6 +288,7 @@ const AgentFarmers = () => {
               </CardContent>
             </Card>
           </TabsContent>
+          ))}
         </Tabs>
       </div>
       </PageHeader>

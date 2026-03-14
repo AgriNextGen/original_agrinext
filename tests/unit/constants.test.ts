@@ -6,13 +6,14 @@ import { ROLES, STORAGE_KEYS, SUPABASE_BUCKETS, TRIP_STATUS_ORDER } from '@/lib/
 import { ROUTES } from '@/lib/routes';
 
 describe('ROLES', () => {
-  it('contains all 5 expected roles', () => {
+  it('contains all 6 expected roles', () => {
     expect(Object.values(ROLES)).toContain('farmer');
     expect(Object.values(ROLES)).toContain('agent');
     expect(Object.values(ROLES)).toContain('logistics');
     expect(Object.values(ROLES)).toContain('buyer');
     expect(Object.values(ROLES)).toContain('admin');
-    expect(Object.values(ROLES)).toHaveLength(5);
+    expect(Object.values(ROLES)).toContain('vendor');
+    expect(Object.values(ROLES)).toHaveLength(6);
   });
 });
 

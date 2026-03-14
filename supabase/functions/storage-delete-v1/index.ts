@@ -46,7 +46,7 @@ Deno.serve(async (req: Request) => {
         .catch(() => null);
 
       return new Response(
-        JSON.stringify({ success: true }),
+        JSON.stringify({ success: true, data: { deleted: true } }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -74,7 +74,7 @@ Deno.serve(async (req: Request) => {
     }
 
     return new Response(
-      JSON.stringify({ success: true }),
+      JSON.stringify({ success: true, data: { deleted: true } }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {

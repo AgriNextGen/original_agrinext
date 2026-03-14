@@ -33,14 +33,14 @@ const corsHeaders = {
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   if (req.method !== "POST") {
-    return new Response(JSON.stringify({ error: "method_not_allowed" }), {
+    return new Response(JSON.stringify({ success: false, error: { code: "METHOD_NOT_ALLOWED", message: "POST only" } }), {
       status: 405,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
   const secret = req.headers.get("x-worker-secret") || "";
   if (secret !== WORKER_SECRET) {
-    return new Response(JSON.stringify({ error: "forbidden" }), {
+    return new Response(JSON.stringify({ success: false, error: { code: "FORBIDDEN", message: "Invalid worker secret" } }), {
       status: 403,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
@@ -52,7 +52,7 @@ Deno.serve(async (req: Request) => {
   const { data: run, error: runErr } = await supabase.from("job_runs").insert([{ worker_id: workerId }]).select("*").maybeSingle();
   if (runErr) {
     console.error("failed to create job_run", runErr);
-    return new Response(JSON.stringify({ error: runErr.message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ success: false, error: { code: "INTERNAL", message: runErr.message } }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
   const runId = run.id;
 
@@ -107,7 +107,7 @@ Deno.serve(async (req: Request) => {
     await supabase.from("job_runs").update({ processed_count: processed, success_count: succeeded, failed_count: failed, finished_at: new Date().toISOString() }).eq("id", runId);
   }
 
-  return new Response(JSON.stringify({ run_id: runId, processed, succeeded, failed }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  return new Response(JSON.stringify({ success: true, data: { run_id: runId, processed, succeeded, failed } }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 });
 
 function computeBackoff(attempts: number): number {

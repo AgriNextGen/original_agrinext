@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useLanguage } from '@/hooks/useLanguage';
 import { toast } from 'sonner';
 
 export interface Buyer {
@@ -87,6 +88,7 @@ export const useBuyerProfile = () => {
 export const useCreateBuyerProfile = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { t } = useLanguage();
   
   return useMutation({
     mutationFn: async (data: Partial<Buyer>) => {
@@ -111,10 +113,10 @@ export const useCreateBuyerProfile = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['buyer-profile'] });
-      toast.success('Profile created!');
+      toast.success(t('hookToasts.marketplace.profileCreated'));
     },
     onError: (error) => {
-      toast.error('Failed to create profile: ' + error.message);
+      toast.error(t('hookToasts.marketplace.profileFailed') + ': ' + error.message);
     },
   });
 };
@@ -130,7 +132,7 @@ function buildListingQuery(filters?: { cropName?: string; status?: string; distr
   let query = supabase
     .from('listings')
     .select(LISTING_SELECT)
-    .eq('is_active', true);
+    .or('is_active.eq.true,is_active.is.null');
 
   if (filters?.cropName) {
     query = query.ilike('title', `%${filters.cropName}%`);
@@ -184,6 +186,7 @@ export const useMarketProducts = (filters?: {
       if (error) throw error;
       return enrichWithProfiles(data || []);
     },
+    retry: 2,
   });
 };
 
@@ -202,6 +205,7 @@ export const useMarketProductsInfinite = (filters?: { cropName?: string; status?
     },
     getNextPageParam: (lastPage) => lastPage.nextPage,
     initialPageParam: 0,
+    retry: 2,
   });
 };
 
@@ -263,6 +267,7 @@ export const useBuyerOrders = () => {
 export const useCreateOrder = () => {
   const queryClient = useQueryClient();
   const { data: buyer } = useBuyerProfile();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async (data: {
@@ -281,7 +286,7 @@ export const useCreateOrder = () => {
       queryClient.invalidateQueries({ queryKey: ['market-products'] });
     },
     onError: (error) => {
-      toast.error('Failed to place order: ' + error.message);
+      toast.error(t('hookToasts.marketplace.orderFailed') + ': ' + error.message);
     },
   });
 };

@@ -1,25 +1,37 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { Navigate, useLocation } from "react-router-dom";
-import { Loader2 } from "lucide-react";
+import { useLanguage } from "@/hooks/useLanguage";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Loader2, RefreshCw } from "lucide-react";
 import { ROLE_DASHBOARD_ROUTES } from "@/lib/routes";
+import { Button } from "@/components/ui/button";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
   allowedRoles?: string[];
 }
 
-const ROLE_SETUP_TIMEOUT_MS = 5000;
+const ROLE_SETUP_TIMEOUT_MS = 10000;
 
 const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
   const { user, loading, userRole, refreshRole, activeRole } = useAuth();
+  const { t } = useLanguage();
   const location = useLocation();
+  const navigate = useNavigate();
   const [roleSetupTimedOut, setRoleSetupTimedOut] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
-  // If user doesn't have a role yet: retry fetchUserRole and timeout after 5s
+  const handleManualRetry = useCallback(() => {
+    setRoleSetupTimedOut(false);
+    setRetryCount((c) => c + 1);
+    refreshRole();
+  }, [refreshRole]);
+
   useEffect(() => {
     const effectiveRole = activeRole ?? userRole;
     if (!allowedRoles || !user || effectiveRole) return;
+
+    setRoleSetupTimedOut(false);
 
     const retryInterval = setInterval(() => {
       refreshRole();
@@ -34,20 +46,8 @@ const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
       clearInterval(retryInterval);
       clearTimeout(timeoutId);
     };
-  }, [allowedRoles, user, userRole, activeRole, refreshRole]);
+  }, [allowedRoles, user, userRole, activeRole, refreshRole, retryCount]);
 
-  // After timeout, redirect to login so user can retry
-  if (roleSetupTimedOut) {
-    return (
-      <Navigate
-        to="/login"
-        state={{ from: location, error: "Unable to load your account. Please try signing in again." }}
-        replace
-      />
-    );
-  }
-
-  // Show loading state with a better UI
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -56,36 +56,67 @@ const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
             <div className="w-12 h-12 rounded-full border-4 border-primary/20" />
             <Loader2 className="absolute inset-0 w-12 h-12 text-primary animate-spin" />
           </div>
-          <p className="text-muted-foreground text-sm">Loading your dashboard...</p>
+          <p className="text-muted-foreground text-sm">{t('shared.protectedRoute.loadingDashboard')}</p>
         </div>
       </div>
     );
   }
 
-  // Redirect to login if not authenticated
   if (!user) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // If user has a role and it's not in the allowed roles, redirect to their dashboard
   const effectiveRole = activeRole ?? userRole;
   if (allowedRoles && effectiveRole && !allowedRoles.includes(effectiveRole)) {
     const targetRoute = ROLE_DASHBOARD_ROUTES[effectiveRole] || "/";
     return <Navigate to={targetRoute} replace />;
   }
 
-  // If user doesn't have a role yet but is authenticated, show loading with timeout
-  // After ROLE_SETUP_TIMEOUT_MS, redirect to login so user can retry
   if (allowedRoles && !effectiveRole) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
           <div className="relative">
             <div className="w-12 h-12 rounded-full border-4 border-primary/20" />
-            <Loader2 className="absolute inset-0 w-12 h-12 text-primary animate-spin" />
+            {!roleSetupTimedOut && (
+              <Loader2 className="absolute inset-0 w-12 h-12 text-primary animate-spin" />
+            )}
           </div>
-          <p className="text-muted-foreground text-sm">Setting up your account...</p>
-          <p className="text-muted-foreground text-xs">If this takes too long, you will be redirected to sign in again.</p>
+          {roleSetupTimedOut ? (
+            <>
+              <p className="text-foreground text-sm font-medium">
+                {t('shared.protectedRoute.setupSlow')}
+              </p>
+              <p className="text-muted-foreground text-xs text-center max-w-xs">
+                {t('shared.protectedRoute.slowConnection')}
+              </p>
+              <div className="flex gap-3 mt-2">
+                <Button variant="outline" size="sm" onClick={handleManualRetry}>
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  {t('shared.protectedRoute.retry')}
+                </Button>
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() =>
+                    navigate("/login", {
+                      state: {
+                        from: location,
+                        error: t('shared.protectedRoute.unableToLoad'),
+                      },
+                    })
+                  }
+                >
+                  {t('shared.protectedRoute.signInAgain')}
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-muted-foreground text-sm">{t('shared.protectedRoute.settingUp')}</p>
+              <p className="text-muted-foreground text-xs">{t('shared.protectedRoute.fewSeconds')}</p>
+            </>
+          )}
         </div>
       </div>
     );

@@ -5,6 +5,7 @@ import KpiCard from '@/components/dashboard/KpiCard';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { DollarSign, RotateCcw, Banknote } from 'lucide-react';
+import { useLanguage } from '@/hooks/useLanguage';
 
 type FinanceSummary = {
   paid_gmv: number;
@@ -17,6 +18,7 @@ type FinanceSummary = {
 };
 
 export default function AdminFinance() {
+  const { t } = useLanguage();
   const { data, isLoading: loading } = useQuery<FinanceSummary>({
     queryKey: ['admin', 'finance-summary'],
     queryFn: async () => {
@@ -27,25 +29,25 @@ export default function AdminFinance() {
   });
 
   return (
-    <DashboardLayout title="Finance">
-      <PageShell title="Finance" subtitle="Payments & settlement summary">
-        <DataState loading={loading} empty={!loading && !data} emptyTitle="No data" emptyMessage="Finance summary is not yet available.">
+    <DashboardLayout title={t('admin.finance.title')}>
+      <PageShell title={t('admin.finance.title')} subtitle={t('admin.finance.subtitle')}>
+        <DataState loading={loading} empty={!loading && !data} emptyTitle={t('admin.finance.title')} emptyMessage={t('admin.finance.subtitle')}>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <KpiCard
-              label="Paid GMV (last 30d)"
+              label={t('admin.finance.revenue')}
               value={`₹${Number(data?.paid_gmv || 0).toLocaleString('en-IN')}`}
               icon={DollarSign}
               priority="success"
             />
             <KpiCard
-              label="Refunds"
+              label={t('admin.refunds.title')}
               value={`₹${Number(data?.refund_amount || 0).toLocaleString('en-IN')}`}
               icon={RotateCcw}
               priority="warning"
             />
             <KpiCard
-              label="Payouts"
-              value={`${data?.payout_success ?? 0} success`}
+              label={t('admin.finance.payouts')}
+              value={`${data?.payout_success ?? 0} ${t('admin.finance.completed')}`}
               icon={Banknote}
               priority="info"
             />

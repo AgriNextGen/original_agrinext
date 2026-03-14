@@ -8,6 +8,7 @@ import { Search, MapPin, Building, Package, Inbox } from 'lucide-react';
 import EmptyState from '@/components/shared/EmptyState';
 import { useAllBuyers } from '@/hooks/useAdminDashboard';
 import { useState } from 'react';
+import { useLanguage } from '@/hooks/useLanguage';
 import {
   Table,
   TableBody,
@@ -18,6 +19,7 @@ import {
 } from '@/components/ui/table';
 
 const AdminBuyers = () => {
+  const { t } = useLanguage();
   const { data: buyers, isLoading } = useAllBuyers();
   const [search, setSearch] = useState('');
 
@@ -28,26 +30,26 @@ const AdminBuyers = () => {
   ) || [];
 
   const buyerTypeLabel = (type: string) => {
-    switch (type) {
-      case 'retail': return 'Retail';
-      case 'wholesale': return 'Wholesale';
-      case 'restaurant': return 'Restaurant';
-      case 'export': return 'Export';
-      case 'processor': return 'Food Processor';
-      default: return type;
-    }
+    const typeMap: Record<string, string> = {
+      retail: t('admin.buyers.types.retail'),
+      wholesale: t('admin.buyers.types.wholesale'),
+      restaurant: t('admin.buyers.types.restaurant'),
+      export: t('admin.buyers.types.export'),
+      processor: t('admin.buyers.types.food_processor'),
+    };
+    return typeMap[type] || type;
   };
 
   return (
-    <DashboardLayout title="Buyer Management">
+    <DashboardLayout title={t('admin.buyers.title')}>
       <PageShell
-        title="Buyer Management"
-        subtitle="View and manage marketplace buyers"
+        title={t('admin.buyers.title')}
+        subtitle={t('admin.buyers.subtitle')}
         actions={
           <div className="relative w-full md:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Search buyers..."
+              placeholder={t('admin.buyers.search')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9"
@@ -57,7 +59,7 @@ const AdminBuyers = () => {
       >
         <Card>
           <CardHeader>
-            <CardTitle>All Buyers ({filteredBuyers.length})</CardTitle>
+            <CardTitle>{t('admin.buyers.allBuyers')} ({filteredBuyers.length})</CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -67,18 +69,18 @@ const AdminBuyers = () => {
                 ))}
               </div>
             ) : filteredBuyers.length === 0 ? (
-              <EmptyState icon={Inbox} title="No buyers found" />
+              <EmptyState icon={Inbox} title={t('admin.buyers.noBuyers')} />
             ) : (
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Company</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>District</TableHead>
-                      <TableHead>Total Orders</TableHead>
-                      <TableHead>Active Orders</TableHead>
+                      <TableHead>{t('admin.buyers.name')}</TableHead>
+                      <TableHead>{t('admin.buyers.company')}</TableHead>
+                      <TableHead>{t('admin.buyers.type')}</TableHead>
+                      <TableHead>{t('admin.agents.district')}</TableHead>
+                      <TableHead>{t('admin.buyers.orders')}</TableHead>
+                      <TableHead>{t('admin.buyers.orders')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -103,7 +105,7 @@ const AdminBuyers = () => {
                         <TableCell>
                           <div className="flex items-center gap-1 text-sm">
                             <MapPin className="w-3 h-3" />
-                            {buyer.district || 'Unknown'}
+                            {buyer.district || t('admin.buyers.unknown')}
                           </div>
                         </TableCell>
                         <TableCell>

@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useLanguage } from '@/hooks/useLanguage';
 import { toast } from 'sonner';
 
 export interface AdminUser {
@@ -41,6 +42,7 @@ export const useAdminProfile = () => {
 export const useCreateAdminProfile = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { t } = useLanguage();
   
   return useMutation({
     mutationFn: async (data: Partial<AdminUser>) => {
@@ -64,10 +66,10 @@ export const useCreateAdminProfile = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-profile'] });
-      toast.success('Admin profile created!');
+      toast.success(t('hookToasts.adminDashboard.profileCreated'));
     },
     onError: (error) => {
-      toast.error('Failed to create profile: ' + error.message);
+      toast.error(t('hookToasts.adminDashboard.profileFailed') + ': ' + error.message);
     },
   });
 };
@@ -341,6 +343,7 @@ export const useAllMarketOrders = () => {
 // Update transport request status (admin-only, audit trigger fires on status change)
 export const useUpdateTransportStatus = () => {
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
   
   return useMutation({
     mutationFn: async ({ id, status, transporter_id }: { id: string; status: string; transporter_id?: string }) => {
@@ -364,10 +367,10 @@ export const useUpdateTransportStatus = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-all-transport'] });
-      toast.success('Transport request updated!');
+      toast.success(t('hookToasts.adminDashboard.transportUpdated'));
     },
     onError: (error) => {
-      toast.error('Update failed: ' + error.message);
+      toast.error(t('hookToasts.adminDashboard.transportFailed') + ': ' + error.message);
     },
   });
 };
@@ -375,6 +378,7 @@ export const useUpdateTransportStatus = () => {
 // Update market order status via RPC (state machine + audit trail)
 export const useUpdateOrderStatus = () => {
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
   
   return useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
@@ -389,13 +393,13 @@ export const useUpdateOrderStatus = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-all-orders'] });
-      toast.success('Order status updated!');
+      toast.success(t('hookToasts.adminDashboard.orderUpdated'));
     },
     onError: (error) => {
       if (error.message?.includes('Invalid transition')) {
-        toast.error('This status transition is not allowed');
+        toast.error(t('hookToasts.adminDashboard.transitionNotAllowed'));
       } else {
-        toast.error('Update failed: ' + error.message);
+        toast.error(t('hookToasts.adminDashboard.orderFailed') + ': ' + error.message);
       }
     },
   });

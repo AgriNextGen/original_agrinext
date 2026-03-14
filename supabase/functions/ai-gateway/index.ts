@@ -33,6 +33,9 @@ import {
 import { buildFarmerSystemPrompt, buildFarmerUserPrompt, buildRoleAiSystemPrompt, buildRoleAiUserPrompt } from "../_shared/ai_prompts.ts";
 import { normalizeAssistantOutput, normalizeRoleAiResult, trimText } from "../_shared/ai_response.ts";
 import { generateGeminiText, getGeminiModel } from "../_shared/gemini_client.ts";
+import { generateChatResponse, generateGroundedChatResponse, summarizeConversation, type ChatMessage } from "../_shared/ai_chat.ts";
+import { generateAndStoreVoice } from "../_shared/voice_service.ts";
+import { searchKnowledge } from "../_shared/knowledge_retrieval.ts";
 
 type AuthUser = { id: string; email?: string | null; phone?: string | null };
 
@@ -59,6 +62,7 @@ function respondJson(reqId: string, status: number, body: unknown): Response {
   });
 }
 
+// request_id in error body is intentional for client tracing; do not remove
 function respondError(reqId: string, code: string, message: string, status = 400): Response {
   return respondJson(reqId, status, { error: { code, message, request_id: reqId } });
 }
@@ -550,6 +554,251 @@ async function handleRoleAiRoute(params: {
   });
 }
 
+// ── Chat persistence routes ────────────────────────────────────────────
+
+async function handleChatMessageRoute(params: {
+  reqId: string;
+  body: JsonRecord;
+  userId: string;
+  authToken: string;
+}): Promise<Response> {
+  const message = trimText(params.body.message, 3000);
+  if (!message) {
+    return respondError(params.reqId, "invalid_request", "message is required", 400);
+  }
+
+  const sessionId = typeof params.body.session_id === "string"
+    ? params.body.session_id.trim()
+    : undefined;
+  const contextType = String(params.body.context_type ?? "farmer");
+  const conversation = toConversationTurns(params.body.conversation) as ChatMessage[];
+  const useGrounded = params.body.grounded === true;
+
+  const chatResult = useGrounded
+    ? await generateGroundedChatResponse({
+        userId: params.userId,
+        authToken: params.authToken,
+        message,
+        sessionId,
+        contextType,
+        conversation,
+        uiLanguage: params.body.ui_language,
+        speechLanguage: params.body.language,
+        requestId: params.reqId,
+        role: String(params.body.role ?? "farmer"),
+      })
+    : await generateChatResponse({
+        userId: params.userId,
+        authToken: params.authToken,
+        message,
+        sessionId,
+        contextType,
+        conversation,
+        uiLanguage: params.body.ui_language,
+        speechLanguage: params.body.language,
+        requestId: params.reqId,
+      });
+
+  if (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
+    try {
+      const restBase = `${SUPABASE_URL}/rest/v1`;
+      const headers = {
+        "Content-Type": "application/json",
+        apikey: SUPABASE_SERVICE_ROLE_KEY,
+        Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+      };
+
+      if (!sessionId) {
+        await fetch(`${restBase}/chat_sessions`, {
+          method: "POST",
+          headers: { ...headers, Prefer: "resolution=merge-duplicates" },
+          body: JSON.stringify({
+            id: chatResult.sessionId,
+            user_id: params.userId,
+            context_type: contextType,
+            title: message.slice(0, 80),
+          }),
+        });
+      }
+
+      await fetch(`${restBase}/chat_messages`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify([
+          {
+            session_id: chatResult.sessionId,
+            role: "user",
+            content: message,
+            metadata: { intent: chatResult.intent },
+          },
+          {
+            session_id: chatResult.sessionId,
+            role: "assistant",
+            content: chatResult.reply,
+            metadata: {
+              model: chatResult.model,
+              latency_ms: chatResult.latencyMs,
+              intent: chatResult.intent,
+            },
+          },
+        ]),
+      });
+    } catch (error) {
+      logStructured({
+        request_id: params.reqId,
+        endpoint: "ai-gateway",
+        route: "/chat/message",
+        status: "db_write_error",
+        error: String((error as Error)?.message ?? error),
+      });
+    }
+  }
+
+  let audioUrl: string | undefined;
+  if (params.body.voice_response === true && chatResult.reply) {
+    try {
+      const voiceResult = await generateAndStoreVoice({
+        text: chatResult.reply,
+        userId: params.userId,
+        languageCode: chatResult.responseLanguage === "kn" ? "kn-IN" : "en-IN",
+        sessionId: chatResult.sessionId,
+        requestId: params.reqId,
+      });
+      audioUrl = voiceResult.audio_url || undefined;
+    } catch (voiceError) {
+      logStructured({
+        request_id: params.reqId,
+        endpoint: "ai-gateway",
+        route: "/chat/message",
+        status: "voice_generation_failed",
+        error: String((voiceError as Error)?.message ?? voiceError),
+      });
+    }
+  }
+
+  const responsePayload: Record<string, unknown> = {
+    reply: chatResult.reply,
+    suggestions: chatResult.suggestions,
+    session_id: chatResult.sessionId,
+    metadata: {
+      intent: chatResult.intent,
+      model: chatResult.model,
+      responseLanguage: chatResult.responseLanguage,
+      personalized: chatResult.contextBundle?.personalized ?? false,
+      sources: chatResult.contextBundle?.sources ?? {},
+      latency_ms: chatResult.latencyMs,
+      request_id: params.reqId,
+    },
+  };
+  if (audioUrl) {
+    responsePayload.audio_url = audioUrl;
+  }
+  if (useGrounded && "grounding" in chatResult) {
+    const gr = (chatResult as Record<string, unknown>).grounding as Record<string, unknown>;
+    responsePayload.grounding = {
+      confidence: gr.groundingConfidence,
+      source_count: gr.sourceCount,
+      guardrail_flags: gr.guardrailFlags,
+      advisory_type: gr.advisoryType,
+      disclaimer_applied: gr.disclaimerApplied,
+    };
+  }
+
+  return respondJson(params.reqId, 200, responsePayload);
+}
+
+async function handleChatSummarizeRoute(params: {
+  reqId: string;
+  body: JsonRecord;
+  userId: string;
+}): Promise<Response> {
+  const sessionId = typeof params.body.session_id === "string"
+    ? params.body.session_id.trim()
+    : "";
+  if (!sessionId) {
+    return respondError(params.reqId, "invalid_request", "session_id is required", 400);
+  }
+
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    return respondError(params.reqId, "service_unavailable", "Database not configured", 503);
+  }
+
+  const restBase = `${SUPABASE_URL}/rest/v1`;
+  const headers = {
+    apikey: SUPABASE_SERVICE_ROLE_KEY,
+    Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+  };
+
+  const sessRes = await fetch(
+    `${restBase}/chat_sessions?id=eq.${sessionId}&user_id=eq.${params.userId}&select=id`,
+    { headers },
+  );
+  if (!sessRes.ok) {
+    return respondError(params.reqId, "not_found", "Session not found", 404);
+  }
+  const sessions = await sessRes.json();
+  if (!Array.isArray(sessions) || sessions.length === 0) {
+    return respondError(params.reqId, "not_found", "Session not found or not owned by user", 404);
+  }
+
+  const msgsRes = await fetch(
+    `${restBase}/chat_messages?session_id=eq.${sessionId}&select=role,content&order=created_at.asc&limit=50`,
+    { headers },
+  );
+  const messages: ChatMessage[] = msgsRes.ok
+    ? ((await msgsRes.json()) as ChatMessage[])
+    : [];
+
+  const summary = await summarizeConversation(messages);
+
+  await fetch(`${restBase}/chat_sessions?id=eq.${sessionId}`, {
+    method: "PATCH",
+    headers: { ...headers, "Content-Type": "application/json" },
+    body: JSON.stringify({ title: summary.title }),
+  });
+
+  return respondJson(params.reqId, 200, {
+    session_id: sessionId,
+    title: summary.title,
+    summary: summary.summary,
+  });
+}
+
+async function handleVoiceGenerateRoute(params: {
+  reqId: string;
+  body: JsonRecord;
+  userId: string;
+}): Promise<Response> {
+  const text = trimText(params.body.text, 1600);
+  if (!text) {
+    return respondError(params.reqId, "invalid_request", "text is required", 400);
+  }
+
+  const languageCode = String(params.body.language_code ?? params.body.language ?? "en-IN");
+  const voiceRole = String(params.body.voice_role ?? "assistant");
+
+  const result = await generateAndStoreVoice({
+    text,
+    userId: params.userId,
+    languageCode,
+    voiceRole,
+    voiceId: typeof params.body.voice_id === "string" ? params.body.voice_id : undefined,
+    sessionId: typeof params.body.session_id === "string" ? params.body.session_id : undefined,
+    requestId: params.reqId,
+  });
+
+  return respondJson(params.reqId, 200, {
+    audio_url: result.audio_url,
+    text,
+    metadata: {
+      voice_id: result.voice_id,
+      language_code: result.language_code,
+      duration_ms: result.duration_ms,
+      request_id: params.reqId,
+    },
+  });
+}
+
 function mapErrorToResponse(reqId: string, error: unknown): Response {
   if (error instanceof EnvError) {
     return respondError(reqId, "missing_secret", `Required secret ${error.secret} is not set`, 500);
@@ -610,6 +859,50 @@ Deno.serve(async (req: Request) => {
         body,
         userId: user.id,
         authToken: token,
+      });
+    } else if (route === "/chat/message") {
+      response = await handleChatMessageRoute({
+        reqId,
+        body,
+        userId: user.id,
+        authToken: token,
+      });
+    } else if (route === "/voice/generate") {
+      response = await handleVoiceGenerateRoute({
+        reqId,
+        body,
+        userId: user.id,
+      });
+    } else if (route === "/knowledge/query") {
+      const query = trimText(body.query, 2000);
+      if (!query) {
+        response = respondError(reqId, "invalid_request", "query is required", 400);
+      } else {
+        const results = await searchKnowledge(query, {
+          language: typeof body.language === "string" ? body.language : undefined,
+          minTrustLevel: typeof body.min_trust_level === "number" ? body.min_trust_level : undefined,
+          maxResults: typeof body.max_results === "number" ? Math.min(body.max_results, 10) : 5,
+          threshold: typeof body.threshold === "number" ? body.threshold : 0.7,
+          requestId: reqId,
+        });
+        response = respondJson(reqId, 200, {
+          query,
+          results: results.map((r) => ({
+            chunk_id: r.chunkId,
+            content: r.content,
+            similarity: r.similarity,
+            document_title: r.documentTitle,
+            source_name: r.sourceName,
+            trust_level: r.trustLevel,
+          })),
+          total: results.length,
+        });
+      }
+    } else if (route === "/chat/summarize") {
+      response = await handleChatSummarizeRoute({
+        reqId,
+        body,
+        userId: user.id,
       });
     } else if (route === "/agent-ai" || route === "/transport-ai" || route === "/marketplace-ai") {
       response = await handleRoleAiRoute({

@@ -21,6 +21,7 @@ import {
 import KpiCard from '@/components/dashboard/KpiCard';
 import { useAdminDashboardStats } from '@/hooks/useAdminDashboard';
 import { supabase } from '@/integrations/supabase/client';
+import { useLanguage } from '@/hooks/useLanguage';
 import { toast } from 'sonner';
 
 interface AIModule {
@@ -68,6 +69,7 @@ const aiModules: AIModule[] = [
 ];
 
 const AIConsole = () => {
+  const { t } = useLanguage();
   const { data: stats, isLoading: statsLoading } = useAdminDashboardStats();
   const [loading, setLoading] = useState<string | null>(null);
   const [results, setResults] = useState<Record<string, { text: string; timestamp: string }>>({});
@@ -92,20 +94,20 @@ const AIConsole = () => {
         },
       }));
       
-      toast.success(`${module.title} analysis complete!`);
+      toast.success(`${module.title} - ${t('admin.aiConsolePage.response')}`);
     } catch (error) {
       if (import.meta.env.DEV) console.error('AI error:', error);
-      toast.error('Failed to generate AI analysis');
+      toast.error(t('admin.aiConsolePage.noResponse'));
     } finally {
       setLoading(null);
     }
   };
 
   return (
-    <DashboardLayout title="AI Command Console">
+    <DashboardLayout title={t('admin.aiConsolePage.title')}>
       <PageShell
-        title="AI Command Console"
-        subtitle="Generate AI-powered analytics and insights for the entire Agri Mitra ecosystem"
+        title={t('admin.aiConsolePage.title')}
+        subtitle={t('admin.aiConsolePage.subtitle')}
       >
         {/* AI Modules Grid */}
         <div className="grid md:grid-cols-2 gap-6">
@@ -129,12 +131,12 @@ const AIConsole = () => {
                   {loading === module.id ? (
                     <>
                       <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                      Analyzing...
+                      {t('admin.aiConsolePage.sending')}
                     </>
                   ) : (
                     <>
                       <Brain className="w-4 h-4 mr-2" />
-                      Generate Report
+                      {t('admin.aiConsolePage.send')}
                     </>
                   )}
                 </Button>
@@ -160,7 +162,7 @@ const AIConsole = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="w-5 h-5" />
-              Current Ecosystem Data
+              {t('admin.aiConsolePage.response')}
             </CardTitle>
           </CardHeader>
           <CardContent>

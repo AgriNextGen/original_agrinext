@@ -8,6 +8,7 @@ import { Search, MapPin, Calendar, Inbox } from 'lucide-react';
 import EmptyState from '@/components/shared/EmptyState';
 import { useAllCrops } from '@/hooks/useAdminDashboard';
 import { useState } from 'react';
+import { useLanguage } from '@/hooks/useLanguage';
 import {
   Table,
   TableBody,
@@ -19,6 +20,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const AdminCrops = () => {
+  const { t } = useLanguage();
   const { data: crops, isLoading } = useAllCrops();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -55,15 +57,15 @@ const AdminCrops = () => {
   };
 
   return (
-    <DashboardLayout title="Crop Monitoring">
+    <DashboardLayout title={t('admin.crops.title')}>
       <PageShell
-        title="Crop Monitoring"
-        subtitle="Complete crop ecosystem overview"
+        title={t('admin.crops.title')}
+        subtitle={t('admin.crops.subtitle')}
         actions={
           <div className="flex gap-2">
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-40">
-                <SelectValue placeholder="Filter status" />
+                <SelectValue placeholder={t('admin.crops.status')} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
@@ -76,7 +78,7 @@ const AdminCrops = () => {
             <div className="relative w-full md:w-64">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="Search crops..."
+                placeholder={t('admin.crops.search')}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-9"
@@ -87,7 +89,7 @@ const AdminCrops = () => {
       >
         <Card>
           <CardHeader>
-            <CardTitle>All Crops ({filteredCrops.length})</CardTitle>
+            <CardTitle>{t('admin.crops.allCrops')} ({filteredCrops.length})</CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -97,18 +99,18 @@ const AdminCrops = () => {
                 ))}
               </div>
             ) : filteredCrops.length === 0 ? (
-              <EmptyState icon={Inbox} title="No crops found" />
+              <EmptyState icon={Inbox} title={t('admin.crops.noCrops')} />
             ) : (
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Crop</TableHead>
-                      <TableHead>Farmer</TableHead>
-                      <TableHead>Location</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Quantity</TableHead>
-                      <TableHead>Harvest Date</TableHead>
+                      <TableHead>{t('admin.crops.crop')}</TableHead>
+                      <TableHead>{t('admin.crops.farmer')}</TableHead>
+                      <TableHead>{t('admin.farmers.location')}</TableHead>
+                      <TableHead>{t('admin.crops.status')}</TableHead>
+                      <TableHead>{t('admin.crops.quantity')}</TableHead>
+                      <TableHead>{t('admin.crops.harvestDate')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -124,11 +126,11 @@ const AdminCrops = () => {
                             )}
                           </div>
                         </TableCell>
-                        <TableCell>{crop.farmer?.full_name || 'Unknown'}</TableCell>
+                        <TableCell>{crop.farmer?.full_name || t('admin.farmers.unknown')}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1 text-sm">
                             <MapPin className="w-3 h-3" />
-                            {crop.farmer?.village || crop.land?.village || 'Unknown'}
+                            {crop.farmer?.village || crop.land?.village || t('admin.farmers.unknown')}
                           </div>
                         </TableCell>
                         <TableCell>

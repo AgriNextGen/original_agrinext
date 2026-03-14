@@ -62,15 +62,19 @@ const DataHealthPage = () => {
       if (error) throw error;
 
       if (data?.success) {
-        toast.success(`Sync complete! Success: ${data.results?.success || 0}, Raw: ${data.results?.raw_records_inserted || 0}`);
+        toast.success(
+          t('admin.syncCompleteDetail')
+            .replace('{success}', String(data.results?.success || 0))
+            .replace('{raw}', String(data.results?.raw_records_inserted || 0))
+        );
         refetchSources();
         refetchSegments();
         refetchLogs();
       } else {
-        toast.error(data?.error || 'Sync failed');
+        toast.error(data?.error || t('admin.syncFailed'));
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to run sync');
+      toast.error(err instanceof Error ? err.message : t('admin.syncFailed'));
     } finally {
       setIsRunningCrawl(false);
     }
@@ -86,13 +90,15 @@ const DataHealthPage = () => {
       if (error) throw error;
 
       if (data?.success) {
-        toast.success(`Segments rebuilt: ${data.segments_created}`);
+        toast.success(
+          t('admin.segmentsRebuilt').replace('{count}', String(data.segments_created))
+        );
         refetchSegments();
       } else {
-        toast.error(data?.error || 'Rebuild failed');
+        toast.error(data?.error || t('admin.rebuildFailed'));
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to rebuild segments');
+      toast.error(err instanceof Error ? err.message : t('admin.rebuildFailed'));
     }
   };
 

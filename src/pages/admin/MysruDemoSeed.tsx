@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
+import { useLanguage } from '@/hooks/useLanguage';
 import { toast } from "sonner";
 import { 
   Loader2, Database, CheckCircle, Users, Truck, ShoppingBag, Shield, Leaf, 
@@ -33,6 +34,7 @@ interface ResetResult {
 }
 
 export default function MysuruDemoSeed() {
+  const { t } = useLanguage();
   const [isSeeding, setIsSeeding] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [result, setResult] = useState<SeedResult | null>(null);
@@ -54,14 +56,14 @@ export default function MysuruDemoSeed() {
 
       if (data?.success) {
         setResult(data);
-        toast.success("Mysuru Demo Ecosystem generated successfully!");
+        toast.success(t('admin.mysruDemo.success'));
       } else {
-        throw new Error(data?.error || "Failed to generate demo data");
+        throw new Error(data?.error || t('admin.mysruDemo.failed'));
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error occurred";
       setError(message);
-      toast.error("Failed to generate demo: " + message);
+      toast.error(t('admin.mysruDemo.failed') + ': ' + message);
     } finally {
       setIsSeeding(false);
     }
@@ -86,14 +88,14 @@ export default function MysuruDemoSeed() {
 
       if (data?.success) {
         setResetResult(data);
-        toast.success("Mysuru Demo Ecosystem reset successfully!");
+        toast.success(t('admin.mysruDemo.success'));
       } else {
-        throw new Error(data?.error || "Failed to reset demo data");
+        throw new Error(data?.error || t('admin.mysruDemo.failed'));
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error occurred";
       setError(message);
-      toast.error("Failed to reset demo: " + message);
+      toast.error(t('admin.mysruDemo.failed') + ': ' + message);
     } finally {
       setIsResetting(false);
     }
@@ -101,7 +103,7 @@ export default function MysuruDemoSeed() {
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    toast.success("Copied to clipboard!");
+    toast.success(t('toast.copiedToClipboard'));
   };
 
   const getRoleIcon = (role: string) => {
@@ -120,7 +122,7 @@ export default function MysuruDemoSeed() {
   };
 
   return (
-    <DashboardLayout title="Mysuru Demo Ecosystem">
+    <DashboardLayout title={t('admin.mysruDemo.title')}>
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Header Card */}
         <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-transparent">
@@ -130,9 +132,9 @@ export default function MysuruDemoSeed() {
                 <MapPin className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <CardTitle>Mysuru Demo Ecosystem v2</CardTitle>
+                <CardTitle>{t('admin.mysruDemo.title')}</CardTitle>
                 <CardDescription>
-                  Complete demo environment with Hullahalli Hobli focus, scoped admins, escalations & disputes
+                  {t('admin.mysruDemo.subtitle')}
                 </CardDescription>
               </div>
             </div>
@@ -176,12 +178,12 @@ export default function MysuruDemoSeed() {
                 {isSeeding ? (
                   <>
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Generating Demo...
+                    {t('admin.mysruDemo.creating')}
                   </>
                 ) : (
                   <>
                     <Database className="mr-2 h-5 w-5" />
-                    Generate Mysuru Demo Ecosystem
+                    {t('admin.mysruDemo.createDemoData')}
                   </>
                 )}
               </Button>
@@ -196,12 +198,12 @@ export default function MysuruDemoSeed() {
                 {isResetting ? (
                   <>
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Resetting...
+                    {t('admin.mysruDemo.creating')}
                   </>
                 ) : (
                   <>
                     <RefreshCw className="mr-2 h-5 w-5" />
-                    Reset Demo
+                    {t('admin.mysruDemo.createDemoData')}
                   </>
                 )}
               </Button>
@@ -277,7 +279,7 @@ export default function MysuruDemoSeed() {
             {/* Credentials Table */}
             <Card>
               <CardHeader>
-                <CardTitle>Demo Credentials</CardTitle>
+                <CardTitle>{t('admin.mysruDemo.title')}</CardTitle>
                 <CardDescription>
                   Use these credentials to test each dashboard. Password for all: <code className="bg-muted px-2 py-1 rounded">Demo@12345</code>
                 </CardDescription>

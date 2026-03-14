@@ -34,6 +34,7 @@ import {
 } from '@/components/ui/select';
 import { getErrorMessage } from '@/lib/error-utils';
 import { toast } from 'sonner';
+import { Skeleton } from '@/components/ui/skeleton';
 import PageShell from '@/components/layout/PageShell';
 import DataState from '@/components/ui/DataState';
 
@@ -78,9 +79,9 @@ const AvailableLoads = () => {
             const message = getErrorMessage(error);
             // Check for "already assigned" errors
             if (message.toLowerCase().includes('already') || message.includes('ALREADY_ASSIGNED')) {
-              toast.error('This load has already been accepted by another transporter');
+              toast.error(t('errors.loadAlreadyAccepted'));
             } else {
-              toast.error(`Failed to accept load: ${message}`);
+              toast.error(t('errors.acceptLoadFailed'));
             }
           },
         }
@@ -89,14 +90,43 @@ const AvailableLoads = () => {
   };
 
   if (isLoading) {
-    return <DashboardLayout title="Available Loads"><DataState loading><></></DataState></DashboardLayout>;
+    return (
+      <DashboardLayout title={t('logistics.availableLoads')}>
+        <PageShell title={t('logistics.availableLoads')}>
+          <Card>
+            <CardContent className="p-4">
+              <Skeleton className="h-10 w-full" />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-6 w-32" />
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex items-center gap-4 py-3">
+                  <Skeleton className="h-10 w-10 rounded-full" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-28" />
+                    <Skeleton className="h-3 w-20" />
+                  </div>
+                  <Skeleton className="h-4 w-16" />
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-8 w-20 rounded-md" />
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </PageShell>
+      </DashboardLayout>
+    );
   }
 
   return (
-    <DashboardLayout title="Available Loads">
+    <DashboardLayout title={t('logistics.availableLoads')}>
       <PageShell
-        title="Available Loads"
-        subtitle={`${filteredLoads?.length || 0} loads waiting for pickup`}
+        title={t('logistics.availableLoads')}
+        subtitle={`${filteredLoads?.length || 0} ${t('logistics.loadsWaiting')}`}
       >
 
       {/* Search */}
@@ -105,7 +135,7 @@ const AvailableLoads = () => {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by farmer, crop, or village..."
+              placeholder={t('logistics.searchLoads')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -119,25 +149,25 @@ const AvailableLoads = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Package className="h-5 w-5 text-amber-600" />
-            Load Requests
+            {t('logistics.loadRequests')}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <DataState
             empty={!filteredLoads || filteredLoads.length === 0}
-            emptyTitle="No available loads found"
-            emptyMessage="Check back later for new transport requests."
+            emptyTitle={t('logistics.noLoadsFound')}
+            emptyMessage={t('logistics.checkBackLater')}
           >
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Farmer</TableHead>
-                    <TableHead>Crop</TableHead>
-                    <TableHead>Quantity</TableHead>
-                    <TableHead>Pickup Location</TableHead>
-                    <TableHead>Preferred Date</TableHead>
-                    <TableHead className="text-right">Action</TableHead>
+                    <TableHead>{t('logistics.farmer')}</TableHead>
+                    <TableHead>{t('logistics.crop')}</TableHead>
+                    <TableHead>{t('logistics.quantity')}</TableHead>
+                    <TableHead>{t('logistics.pickupLocation')}</TableHead>
+                    <TableHead>{t('logistics.preferredDate')}</TableHead>
+                    <TableHead className="text-right">{t('logistics.action')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -147,14 +177,14 @@ const AvailableLoads = () => {
                         <div className="flex items-center gap-2">
                           <User className="h-4 w-4 text-muted-foreground" />
                           <div>
-                            <p className="font-medium">{load.farmer?.full_name || 'Unknown'}</p>
+                            <p className="font-medium">{load.farmer?.full_name || t('common.unknown')}</p>
                             <p className="text-xs text-muted-foreground">{load.farmer?.phone}</p>
                           </div>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div>
-                          <p className="font-medium">{load.crop?.crop_name || 'N/A'}</p>
+                          <p className="font-medium">{load.crop?.crop_name || t('common.notAvailable')}</p>
                           {load.crop?.variety && (
                             <p className="text-xs text-muted-foreground">{load.crop.variety}</p>
                           )}
@@ -181,7 +211,7 @@ const AvailableLoads = () => {
                             )}
                           </div>
                         ) : (
-                          <span className="text-muted-foreground">Flexible</span>
+                          <span className="text-muted-foreground">{t('common.flexible')}</span>
                         )}
                       </TableCell>
                       <TableCell className="text-right">
@@ -195,7 +225,7 @@ const AvailableLoads = () => {
                           ) : (
                             <Check className="h-4 w-4 mr-1" />
                           )}
-                          Accept
+                          {t('common.accept')}
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -220,19 +250,19 @@ const AvailableLoads = () => {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Accept Load</DialogTitle>
+            <DialogTitle>{t('logistics.acceptLoad')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <p className="text-muted-foreground">
-              You are about to accept this load. Once accepted, it will appear in your Active Trips.
+              {t('logistics.aboutToAccept')}
             </p>
             
             {vehicles && vehicles.length > 0 && (
               <div className="space-y-2">
-                <label className="text-sm font-medium">Assign Vehicle (Optional)</label>
+                <label className="text-sm font-medium">{t('logistics.assignVehicle')}</label>
                 <Select value={selectedVehicle} onValueChange={setSelectedVehicle}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a vehicle" />
+                    <SelectValue placeholder={t('logistics.selectVehicle')} />
                   </SelectTrigger>
                   <SelectContent>
                     {vehicles.map((vehicle) => (
@@ -248,18 +278,18 @@ const AvailableLoads = () => {
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDialogOpen(false)} disabled={acceptLoad.isPending}>
               <X className="h-4 w-4 mr-1" />
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button onClick={handleConfirmAccept} disabled={acceptLoad.isPending}>
               {acceptLoad.isPending ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                  Accepting...
+                  {t('logistics.accepting')}
                 </>
               ) : (
                 <>
                   <Check className="h-4 w-4 mr-1" />
-                  Confirm Accept
+                  {t('logistics.confirmAccept')}
                 </>
               )}
             </Button>

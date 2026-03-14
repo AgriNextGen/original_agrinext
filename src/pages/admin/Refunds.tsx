@@ -5,8 +5,10 @@ import { rpcJson } from '@/lib/readApi';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useLanguage } from '@/hooks/useLanguage';
 
 export default function Refunds() {
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   const { data: refunds = [], isLoading } = useQuery({
     queryKey: ['admin', 'refunds'],
@@ -31,8 +33,8 @@ export default function Refunds() {
 
   if (isLoading) {
     return (
-      <DashboardLayout title="Refunds">
-        <PageShell title="Refund Requests" subtitle="Approve or reject refund requests">
+      <DashboardLayout title={t('admin.refunds.title')}>
+        <PageShell title={t('admin.refunds.title')} subtitle={t('admin.refunds.subtitle')}>
           <div className="space-y-3">
             {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-20 w-full" />)}
           </div>
@@ -42,15 +44,15 @@ export default function Refunds() {
   }
 
   return (
-    <DashboardLayout title="Refunds">
-      <PageShell title="Refund Requests" subtitle="Approve or reject refund requests">
+    <DashboardLayout title={t('admin.refunds.title')}>
+      <PageShell title={t('admin.refunds.title')} subtitle={t('admin.refunds.subtitle')}>
         <div className="space-y-3">
           {refunds.map((r) => (
             <Card key={r.id}>
               <CardContent className="flex items-center justify-between">
                 <div>
-                  <div className="font-medium">Order: {r.order_id}</div>
-                  <div className="text-sm text-muted-foreground">Amount: ₹{r.amount} • Status: {r.status}</div>
+                  <div className="font-medium">{t('admin.refunds.order')}: {r.order_id}</div>
+                  <div className="text-sm text-muted-foreground">{t('admin.refunds.amount')}: ₹{r.amount} • {t('admin.refunds.status')}: {r.status}</div>
                 </div>
                 <div className="flex gap-2">
                   <Button onClick={() => approve(r.id)}>Approve</Button>

@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { useLanguage } from '@/hooks/useLanguage';
 import { toast } from 'sonner';
 
 // Safe fields that agents can directly update on farmer profiles
@@ -13,6 +14,7 @@ const SENSITIVE_FIELDS = ['total_land_area', 'district'] as const;
 export const useAgentQuickUpdate = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async ({
@@ -61,11 +63,11 @@ export const useAgentQuickUpdate = () => {
       queryClient.invalidateQueries({ queryKey: ['agent-farmer-detail', variables.farmerId] });
       queryClient.invalidateQueries({ queryKey: ['assigned-farmers'] });
       queryClient.invalidateQueries({ queryKey: ['all-farmers'] });
-      toast.success('Farmer profile updated');
+      toast.success(t('hookToasts.agentQuickUpdate.profileUpdated'));
     },
     onError: (error) => {
       if (import.meta.env.DEV) console.error('Quick update error:', error);
-      toast.error('Failed to update farmer profile');
+      toast.error(t('hookToasts.agentQuickUpdate.profileUpdateFailed'));
     },
   });
 };
@@ -74,6 +76,7 @@ export const useAgentQuickUpdate = () => {
 export const useCreateSensitiveUpdateTask = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async ({
@@ -108,11 +111,11 @@ export const useCreateSensitiveUpdateTask = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['agent-tasks'] });
-      toast.success('Update request submitted for admin approval');
+      toast.success(t('hookToasts.agentQuickUpdate.approvalSubmitted'));
     },
     onError: (error) => {
       if (import.meta.env.DEV) console.error('Sensitive update error:', error);
-      toast.error('Failed to create update request');
+      toast.error(t('hookToasts.agentQuickUpdate.approvalFailed'));
     },
   });
 };

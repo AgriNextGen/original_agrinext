@@ -20,13 +20,13 @@ export async function placeOrder(
 }
 
 export async function confirmOrder(orderId: string): Promise<ApiResponse> {
-  const { data, error } = await supabase.rpc('confirm_order_v1', { p_order_id: orderId } as any);
+  const { data, error } = await supabase.rpc('farmer_confirm_order_v1', { p_order_id: orderId } as any);
   if (error) return { success: false, error: error.message };
   return { success: true, data: data as any };
 }
 
 export async function rejectOrder(orderId: string, reason: string): Promise<ApiResponse> {
-  const { data, error } = await supabase.rpc('reject_order_v1', { p_order_id: orderId, p_reason: reason } as any);
+  const { data, error } = await supabase.rpc('farmer_reject_order_v1', { p_order_id: orderId, p_reason: reason } as any);
   if (error) return { success: false, error: error.message };
   return { success: true, data: data as any };
 }

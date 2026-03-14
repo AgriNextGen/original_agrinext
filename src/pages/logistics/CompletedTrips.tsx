@@ -12,22 +12,42 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { CheckCircle2, MapPin, Calendar, Package } from 'lucide-react';
+import { CheckCircle2, MapPin, Calendar, Package, RotateCcw, DollarSign } from 'lucide-react';
 import EmptyState from '@/components/shared/EmptyState';
 import { useTrips } from '@/hooks/useTrips';
+import { useCompletedUnifiedTrips } from '@/hooks/useUnifiedLogistics';
 import { format, parseISO } from 'date-fns';
 import { useLanguage } from '@/hooks/useLanguage';
+import TripCard from '@/components/logistics/TripCard';
+import { useNavigate } from 'react-router-dom';
+import { ROUTES } from '@/lib/routes';
 
 const CompletedTrips = () => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const { data: trips, isLoading } = useTrips(['delivered', 'completed']);
+  const { data: completedUnified } = useCompletedUnifiedTrips();
 
   if (isLoading) {
     return (
       <DashboardLayout title={t('logistics.completedTrips')}>
         <PageShell title={t('logistics.completedTrips')}>
-          <Skeleton className="h-10 w-48" />
-          <Skeleton className="h-96 w-full" />
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-6 w-48" />
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex items-center gap-4 py-3">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-4 w-20" />
+                  <Skeleton className="h-6 w-16 rounded-full" />
+                  <Skeleton className="h-4 w-28" />
+                  <Skeleton className="h-4 w-24" />
+                </div>
+              ))}
+            </CardContent>
+          </Card>
         </PageShell>
       </DashboardLayout>
     );
@@ -119,6 +139,24 @@ const CompletedTrips = () => {
           <KpiCard label={t('logistics.totalQuintals')} value={trips.reduce((acc, trip) => acc + (trip.transport_request?.quantity || 0), 0)} icon={Package} priority="primary" />
           <KpiCard label={t('logistics.totalDistanceKm')} value={trips.reduce((acc, trip) => acc + ((trip as any).distance_km || 0), 0)} icon={MapPin} priority="info" />
           <KpiCard label={t('logistics.farmersServed')} value={new Set(trips.map((trip) => trip.transport_request?.farmer_id).filter(Boolean)).size} icon={Package} priority="warning" />
+        </div>
+      )}
+
+      {completedUnified && completedUnified.length > 0 && (
+        <div className="mt-6">
+          <h3 className="text-lg font-semibold flex items-center gap-2 mb-3">
+            <CheckCircle2 className="h-5 w-5 text-green-600" />
+            {t('logistics.unifiedCompletedTrips')}
+          </h3>
+          <div className="space-y-3">
+            {completedUnified.map((trip) => (
+              <TripCard
+                key={trip.id}
+                trip={trip}
+                onViewDetail={(id) => navigate(ROUTES.LOGISTICS.UNIFIED_TRIP_DETAIL(id))}
+              />
+            ))}
+          </div>
         </div>
       )}
       </PageShell>

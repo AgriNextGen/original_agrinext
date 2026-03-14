@@ -16,6 +16,7 @@ import {
   CheckCircle2
 } from "lucide-react";
 import { toast } from "sonner";
+import { useLanguage } from "@/hooks/useLanguage";
 
 const contactInfo = [
   { 
@@ -39,6 +40,7 @@ const contactInfo = [
 ];
 
 const Contact = () => {
+  const { t } = useLanguage();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -53,7 +55,7 @@ const Contact = () => {
     e.preventDefault();
     
     if (!formData.name || !formData.email || !formData.message) {
-      toast.error("Please fill in all required fields");
+      toast.error(t('validation.fillRequired'));
       return;
     }
 
@@ -64,7 +66,7 @@ const Contact = () => {
     
     setIsLoading(false);
     setIsSubmitted(true);
-    toast.success("Message sent successfully! We'll get back to you soon.");
+    toast.success(t('toast.messageSentSuccess'));
     
     setFormData({
       name: "",

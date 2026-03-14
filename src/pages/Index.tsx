@@ -1,16 +1,14 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import ProblemSection from "@/components/ProblemSection";
 import PlatformSection from "@/components/PlatformSection";
-import ArchitectureSection from "@/components/ArchitectureSection";
+import RoleValueSection from "@/components/RoleValueSection";
 import WorkflowSection from "@/components/WorkflowSection";
-import IntelligenceSection from "@/components/IntelligenceSection";
-import DefensibilitySection from "@/components/DefensibilitySection";
+import TrustBanner from "@/components/TrustBanner";
 import ImpactSection from "@/components/ImpactSection";
-import PilotSection from "@/components/PilotSection";
-import VisionSection from "@/components/VisionSection";
 import CTASection from "@/components/CTASection";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/hooks/useAuth";
@@ -54,13 +52,10 @@ const Index = () => {
         <HeroSection />
         <ProblemSection />
         <PlatformSection />
-        <ArchitectureSection />
+        <RoleValueSection />
         <WorkflowSection />
-        <IntelligenceSection />
-        <DefensibilitySection />
+        <TrustBanner />
         <ImpactSection />
-        <PilotSection />
-        <VisionSection />
         <CTASection />
       </main>
       <Footer />

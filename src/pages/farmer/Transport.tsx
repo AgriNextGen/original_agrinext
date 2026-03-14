@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { useTransportRequests, useCrops, useFarmlands } from '@/hooks/useFarmerDashboard';
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/hooks/useLanguage';
-import { supabase } from '@/integrations/supabase/client';
+import { useCreateTransportRequest, useCancelTransportRequest } from '@/hooks/useFarmerTransportMutations';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -32,7 +31,8 @@ const TransportPage = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { t } = useLanguage();
-  const queryClient = useQueryClient();
+  const createTransportRequest = useCreateTransportRequest();
+  const cancelTransportRequest = useCancelTransportRequest();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -55,13 +55,13 @@ const TransportPage = () => {
   });
 
   const statusConfig: Record<string, { label: string; color: string; icon: typeof Clock }> = {
-    open: { label: t('enum.transport_status.open') || 'Open', color: TRANSPORT_STATUS_COLORS.open, icon: Clock },
-    requested: { label: t('enum.transport_status.requested'), color: TRANSPORT_STATUS_COLORS.requested, icon: Clock },
-    assigned: { label: t('enum.transport_status.assigned'), color: TRANSPORT_STATUS_COLORS.assigned, icon: Truck },
-    accepted: { label: t('enum.transport_status.accepted') || 'Accepted', color: TRANSPORT_STATUS_COLORS.accepted, icon: Truck },
-    in_progress: { label: t('enum.transport_status.in_progress') || 'In Progress', color: TRANSPORT_STATUS_COLORS.in_progress, icon: Truck },
-    completed: { label: t('enum.transport_status.completed') || 'Completed', color: TRANSPORT_STATUS_COLORS.completed, icon: CheckCircle2 },
-    cancelled: { label: t('enum.transport_status.cancelled'), color: TRANSPORT_STATUS_COLORS.cancelled, icon: XCircle },
+    open: { label: t('transport.requested'), color: TRANSPORT_STATUS_COLORS.open, icon: Clock },
+    requested: { label: t('transport.requested'), color: TRANSPORT_STATUS_COLORS.requested, icon: Clock },
+    assigned: { label: t('transport.assigned'), color: TRANSPORT_STATUS_COLORS.assigned, icon: Truck },
+    accepted: { label: t('transport.assigned'), color: TRANSPORT_STATUS_COLORS.accepted, icon: Truck },
+    in_progress: { label: t('transport.inTransit'), color: TRANSPORT_STATUS_COLORS.in_progress, icon: Truck },
+    completed: { label: t('transport.completed'), color: TRANSPORT_STATUS_COLORS.completed, icon: CheckCircle2 },
+    cancelled: { label: t('transport.cancelled'), color: TRANSPORT_STATUS_COLORS.cancelled, icon: XCircle },
   };
 
   const filteredRequests = requests?.filter(req => 
@@ -94,8 +94,7 @@ const TransportPage = () => {
     setIsSubmitting(true);
 
     try {
-      const { error } = await supabase.from('transport_requests').insert({
-        farmer_id: user.id,
+      await createTransportRequest.mutateAsync({
         crop_id: formData.crop_id || null,
         quantity: parseFloat(formData.quantity),
         quantity_unit: formData.quantity_unit,
@@ -107,8 +106,6 @@ const TransportPage = () => {
         origin_district_id: formData.origin_district_id || null,
         dest_district_id: formData.dest_district_id || null,
       });
-
-      if (error) throw error;
 
       toast({ title: t('common.success'), description: t('farmer.transport.requestSuccess') });
       setIsDialogOpen(false);
@@ -124,7 +121,6 @@ const TransportPage = () => {
         origin_district_id: '',
         dest_district_id: '',
       });
-      queryClient.invalidateQueries({ queryKey: ['transport-requests', user.id] });
     } catch (error) {
       const message = error instanceof Error ? error.message : t('common.error');
       toast({ title: t('common.error'), description: message, variant: 'destructive' });
@@ -143,14 +139,8 @@ const TransportPage = () => {
     
     setIsCancelling(true);
     try {
-      const { data, error } = await supabase.rpc('cancel_transport_request_v1', {
-        p_request_id: cancellingRequest.id,
-      } as any);
-      if (error) throw error;
-      const result = data as { success: boolean; error_code?: string };
-      if (!result.success) throw new Error('This request has already been assigned and cannot be cancelled');
+      await cancelTransportRequest.mutateAsync(cancellingRequest.id);
       toast({ title: t('farmer.transport.cancelled'), description: t('farmer.transport.cancelSuccess') });
-      queryClient.invalidateQueries({ queryKey: ['transport-requests', user?.id] });
       setCancelConfirmOpen(false);
       setCancellingRequest(null);
     } catch (error) {
@@ -164,9 +154,9 @@ const TransportPage = () => {
   const filterButtons = [
     { value: 'all', label: t('common.all'), count: requests?.length },
     { value: 'requested', label: t('farmer.transport.pending'), count: requests?.filter(r => r.status === 'requested').length },
-    { value: 'assigned', label: t('enum.transport_status.assigned'), count: requests?.filter(r => r.status === 'assigned').length },
-    { value: 'in_progress', label: t('enum.transport_status.in_progress') || 'In Progress', count: requests?.filter(r => r.status === 'in_progress').length },
-    { value: 'completed', label: t('enum.transport_status.completed') || 'Completed', count: completedCount },
+    { value: 'assigned', label: t('transport.assigned'), count: requests?.filter(r => r.status === 'assigned').length },
+    { value: 'in_progress', label: t('transport.inTransit'), count: requests?.filter(r => r.status === 'in_progress').length },
+    { value: 'completed', label: t('transport.completed'), count: completedCount },
   ];
 
   return (
@@ -283,19 +273,19 @@ const TransportPage = () => {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label>{t('farmer.transport.pickupLocation')} District</Label>
+                    <Label>{t('transport.originDistrict')}</Label>
                     <GeoDistrictSelect
                       value={formData.origin_district_id}
                       onValueChange={(v) => setFormData({ ...formData, origin_district_id: v })}
-                      placeholder="Origin district"
+                      placeholder={t('transport.originDistrict')}
                     />
                   </div>
                   <div>
-                    <Label>Destination District</Label>
+                    <Label>{t('transport.destinationDistrict')}</Label>
                     <GeoDistrictSelect
                       value={formData.dest_district_id}
                       onValueChange={(v) => setFormData({ ...formData, dest_district_id: v })}
-                      placeholder="Dest district"
+                      placeholder={t('transport.destinationDistrict')}
                     />
                   </div>
                 </div>

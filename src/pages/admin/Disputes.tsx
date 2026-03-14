@@ -8,11 +8,13 @@ import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/hooks/useLanguage';
 import AssignModal from '@/components/admin/AssignModal';
 
 const PAGE_SIZE = 20;
 
 export default function DisputesPage() {
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
@@ -50,13 +52,13 @@ export default function DisputesPage() {
   const assign = async (id: string, adminUserId: string) => {
     if (!adminUserId) return;
     try {
-      const { error } = await supabase.rpc('admin.assign_dispute_v1', { p_dispute_id: id, p_admin_id: adminUserId });
+      const { error } = await (supabase as any).schema('admin').rpc('assign_dispute_v1', { p_dispute_id: id, p_admin_id: adminUserId });
       if (error) throw error;
-      toast({ title: 'Assigned' });
+      toast({ title: t('admin.disputes.assigned') });
       invalidateDisputes();
     } catch (e: any) {
       if (import.meta.env.DEV) console.error(e);
-      toast({ title: 'Failed to assign', description: e?.message || String(e) });
+      toast({ title: t('admin.disputes.failedAssign'), description: e?.message || String(e) });
     }
   };
 
@@ -64,19 +66,19 @@ export default function DisputesPage() {
     const res = prompt('Enter resolution (refund,no_refund,partial_refund,replacement,payout_hold,warning,ban):', 'no_refund');
     if (!res) return;
     try {
-      const { error } = await supabase.rpc('admin.set_dispute_status_v1', { p_dispute_id: id, p_status: 'resolved', p_resolution: res, p_note: null });
+      const { error } = await (supabase as any).schema('admin').rpc('set_dispute_status_v1', { p_dispute_id: id, p_status: 'resolved', p_resolution: res, p_note: null });
       if (error) throw error;
-      toast({ title: 'Resolved' });
+      toast({ title: t('admin.disputes.resolved') });
       invalidateDisputes();
     } catch (e: any) {
       if (import.meta.env.DEV) console.error(e);
-      toast({ title: 'Failed to resolve', description: e?.message || String(e) });
+      toast({ title: t('admin.disputes.failedResolve'), description: e?.message || String(e) });
     }
   };
 
   return (
     <DashboardLayout>
-      <PageShell title="Disputes" subtitle="Manage disputes and hold payouts">
+      <PageShell title={t('admin.disputes.title')} subtitle={t('admin.disputes.subtitle')}>
         <div className="space-y-4">
           <div className="flex gap-2 items-center">
             <select className="border p-2 rounded" value={statusFilter ?? ''} onChange={(e) => setStatusFilter(e.target.value || null)}>
@@ -104,10 +106,10 @@ export default function DisputesPage() {
               <option value='payment'>payment</option>
             </select>
             <div className="flex-1" />
-            <Button onClick={() => invalidateDisputes()}>Refresh</Button>
+            <Button onClick={() => invalidateDisputes()}>{t('admin.systemHealth.refresh')}</Button>
           </div>
 
-          <DataState loading={loading} empty={!loading && items.length === 0} emptyTitle="No disputes found" emptyMessage="All disputes have been resolved or none have been filed.">
+          <DataState loading={loading} empty={!loading && items.length === 0} emptyTitle={t('admin.disputes.noDisputes')} emptyMessage={t('admin.disputes.noDisputes')}>
           <div className="grid gap-3">
             {items.map((d) => (
               <Card key={d.id}>
@@ -124,8 +126,8 @@ export default function DisputesPage() {
                   <div className="mb-2 text-sm text-muted-foreground">Entity: {d.entity_type} {d.entity_id}</div>
                   <div className="mb-3">{d.description}</div>
                   <div className="flex gap-2 items-center">
-                    <Button size="sm" variant="outline" onClick={() => setAssignModal({ open: true, disputeId: d.id })}>Assign</Button>
-                    <Button size="sm" variant="default" onClick={() => resolve(d.id)}>Resolve</Button>
+                    <Button size="sm" variant="outline" onClick={() => setAssignModal({ open: true, disputeId: d.id })}>{t('admin.disputes.assign')}</Button>
+                    <Button size="sm" variant="default" onClick={() => resolve(d.id)}>{t('admin.disputes.resolve')}</Button>
                     <Button size="sm" variant="ghost" onClick={() => navigator.clipboard.writeText(d.id)}>Copy ID</Button>
                   </div>
                 </CardContent>

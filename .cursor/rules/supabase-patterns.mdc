@@ -11,15 +11,16 @@ globs:
 - Runtime: Deno. Imports use `jsr:` prefix.
 - ALWAYS check `supabase/functions/_shared/` for existing utilities before writing new code:
   - `cors.ts` — CORS headers
-  - `errors.ts` — typed error classes and `errorResponse()` helper
+  - `errors.ts` — `successResponse()` and `errorResponse()` helpers (canonical response format)
   - `env.ts` — `getRequiredEnv()` for safe env var loading
   - `request_context.ts` — JWT parsing and user ID extraction
   - `gemini_client.ts` — Google Gemini API client
-- Standard response format:
+- Standard response format (ALL Edge Functions MUST use this):
   ```json
   { "success": true, "data": { ... } }
-  { "success": false, "error": "HUMAN_READABLE", "code": "ERROR_CODE" }
+  { "success": false, "error": { "code": "ERROR_CODE", "message": "Human readable" } }
   ```
+- Use `successResponse(data)` and `errorResponse(code, message, status)` from `_shared/errors.ts`
 - NEVER expose `service_role` key to frontend — only Edge Functions use it
 - Use `service_role` client for server-side DB writes in Edge Functions, never the anon key
 - `dev-*` functions are DEV ONLY — never call from production UI paths

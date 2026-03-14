@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useLanguage } from '@/hooks/useLanguage';
 import { toast } from 'sonner';
 import { signAndUpload } from '@/lib/storage-upload';
 
@@ -136,6 +137,7 @@ export const useTripStatusEvents = (tripId: string | undefined) => {
 // Accept load via database RPC (atomic: creates trip + audit trail + farmer notification)
 export const useAcceptLoadSecure = () => {
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async ({
@@ -159,15 +161,15 @@ export const useAcceptLoadSecure = () => {
       queryClient.invalidateQueries({ queryKey: ['active-trips'] });
       queryClient.invalidateQueries({ queryKey: ['transport-requests-infinite'] });
       queryClient.invalidateQueries({ queryKey: ['logistics-dashboard'] });
-      toast.success('Load accepted successfully!');
+      toast.success(t('hookToasts.trips.loadAccepted'));
     },
     onError: (error: Error) => {
       if (error.message.includes('ALREADY_ASSIGNED') || error.message.includes('already')) {
-        toast.error('This load has already been accepted by another transporter');
+        toast.error(t('hookToasts.trips.alreadyAccepted'));
       } else if (error.message.includes('fetch') || error.message.includes('network') || error.message.includes('Failed to fetch')) {
-        toast.error('Network error. Please check your connection and try again.');
+        toast.error(t('hookToasts.trips.networkError'));
       } else {
-        toast.error('Failed to accept load: ' + error.message);
+        toast.error(t('hookToasts.trips.loadFailed') + ': ' + error.message);
       }
     },
   });
@@ -177,6 +179,7 @@ export const useAcceptLoadSecure = () => {
 export const useUpdateTripStatusSecure = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async ({
@@ -223,19 +226,19 @@ export const useUpdateTripStatusSecure = () => {
       queryClient.invalidateQueries({ queryKey: ['active-trips'] });
       queryClient.invalidateQueries({ queryKey: ['completed-trips'] });
       queryClient.invalidateQueries({ queryKey: ['logistics-dashboard'] });
-      toast.success(`Status updated to ${data.new_status}`);
+      toast.success(`${t('hookToasts.trips.statusUpdated')} ${data.new_status}`);
     },
     onError: (error: Error) => {
       if (error.message.includes('INVALID_TRANSITION')) {
-        toast.error('This status transition is not allowed');
+        toast.error(t('hookToasts.trips.invalidTransition'));
       } else if (error.message.includes('PROOF_REQUIRED')) {
-        toast.error('Photo proof is required for this status');
+        toast.error(t('hookToasts.trips.photoRequired'));
       } else if (error.message.includes('FORBIDDEN')) {
-        toast.error('You are not authorized to update this trip');
+        toast.error(t('hookToasts.trips.forbidden'));
       } else if (error.message.includes('fetch') || error.message.includes('network') || error.message.includes('Failed to fetch')) {
-        toast.error('Network error. Please check your connection and try again.');
+        toast.error(t('hookToasts.trips.networkError'));
       } else {
-        toast.error('Failed to update status: ' + error.message);
+        toast.error(t('hookToasts.trips.statusUpdateFailed') + ': ' + error.message);
       }
     },
   });
@@ -244,6 +247,7 @@ export const useUpdateTripStatusSecure = () => {
 // Upload proof photo
 export const useUploadProof = () => {
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async ({
@@ -267,7 +271,7 @@ export const useUploadProof = () => {
       return filePath;
     },
     onError: (error: Error) => {
-      toast.error('Failed to upload photo: ' + error.message);
+      toast.error(t('hookToasts.trips.photoUploadFailed') + ': ' + error.message);
     },
   });
 };

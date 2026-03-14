@@ -31,11 +31,13 @@ import KpiCard from '@/components/dashboard/KpiCard';
 import EmptyState from '@/components/shared/EmptyState';
 import { ROUTES } from '@/lib/routes';
 import { toast } from 'sonner';
+import { useLoadingTimeout } from '@/hooks/useLoadingTimeout';
 
 export default function AgentMyFarmers() {
-  const { language } = useLanguage();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const { data: farmers, isLoading } = useAssignedFarmers();
+  const loadingTimedOut = useLoadingTimeout(isLoading);
   const startVisit = useStartVisit();
   const { data: activeVisit } = useActiveVisit();
 
@@ -50,11 +52,7 @@ export default function AgentMyFarmers() {
 
   const handleStartVisit = (farmerId: string) => {
     if (activeVisit) {
-      toast.error(
-        language === 'kn'
-          ? 'ದಯವಿಟ್ಟು ಮೊದಲು ಪ್ರಸ್ತುತ ಭೇಟಿಯನ್ನು ಮುಗಿಸಿ'
-          : 'Please end your current visit first'
-      );
+      toast.error(t('agent.myFarmers.endVisitFirst'));
       return;
     }
     startVisit.mutate({ farmerId });
@@ -62,9 +60,9 @@ export default function AgentMyFarmers() {
 
   return (
     <DashboardLayout
-      title={language === 'kn' ? 'ನನ್ನ ರೈತರು' : 'My Farmers'}
+      title={t('agent.myFarmers.title')}
     >
-      <PageHeader title={language === 'kn' ? 'ನನ್ನ ರೈತರು' : 'My Farmers'} subtitle={language === 'kn' ? 'ನಿಮಗೆ ನಿಯೋಜಿಸಲಾದ ರೈತರು' : 'Farmers assigned to you'}>
+      <PageHeader title={t('agent.myFarmers.title')} subtitle={t('agent.myFarmers.subtitle')}>
       <div className="space-y-6">
 
         {/* Active Visit Banner */}
@@ -74,11 +72,11 @@ export default function AgentMyFarmers() {
               <div className="flex items-center gap-2">
                 <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
                 <span className="font-medium">
-                  {language === 'kn' ? 'ಸಕ್ರಿಯ ಭೇಟಿ' : 'Active Visit'}
+                  {t('agent.myFarmers.activeVisit')}
                 </span>
               </div>
               <Button size="sm" variant="outline" onClick={() => navigate(ROUTES.AGENT.FARMER_DETAIL(activeVisit.farmer_id))}>
-                {language === 'kn' ? 'ನೋಡಿ' : 'View'}
+                {t('agent.myFarmers.view')}
               </Button>
             </CardContent>
           </Card>
@@ -88,11 +86,7 @@ export default function AgentMyFarmers() {
         <div className="relative max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder={
-              language === 'kn'
-                ? 'ಹೆಸರು, ಹಳ್ಳಿ, ಜಿಲ್ಲೆಯಿಂದ ಹುಡುಕಿ...'
-                : 'Search by name, village, district...'
-            }
+            placeholder={t('agent.myFarmers.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9"
@@ -101,16 +95,16 @@ export default function AgentMyFarmers() {
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <KpiCard label={language === 'kn' ? 'ಒಟ್ಟು ರೈತರು' : 'Total Farmers'} value={farmers?.length || 0} icon={Users} priority="primary" />
-          <KpiCard label={language === 'kn' ? 'ಕೊಯ್ಲಿಗೆ ಸಿದ್ಧ' : 'Ready to Harvest'} value={farmers?.reduce((sum, f) => sum + (f.ready_crops_count || 0), 0) || 0} icon={Sprout} priority="success" />
-          <KpiCard label={language === 'kn' ? 'ಸಕ್ರಿಯ ಬೆಳೆಗಳು' : 'Active Crops'} value={farmers?.reduce((sum, f) => sum + (f.crops_count || 0), 0) || 0} icon={Sprout} priority="info" />
-          <KpiCard label={language === 'kn' ? 'ಬಾಕಿ ಸಾರಿಗೆ' : 'Pending Transport'} value={farmers?.reduce((sum, f) => sum + (f.pending_transport_count || 0), 0) || 0} icon={Truck} priority="warning" />
+          <KpiCard label={t('agent.myFarmers.totalFarmers')} value={farmers?.length || 0} icon={Users} priority="primary" />
+          <KpiCard label={t('agent.myFarmers.readyToHarvest')} value={farmers?.reduce((sum, f) => sum + (f.ready_crops_count || 0), 0) || 0} icon={Sprout} priority="success" />
+          <KpiCard label={t('agent.myFarmers.activeCrops')} value={farmers?.reduce((sum, f) => sum + (f.crops_count || 0), 0) || 0} icon={Sprout} priority="info" />
+          <KpiCard label={t('agent.myFarmers.pendingTransport')} value={farmers?.reduce((sum, f) => sum + (f.pending_transport_count || 0), 0) || 0} icon={Truck} priority="warning" />
         </div>
 
         {/* Farmers Table */}
         <Card>
           <CardContent className="p-0">
-            {isLoading ? (
+            {isLoading && !loadingTimedOut ? (
               <div className="p-6 space-y-4">
                 {[1, 2, 3, 4, 5].map((i) => (
                   <Skeleton key={i} className="h-16 w-full" />
@@ -120,12 +114,12 @@ export default function AgentMyFarmers() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{language === 'kn' ? 'ಹೆಸರು' : 'Name'}</TableHead>
-                    <TableHead>{language === 'kn' ? 'ಸ್ಥಳ' : 'Location'}</TableHead>
-                    <TableHead>{language === 'kn' ? 'ಫೋನ್' : 'Phone'}</TableHead>
-                    <TableHead>{language === 'kn' ? 'ಬೆಳೆಗಳು' : 'Crops'}</TableHead>
-                    <TableHead>{language === 'kn' ? 'ಸಾರಿಗೆ' : 'Transport'}</TableHead>
-                    <TableHead>{language === 'kn' ? 'ಕ್ರಿಯೆಗಳು' : 'Actions'}</TableHead>
+                    <TableHead>{t('agent.myFarmers.name')}</TableHead>
+                    <TableHead>{t('agent.myFarmers.location')}</TableHead>
+                    <TableHead>{t('agent.myFarmers.phone')}</TableHead>
+                    <TableHead>{t('agent.myFarmers.crops')}</TableHead>
+                    <TableHead>{t('agent.myFarmers.transport')}</TableHead>
+                    <TableHead>{t('agent.myFarmers.actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -134,8 +128,10 @@ export default function AgentMyFarmers() {
                       <TableCell colSpan={6} className="p-0">
                         <EmptyState
                           icon={Users}
-                          title={language === 'kn' ? 'ಯಾವುದೇ ರೈತರು ಕಂಡುಬಂದಿಲ್ಲ' : 'No farmers found'}
-                          description={language === 'kn' ? 'ನಿಮಗೆ ಯಾವುದೇ ರೈತರು ನಿಯೋಜಿಸಲಿಲ್ಲ.' : 'No farmers assigned to you yet.'}
+                          title={t('agent.myFarmers.noFarmers')}
+                          description={t('agent.myFarmers.noFarmersDescription')}
+                          actionLabel={t('agent.myFarmers.browseFarmers')}
+                          onAction={() => navigate(ROUTES.AGENT.FARMERS)}
                         />
                       </TableCell>
                     </TableRow>
@@ -143,7 +139,7 @@ export default function AgentMyFarmers() {
                     filteredFarmers?.map((farmer) => (
                       <TableRow key={farmer.id}>
                         <TableCell className="font-medium">
-                          {farmer.full_name || (language === 'kn' ? 'ಅಪರಿಚಿತ' : 'Unknown')}
+                          {farmer.full_name || t('agent.myFarmers.unknown')}
                         </TableCell>
                         <TableCell>
                           <span className="flex items-center gap-1 text-sm">
@@ -174,7 +170,7 @@ export default function AgentMyFarmers() {
                             </Badge>
                             {(farmer.ready_crops_count || 0) > 0 && (
                               <Badge className="bg-green-100 text-green-800">
-                                {farmer.ready_crops_count} {language === 'kn' ? 'ಸಿದ್ಧ' : 'ready'}
+                                {farmer.ready_crops_count} {t('agent.myFarmers.ready')}
                               </Badge>
                             )}
                           </div>
@@ -197,7 +193,7 @@ export default function AgentMyFarmers() {
                               onClick={() => navigate(ROUTES.AGENT.FARMER_DETAIL(farmer.id))}
                             >
                               <Eye className="h-3 w-3 mr-1" />
-                              {language === 'kn' ? 'ನೋಡಿ' : 'View'}
+                              {t('agent.myFarmers.view')}
                             </Button>
                             <Button
                               size="sm"
@@ -205,7 +201,7 @@ export default function AgentMyFarmers() {
                               disabled={startVisit.isPending || !!activeVisit}
                             >
                               <Play className="h-3 w-3 mr-1" />
-                              {language === 'kn' ? 'ಭೇಟಿ' : 'Visit'}
+                              {t('agent.myFarmers.visit')}
                             </Button>
                           </div>
                         </TableCell>

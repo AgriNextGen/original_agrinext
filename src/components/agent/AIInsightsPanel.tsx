@@ -22,8 +22,10 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatDistanceToNow, parseISO } from 'date-fns';
+import { useLanguage } from '@/hooks/useLanguage';
 
 const AIInsightsPanel = () => {
+  const { t } = useLanguage();
   const [visitPriority, setVisitPriority] = useState<string | null>(null);
   const [clusterSummary, setClusterSummary] = useState<string | null>(null);
   const [showHistory, setShowHistory] = useState(false);
@@ -38,16 +40,16 @@ const AIInsightsPanel = () => {
 
   const handlePrioritize = async () => {
     if (!tasks || tasks.length === 0) {
-      toast.error('No tasks to prioritize');
+      toast.error(t('agent.aiInsights.noTasks'));
       return;
     }
     
     try {
       const result = await visitPrioritization.mutateAsync(tasks);
       setVisitPriority(result);
-      toast.success('AI prioritization complete');
+      toast.success(t('agent.aiInsights.prioritizeComplete'));
     } catch (error) {
-      toast.error('Failed to get AI suggestions');
+      toast.error(t('agent.aiInsights.failedSuggestions'));
     }
   };
 
@@ -73,9 +75,9 @@ const AIInsightsPanel = () => {
     try {
       const result = await clusterSummaryMutation.mutateAsync(clusterData);
       setClusterSummary(result);
-      toast.success('AI analysis complete');
+      toast.success(t('agent.aiInsights.analysisComplete'));
     } catch (error) {
-      toast.error('Failed to generate summary');
+      toast.error(t('agent.aiInsights.failedSummary'));
     }
   };
 
@@ -85,10 +87,10 @@ const AIInsightsPanel = () => {
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-lg">
             <Sparkles className="h-5 w-5 text-purple-600" />
-            AI Insights
+            {t('agent.aiInsights.title')}
           </CardTitle>
           <Badge variant="secondary" className="bg-purple-100 text-purple-800">
-            Powered by AI
+            {t('agent.aiInsights.poweredByAi')}
           </Badge>
         </div>
       </CardHeader>
@@ -105,7 +107,7 @@ const AIInsightsPanel = () => {
             ) : (
               <Route className="h-4 w-4 mr-2" />
             )}
-            Prioritize Today's Visits
+            {t('agent.aiInsights.prioritize')}
           </Button>
           
           <Button 
@@ -119,16 +121,16 @@ const AIInsightsPanel = () => {
             ) : (
               <BarChart3 className="h-4 w-4 mr-2" />
             )}
-            Generate Cluster Summary
+            {t('agent.aiInsights.clusterSummary')}
           </Button>
         </div>
 
         {/* Visit Priority Results */}
         {visitPriority && (
-          <div className="p-4 rounded-lg bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200">
+          <div className="p-4 rounded-lg bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200" aria-live="polite">
             <h4 className="font-semibold text-purple-800 mb-2 flex items-center gap-2">
               <Route className="h-4 w-4" />
-              AI Suggested Visit Order
+              {t('agent.aiInsights.suggestedOrder')}
             </h4>
             <ScrollArea className="h-48">
               <div className="text-sm whitespace-pre-wrap text-gray-700">
@@ -140,10 +142,10 @@ const AIInsightsPanel = () => {
 
         {/* Cluster Summary Results */}
         {clusterSummary && (
-          <div className="p-4 rounded-lg bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200">
+          <div className="p-4 rounded-lg bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200" aria-live="polite">
             <h4 className="font-semibold text-blue-800 mb-2 flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
-              Cluster Analysis
+              {t('agent.aiInsights.clusterAnalysis')}
             </h4>
             <ScrollArea className="h-48">
               <div className="text-sm whitespace-pre-wrap text-gray-700">
@@ -161,7 +163,7 @@ const AIInsightsPanel = () => {
           className="w-full text-muted-foreground"
         >
           <History className="h-4 w-4 mr-2" />
-          Recent AI Insights
+          {t('agent.aiInsights.recentInsights')}
           {showHistory ? <ChevronUp className="h-4 w-4 ml-2" /> : <ChevronDown className="h-4 w-4 ml-2" />}
         </Button>
 

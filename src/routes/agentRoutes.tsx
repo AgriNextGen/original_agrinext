@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { Route } from 'react-router-dom';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import ErrorBoundary from '@/components/shared/ErrorBoundary';
+import RouteErrorBoundary from '@/components/shared/RouteErrorBoundary';
 import { ROUTES } from '@/lib/routes';
 import { Loader2 } from 'lucide-react';
 
@@ -24,15 +24,15 @@ const AgentServiceArea = lazy(() => import('@/pages/agent/ServiceArea'));
 export default function AgentRoutes() {
   return (
     <>
-      <Route path={ROUTES.AGENT.TODAY} element={<ProtectedRoute allowedRoles={["agent"]}><ErrorBoundary><Suspense fallback={<Fallback />}><AgentToday /></Suspense></ErrorBoundary></ProtectedRoute>} />
-      <Route path={ROUTES.AGENT.DASHBOARD} element={<ProtectedRoute allowedRoles={["agent"]}><ErrorBoundary><Suspense fallback={<Fallback />}><AgentDashboard /></Suspense></ErrorBoundary></ProtectedRoute>} />
-      <Route path={ROUTES.AGENT.TASKS} element={<ProtectedRoute allowedRoles={["agent"]}><ErrorBoundary><Suspense fallback={<Fallback />}><AgentTasks /></Suspense></ErrorBoundary></ProtectedRoute>} />
-      <Route path={ROUTES.AGENT.FARMERS} element={<ProtectedRoute allowedRoles={["agent"]}><ErrorBoundary><Suspense fallback={<Fallback />}><AgentFarmers /></Suspense></ErrorBoundary></ProtectedRoute>} />
-      <Route path={ROUTES.AGENT.MY_FARMERS} element={<ProtectedRoute allowedRoles={["agent"]}><ErrorBoundary><Suspense fallback={<Fallback />}><AgentMyFarmers /></Suspense></ErrorBoundary></ProtectedRoute>} />
-      <Route path="/agent/farmer/:farmerId" element={<ProtectedRoute allowedRoles={["agent"]}><ErrorBoundary><Suspense fallback={<Fallback />}><AgentFarmerDetail /></Suspense></ErrorBoundary></ProtectedRoute>} />
-      <Route path={ROUTES.AGENT.TRANSPORT} element={<ProtectedRoute allowedRoles={["agent"]}><ErrorBoundary><Suspense fallback={<Fallback />}><AgentTransport /></Suspense></ErrorBoundary></ProtectedRoute>} />
-      <Route path={ROUTES.AGENT.PROFILE} element={<ProtectedRoute allowedRoles={["agent"]}><ErrorBoundary><Suspense fallback={<Fallback />}><AgentProfile /></Suspense></ErrorBoundary></ProtectedRoute>} />
-      <Route path={ROUTES.AGENT.SERVICE_AREA} element={<ProtectedRoute allowedRoles={["agent"]}><ErrorBoundary><Suspense fallback={<Fallback />}><AgentServiceArea /></Suspense></ErrorBoundary></ProtectedRoute>} />
+      <Route path={ROUTES.AGENT.TODAY} element={<ProtectedRoute allowedRoles={["agent"]}><RouteErrorBoundary dashboardPath="/agent/dashboard"><Suspense fallback={<Fallback />}><AgentToday /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+      <Route path={ROUTES.AGENT.DASHBOARD} element={<ProtectedRoute allowedRoles={["agent"]}><RouteErrorBoundary dashboardPath="/agent/dashboard"><Suspense fallback={<Fallback />}><AgentDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+      <Route path={ROUTES.AGENT.TASKS} element={<ProtectedRoute allowedRoles={["agent"]}><RouteErrorBoundary dashboardPath="/agent/dashboard"><Suspense fallback={<Fallback />}><AgentTasks /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+      <Route path={ROUTES.AGENT.FARMERS} element={<ProtectedRoute allowedRoles={["agent"]}><RouteErrorBoundary dashboardPath="/agent/dashboard"><Suspense fallback={<Fallback />}><AgentFarmers /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+      <Route path={ROUTES.AGENT.MY_FARMERS} element={<ProtectedRoute allowedRoles={["agent"]}><RouteErrorBoundary dashboardPath="/agent/dashboard"><Suspense fallback={<Fallback />}><AgentMyFarmers /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+      <Route path="/agent/farmer/:farmerId" element={<ProtectedRoute allowedRoles={["agent"]}><RouteErrorBoundary dashboardPath="/agent/dashboard"><Suspense fallback={<Fallback />}><AgentFarmerDetail /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+      <Route path={ROUTES.AGENT.TRANSPORT} element={<ProtectedRoute allowedRoles={["agent"]}><RouteErrorBoundary dashboardPath="/agent/dashboard"><Suspense fallback={<Fallback />}><AgentTransport /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+      <Route path={ROUTES.AGENT.PROFILE} element={<ProtectedRoute allowedRoles={["agent"]}><RouteErrorBoundary dashboardPath="/agent/dashboard"><Suspense fallback={<Fallback />}><AgentProfile /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+      <Route path={ROUTES.AGENT.SERVICE_AREA} element={<ProtectedRoute allowedRoles={["agent"]}><RouteErrorBoundary dashboardPath="/agent/dashboard"><Suspense fallback={<Fallback />}><AgentServiceArea /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
     </>
   );
 }

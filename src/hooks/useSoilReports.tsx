@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useLanguage } from '@/hooks/useLanguage';
 import { useToast } from '@/hooks/use-toast';
 import { signAndUpload } from '@/lib/storage-upload';
 
@@ -89,6 +90,7 @@ export const useLatestSoilReport = (farmlandId: string) => {
 export const useUploadSoilReport = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -151,7 +153,7 @@ export const useUploadSoilReport = () => {
       return data;
     },
     onSuccess: (_, { farmlandId }) => {
-      toast({ title: 'Success', description: 'Soil report uploaded successfully!' });
+      toast({ title: t('hookToasts.soilReports.uploaded') });
       queryClient.invalidateQueries({ queryKey: ['soil-reports', farmlandId] });
       queryClient.invalidateQueries({ queryKey: ['soil-reports-latest', farmlandId] });
     },
@@ -190,12 +192,12 @@ export const useDeleteSoilReport = () => {
       return report;
     },
     onSuccess: (report) => {
-      toast({ title: 'Deleted', description: 'Soil report deleted successfully.' });
+      toast({ title: t('hookToasts.soilReports.deleted') });
       queryClient.invalidateQueries({ queryKey: ['soil-reports', report.farmland_id] });
       queryClient.invalidateQueries({ queryKey: ['soil-reports-latest', report.farmland_id] });
     },
     onError: (error: Error) => {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      toast({ title: t('hookToasts.soilReports.deleteFailed'), description: error.message, variant: 'destructive' });
     },
   });
 };

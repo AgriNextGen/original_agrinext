@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { Route } from 'react-router-dom';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import ErrorBoundary from '@/components/shared/ErrorBoundary';
+import RouteErrorBoundary from '@/components/shared/RouteErrorBoundary';
 import { ROUTES } from '@/lib/routes';
 import { Loader2 } from 'lucide-react';
 
@@ -26,17 +26,17 @@ const FarmerSettings = lazy(() => import('@/pages/farmer/Settings'));
 export default function FarmerRoutes() {
   return (
     <>
-      <Route path={ROUTES.FARMER.MY_DAY} element={<ProtectedRoute allowedRoles={["farmer"]}><ErrorBoundary><Suspense fallback={<Fallback />}><FarmerMyDay /></Suspense></ErrorBoundary></ProtectedRoute>} />
-      <Route path={ROUTES.FARMER.DASHBOARD} element={<ProtectedRoute allowedRoles={["farmer"]}><ErrorBoundary><Suspense fallback={<Fallback />}><FarmerDashboard /></Suspense></ErrorBoundary></ProtectedRoute>} />
-      <Route path={ROUTES.FARMER.CROPS} element={<ProtectedRoute allowedRoles={["farmer"]}><ErrorBoundary><Suspense fallback={<Fallback />}><FarmerCrops /></Suspense></ErrorBoundary></ProtectedRoute>} />
-      <Route path="/farmer/crops/:cropId" element={<ProtectedRoute allowedRoles={["farmer"]}><ErrorBoundary><Suspense fallback={<Fallback />}><FarmerCropDiary /></Suspense></ErrorBoundary></ProtectedRoute>} />
-      <Route path={ROUTES.FARMER.FARMLANDS} element={<ProtectedRoute allowedRoles={["farmer"]}><ErrorBoundary><Suspense fallback={<Fallback />}><FarmerFarmlands /></Suspense></ErrorBoundary></ProtectedRoute>} />
-      <Route path={ROUTES.FARMER.TRANSPORT} element={<ProtectedRoute allowedRoles={["farmer"]}><ErrorBoundary><Suspense fallback={<Fallback />}><FarmerTransport /></Suspense></ErrorBoundary></ProtectedRoute>} />
-      <Route path={ROUTES.FARMER.LISTINGS} element={<ProtectedRoute allowedRoles={["farmer"]}><ErrorBoundary><Suspense fallback={<Fallback />}><FarmerListings /></Suspense></ErrorBoundary></ProtectedRoute>} />
-      <Route path={ROUTES.FARMER.ORDERS} element={<ProtectedRoute allowedRoles={["farmer"]}><ErrorBoundary><Suspense fallback={<Fallback />}><FarmerOrders /></Suspense></ErrorBoundary></ProtectedRoute>} />
-      <Route path={ROUTES.FARMER.EARNINGS} element={<ProtectedRoute allowedRoles={["farmer"]}><ErrorBoundary><Suspense fallback={<Fallback />}><FarmerEarnings /></Suspense></ErrorBoundary></ProtectedRoute>} />
-      <Route path={ROUTES.FARMER.NOTIFICATIONS} element={<ProtectedRoute allowedRoles={["farmer"]}><ErrorBoundary><Suspense fallback={<Fallback />}><FarmerNotifications /></Suspense></ErrorBoundary></ProtectedRoute>} />
-      <Route path={ROUTES.FARMER.SETTINGS} element={<ProtectedRoute allowedRoles={["farmer"]}><ErrorBoundary><Suspense fallback={<Fallback />}><FarmerSettings /></Suspense></ErrorBoundary></ProtectedRoute>} />
+      <Route path={ROUTES.FARMER.MY_DAY} element={<ProtectedRoute allowedRoles={["farmer"]}><RouteErrorBoundary dashboardPath="/farmer/dashboard"><Suspense fallback={<Fallback />}><FarmerMyDay /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+      <Route path={ROUTES.FARMER.DASHBOARD} element={<ProtectedRoute allowedRoles={["farmer"]}><RouteErrorBoundary dashboardPath="/farmer/dashboard"><Suspense fallback={<Fallback />}><FarmerDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+      <Route path={ROUTES.FARMER.CROPS} element={<ProtectedRoute allowedRoles={["farmer"]}><RouteErrorBoundary dashboardPath="/farmer/dashboard"><Suspense fallback={<Fallback />}><FarmerCrops /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+      <Route path="/farmer/crops/:cropId" element={<ProtectedRoute allowedRoles={["farmer"]}><RouteErrorBoundary dashboardPath="/farmer/dashboard"><Suspense fallback={<Fallback />}><FarmerCropDiary /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+      <Route path={ROUTES.FARMER.FARMLANDS} element={<ProtectedRoute allowedRoles={["farmer"]}><RouteErrorBoundary dashboardPath="/farmer/dashboard"><Suspense fallback={<Fallback />}><FarmerFarmlands /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+      <Route path={ROUTES.FARMER.TRANSPORT} element={<ProtectedRoute allowedRoles={["farmer"]}><RouteErrorBoundary dashboardPath="/farmer/dashboard"><Suspense fallback={<Fallback />}><FarmerTransport /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+      <Route path={ROUTES.FARMER.LISTINGS} element={<ProtectedRoute allowedRoles={["farmer"]}><RouteErrorBoundary dashboardPath="/farmer/dashboard"><Suspense fallback={<Fallback />}><FarmerListings /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+      <Route path={ROUTES.FARMER.ORDERS} element={<ProtectedRoute allowedRoles={["farmer"]}><RouteErrorBoundary dashboardPath="/farmer/dashboard"><Suspense fallback={<Fallback />}><FarmerOrders /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+      <Route path={ROUTES.FARMER.EARNINGS} element={<ProtectedRoute allowedRoles={["farmer"]}><RouteErrorBoundary dashboardPath="/farmer/dashboard"><Suspense fallback={<Fallback />}><FarmerEarnings /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+      <Route path={ROUTES.FARMER.NOTIFICATIONS} element={<ProtectedRoute allowedRoles={["farmer"]}><RouteErrorBoundary dashboardPath="/farmer/dashboard"><Suspense fallback={<Fallback />}><FarmerNotifications /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+      <Route path={ROUTES.FARMER.SETTINGS} element={<ProtectedRoute allowedRoles={["farmer"]}><RouteErrorBoundary dashboardPath="/farmer/dashboard"><Suspense fallback={<Fallback />}><FarmerSettings /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
     </>
   );
 }

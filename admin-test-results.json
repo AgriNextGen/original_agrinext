@@ -1,0 +1,72 @@
+[
+  {
+    "page": "Dashboard",
+    "url": "/admin/dashboard",
+    "status": "OK",
+    "issues": "None",
+    "screenshot": "admin-test-screenshots/01-dashboard.png"
+  },
+  {
+    "page": "System Health",
+    "url": "/admin/system-health",
+    "status": "OK",
+    "issues": "None",
+    "screenshot": "admin-test-screenshots/02-system-health.png"
+  },
+  {
+    "page": "Disputes",
+    "url": "/admin/disputes",
+    "status": "OK",
+    "issues": "None",
+    "screenshot": "admin-test-screenshots/03-disputes.png"
+  },
+  {
+    "page": "Users",
+    "url": "/admin/users",
+    "status": "BLANK",
+    "issues": "Page appears blank",
+    "screenshot": "admin-test-screenshots/04-users.png"
+  },
+  {
+    "page": "Farmers",
+    "url": "/admin/farmers",
+    "status": "OK",
+    "issues": "None",
+    "screenshot": "admin-test-screenshots/05-farmers.png"
+  },
+  {
+    "page": "Agents",
+    "url": "/admin/agents",
+    "status": "FAILED",
+    "issues": "page.goto: Timeout 60000ms exceeded.\nCall log:\n  - navigating to \"http://localhost:5173/admin/agents\", waiting until \"networkidle\"\n",
+    "screenshot": "N/A"
+  },
+  {
+    "page": "Logistics",
+    "url": "/admin/logistics",
+    "status": "FAILED",
+    "issues": "page.goto: Timeout 60000ms exceeded.\nCall log:\n  - navigating to \"http://localhost:5173/admin/logistics\", waiting until \"networkidle\"\n",
+    "screenshot": "N/A"
+  },
+  {
+    "page": "Buyers",
+    "url": "/admin/buyers",
+    "status": "FAILED",
+    "issues": "page.goto: Timeout 60000ms exceeded.\nCall log:\n  - navigating to \"http://localhost:5173/admin/buyers\", waiting until \"networkidle\"\n",
+    "screenshot": "N/A"
+  },
+  {
+    "page": "Finance",
+    "url": "/admin/finance",
+    "status": "FAILED",
+    "issues": "page.goto: Timeout 60000ms exceeded.\nCall log:\n  - navigating to \"http://localhost:5173/admin/finance\", waiting until \"networkidle\"\n",
+    "screenshot": "N/A"
+  },
+  {
+    "page": "Reports",
+    "url": "/admin/reports",
+    "status": "BLANK",
+    "issues": "Page appears blank",
+    "screenshot": "admin-test-screenshots/10-reports.png"
+  }
+]

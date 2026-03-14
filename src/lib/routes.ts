@@ -75,7 +75,13 @@ export const ROUTES = {
     ACTIVE_TRIPS: '/logistics/trips',
     COMPLETED_TRIPS: '/logistics/completed',
     TRIP_DETAIL: (tripId: string) => `/logistics/trip/${tripId}`,
+    FORWARD_TRIPS: '/logistics/forward-trips',
+    REVERSE_LOADS: '/logistics/reverse-loads',
+    UNIFIED_TRIP_DETAIL: (tripId: string) => `/logistics/unified-trip/${tripId}`,
+    CAPACITY: '/logistics/capacity',
+    EARNINGS: '/logistics/earnings',
     VEHICLES: '/logistics/vehicles',
+    RECOMMENDATIONS: '/logistics/recommendations',
     PROFILE: '/logistics/profile',
     SERVICE_AREA: '/logistics/service-area',
   },
@@ -124,6 +130,21 @@ export const ROUTES = {
   },
 
   // ---------------------------------------------------------------------------
+  // Vendor
+  // ---------------------------------------------------------------------------
+  VENDOR: {
+    ROOT: '/vendor',
+    DASHBOARD: '/vendor/dashboard',
+    CREATE_SHIPMENT: '/vendor/shipments/create',
+    ACTIVE_SHIPMENTS: '/vendor/shipments/active',
+    SHIPMENT_HISTORY: '/vendor/shipments/history',
+    SHIPMENT_DETAIL: (shipmentId: string) => `/vendor/shipments/${shipmentId}`,
+    LOGISTICS_REQUESTS: '/vendor/logistics-requests',
+    REVERSE_LOGISTICS: '/vendor/reverse-logistics',
+    PROFILE: '/vendor/profile',
+  },
+
+  // ---------------------------------------------------------------------------
   // Common (shared across roles)
   // ---------------------------------------------------------------------------
   COMMON: {
@@ -138,4 +159,5 @@ export const ROLE_DASHBOARD_ROUTES: Record<string, string> = {
   agent: ROUTES.AGENT.DASHBOARD,
   logistics: ROUTES.LOGISTICS.DASHBOARD,
   admin: ROUTES.ADMIN.DASHBOARD,
+  vendor: ROUTES.VENDOR.DASHBOARD,
 };

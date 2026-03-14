@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { useLanguage } from '@/hooks/useLanguage';
 import { toast } from 'sonner';
 
 // Types
@@ -195,6 +196,7 @@ export const useFarmerAgentVisits = () => {
 export const useCreateHelpRequest = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async ({
@@ -231,11 +233,11 @@ export const useCreateHelpRequest = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['agent-tasks'] });
       queryClient.invalidateQueries({ queryKey: ['farmer-help-requests'] });
-      toast.success('Help request sent to your agent');
+      toast.success(t('hookToasts.agentAssignments.helpRequestSent'));
     },
     onError: (error) => {
       if (import.meta.env.DEV) console.error('Error creating help request:', error);
-      toast.error('Failed to send help request');
+      toast.error(t('hookToasts.agentAssignments.helpRequestFailed'));
     }
   });
 };
@@ -267,6 +269,7 @@ export const useFarmerHelpRequests = () => {
 export const useStartVisit = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async ({
@@ -293,11 +296,11 @@ export const useStartVisit = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['agent-visits'] });
       queryClient.invalidateQueries({ queryKey: ['active-visit'] });
-      toast.success('Visit started');
+      toast.success(t('hookToasts.agentAssignments.visitStarted'));
     },
     onError: (error) => {
       if (import.meta.env.DEV) console.error('Error starting visit:', error);
-      toast.error('Failed to start visit');
+      toast.error(t('hookToasts.agentAssignments.visitStartFailed'));
     }
   });
 };
@@ -305,6 +308,7 @@ export const useStartVisit = () => {
 // Hook to end agent visit
 export const useEndVisit = () => {
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async ({
@@ -329,11 +333,11 @@ export const useEndVisit = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['agent-visits'] });
       queryClient.invalidateQueries({ queryKey: ['active-visit'] });
-      toast.success('Visit ended');
+      toast.success(t('hookToasts.agentAssignments.visitEnded'));
     },
     onError: (error) => {
       if (import.meta.env.DEV) console.error('Error ending visit:', error);
-      toast.error('Failed to end visit');
+      toast.error(t('hookToasts.agentAssignments.visitEndFailed'));
     }
   });
 };
@@ -365,6 +369,7 @@ export const useActiveVisit = () => {
 export const useAssignFarmerToAgent = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async ({
@@ -416,11 +421,11 @@ export const useAssignFarmerToAgent = () => {
         });
       }
 
-      toast.success('Farmer assigned to agent');
+      toast.success(t('hookToasts.agentAssignments.farmerAssigned'));
     },
     onError: (error) => {
       if (import.meta.env.DEV) console.error('Error assigning farmer:', error);
-      toast.error('Failed to assign farmer');
+      toast.error(t('hookToasts.agentAssignments.assignFailed'));
     }
   });
 };
@@ -428,6 +433,7 @@ export const useAssignFarmerToAgent = () => {
 // Admin hook: Unassign farmer from agent
 export const useUnassignFarmer = () => {
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async (assignmentId: string): Promise<void> => {
@@ -441,11 +447,11 @@ export const useUnassignFarmer = () => {
       queryClient.invalidateQueries({ queryKey: ['assigned-farmers'] });
       queryClient.invalidateQueries({ queryKey: ['agent-farmer-assignments'] });
       queryClient.invalidateQueries({ queryKey: ['farmer-agent'] });
-      toast.success('Farmer unassigned');
+      toast.success(t('hookToasts.agentAssignments.farmerUnassigned'));
     },
     onError: (error) => {
       if (import.meta.env.DEV) console.error('Error unassigning farmer:', error);
-      toast.error('Failed to unassign farmer');
+      toast.error(t('hookToasts.agentAssignments.unassignFailed'));
     }
   });
 };
@@ -469,6 +475,7 @@ export const useAllAssignments = () => {
 // Hook to update agent task status
 export const useUpdateAgentTaskStatus = () => {
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async ({
@@ -496,11 +503,11 @@ export const useUpdateAgentTaskStatus = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['agent-tasks'] });
       queryClient.invalidateQueries({ queryKey: ['farmer-help-requests'] });
-      toast.success('Task status updated');
+      toast.success(t('hookToasts.agentAssignments.taskStatusUpdated'));
     },
     onError: (error) => {
       if (import.meta.env.DEV) console.error('Error updating task:', error);
-      toast.error('Failed to update task');
+      toast.error(t('hookToasts.agentAssignments.taskStatusFailed'));
     }
   });
 };

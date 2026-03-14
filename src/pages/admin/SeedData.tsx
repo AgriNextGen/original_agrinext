@@ -4,6 +4,7 @@ import PageShell from "@/components/layout/PageShell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
+import { useLanguage } from '@/hooks/useLanguage';
 import { toast } from "sonner";
 import { Loader2, Database, CheckCircle, Users, Truck, ShoppingBag, Shield, Leaf } from "lucide-react";
 import KpiCard from "@/components/dashboard/KpiCard";
@@ -43,6 +44,7 @@ interface SeedResult {
 }
 
 export default function SeedData() {
+  const { t } = useLanguage();
   const [isSeeding, setIsSeeding] = useState(false);
   const [result, setResult] = useState<SeedResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -61,14 +63,14 @@ export default function SeedData() {
 
       if (data?.success) {
         setResult(data);
-        toast.success("Test data seeded successfully!");
+        toast.success(t('admin.seedData.seedSuccess'));
       } else {
-        throw new Error(data?.error || "Failed to seed data");
+        throw new Error(data?.error || t('admin.seedData.seedFailed'));
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error occurred";
       setError(message);
-      toast.error("Failed to seed data: " + message);
+      toast.error(t('admin.seedData.seedFailed') + ': ' + message);
     } finally {
       setIsSeeding(false);
     }
@@ -84,22 +86,21 @@ export default function SeedData() {
   ];
 
   return (
-    <DashboardLayout title="Seed Test Data">
-      <PageShell title="Seed Test Data" className="max-w-4xl mx-auto">
+    <DashboardLayout title={t('admin.seedData.title')}>
+      <PageShell title={t('admin.seedData.title')} className="max-w-4xl mx-auto">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Database className="h-6 w-6" />
-              Test Data Seeder
+              {t('admin.seedData.title')}
             </CardTitle>
             <CardDescription>
-              Create sample users, crops, orders, and other data for testing the entire AgriNext Gen ecosystem
+              {t('admin.seedData.subtitle')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-amber-800">
-              <p className="font-medium">⚠️ Warning</p>
-              <p className="text-sm">This will create test accounts and sample data. Run this only once on a fresh database to avoid duplicates.</p>
+              <p className="font-medium">⚠️ {t('admin.seedData.warning')}</p>
             </div>
 
             <Button 
@@ -111,12 +112,12 @@ export default function SeedData() {
               {isSeeding ? (
                 <>
                   <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Seeding Data... This may take a minute
+                  {t('admin.seedData.seeding')}
                 </>
               ) : (
                 <>
                   <Database className="mr-2 h-5 w-5" />
-                  Seed All Test Data
+                  {t('admin.seedData.seed')}
                 </>
               )}
             </Button>

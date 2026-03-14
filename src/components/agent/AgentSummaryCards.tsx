@@ -3,10 +3,13 @@ import { Users, Sprout, ClipboardList, Truck, CheckCircle, AlertTriangle } from 
 import { useAgentDashboardStats } from '@/hooks/useAgentDashboard';
 import { useLanguage } from '@/hooks/useLanguage';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useNavigate } from 'react-router-dom';
+import { ROUTES } from '@/lib/routes';
 
 const AgentSummaryCards = () => {
   const { t } = useLanguage();
   const { data: stats, isLoading } = useAgentDashboardStats();
+  const navigate = useNavigate();
 
   const cards = [
     {
@@ -15,6 +18,7 @@ const AgentSummaryCards = () => {
       icon: Users,
       color: 'text-blue-600',
       bgColor: 'bg-blue-50',
+      href: ROUTES.AGENT.MY_FARMERS,
     },
     {
       title: t('agent.summary.activeCrops'),
@@ -22,6 +26,7 @@ const AgentSummaryCards = () => {
       icon: Sprout,
       color: 'text-green-600',
       bgColor: 'bg-green-50',
+      href: ROUTES.AGENT.FARMERS,
     },
     {
       title: t('agent.summary.tasksToday'),
@@ -29,6 +34,7 @@ const AgentSummaryCards = () => {
       icon: ClipboardList,
       color: 'text-purple-600',
       bgColor: 'bg-purple-50',
+      href: ROUTES.AGENT.TODAY,
     },
     {
       title: t('agent.summary.readyToHarvest'),
@@ -36,6 +42,7 @@ const AgentSummaryCards = () => {
       icon: AlertTriangle,
       color: 'text-amber-600',
       bgColor: 'bg-amber-50',
+      href: ROUTES.AGENT.FARMERS,
     },
     {
       title: t('agent.summary.pendingTransport'),
@@ -43,6 +50,7 @@ const AgentSummaryCards = () => {
       icon: Truck,
       color: 'text-red-600',
       bgColor: 'bg-red-50',
+      href: ROUTES.AGENT.TRANSPORT,
     },
   ];
 
@@ -59,7 +67,14 @@ const AgentSummaryCards = () => {
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
       {cards.map((card) => (
-        <Card key={card.title} className="hover:shadow-md transition-shadow">
+        <Card
+          key={card.title}
+          className="hover:shadow-md transition-shadow cursor-pointer active:scale-[0.98]"
+          onClick={() => navigate(card.href)}
+          role="link"
+          tabIndex={0}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') navigate(card.href); }}
+        >
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>

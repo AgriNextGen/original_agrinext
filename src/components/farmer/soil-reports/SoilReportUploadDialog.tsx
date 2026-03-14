@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Upload, ChevronDown, FileImage, FileText, Loader2 } from 'lucide-react';
 import { useUploadSoilReport, SoilReportFormData } from '@/hooks/useSoilReports';
+import { useLanguage } from '@/hooks/useLanguage';
 import { toast } from 'sonner';
 import imageCompression from 'browser-image-compression';
 import { FILE_SIZE_LIMITS, validateFileSize, isImageFile, isPdfFile, getErrorMessage, createRetryAction } from '@/lib/error-utils';
@@ -24,6 +25,7 @@ export default function SoilReportUploadDialog({
   farmlandId,
   farmlandName,
 }: SoilReportUploadDialogProps) {
+  const { t } = useLanguage();
   const uploadMutation = useUploadSoilReport();
   const [file, setFile] = useState<File | null>(null);
   const [showOptionalFields, setShowOptionalFields] = useState(false);
@@ -48,7 +50,7 @@ export default function SoilReportUploadDialog({
     const isPdf = isPdfFile(selectedFile);
     
     if (!isImage && !isPdf) {
-      toast.error('Please select an image or PDF file');
+      toast.error(t('validation.selectImageOrPdf'));
       return;
     }
 
@@ -56,14 +58,14 @@ export default function SoilReportUploadDialog({
     if (isPdf) {
       const validation = validateFileSize(selectedFile, FILE_SIZE_LIMITS.PDF_MAX_MB);
       if (!validation.valid) {
-        toast.error(validation.message);
+        toast.error(t('validation.fileTooLarge'));
         return;
       }
       setFile(selectedFile);
     } else if (isImage) {
       const validation = validateFileSize(selectedFile, FILE_SIZE_LIMITS.IMAGE_MAX_MB);
       if (!validation.valid) {
-        toast.error(validation.message);
+        toast.error(t('validation.fileTooLarge'));
         return;
       }
 
@@ -83,7 +85,7 @@ export default function SoilReportUploadDialog({
           if (import.meta.env.DEV) console.log(`Image compressed: ${sizeMB.toFixed(2)}MB → ${compressedSizeMB.toFixed(2)}MB`);
         } catch (error) {
           if (import.meta.env.DEV) console.error('Compression failed:', error);
-          toast.error('Failed to compress image. Please try a smaller file.');
+          toast.error(t('errors.compressFailed'));
           setIsCompressing(false);
           return;
         }
@@ -96,7 +98,7 @@ export default function SoilReportUploadDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file) {
-      toast.error('Please select a file to upload');
+      toast.error(t('validation.selectFileToUpload'));
       return;
     }
 
