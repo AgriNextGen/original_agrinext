@@ -45,6 +45,82 @@ test-visual.mjs
 test_pages.html
 test_pages.mjs
 
+# ── UX audit artifacts (screenshots, scripts, reports) ──
+
+# Screenshot directories
+agent-audit/
+agent-audit-debug/
+agent-audit-final/
+agent-screenshots/
+buyer-comprehensive-screenshots/
+logistics-screenshots/
+screenshots/
+
+# Screenshot PNGs (root) — extends existing screenshot*.png
+agent-audit-*.png
+buyer-audit-*.png
+ux-audit-*.png
+landing-*.png
+landing-page-*.png
+
+# One-off audit/capture/debug/test scripts
+*-audit*.mjs
+*-audit*.cjs
+capture-*.mjs
+capture-*.js
+capture_screenshots.py
+debug-*.mjs
+*-screenshot-automation*.js
+*comprehensive-screenshots.cjs
+test-*.mjs
+test-*.cjs
+admin-test*.mjs
+analyze-page-content.mjs
+logistics-auth-bypass.mjs
+
+# Test/logistics PNG captures
+logistics-test-*.png
+test-*.png
+
+# Audit/report/design-system markdown files (root only, not docs/)
+AGENT_DASHBOARD_*.md
+AGENT_PAGES_TEST_REPORT.md
+ADMIN_PAGES_TEST_REPORT.md
+AUTHENTICATION_UX_*.md
+BUYER_*.md
+COLOR_SYSTEM.md
+COMPONENT_STANDARDIZATION.md
+COMPONENT_TOKENS.md
+DASHBOARD_PATTERNS.md
+FARMER_*.md
+FULL_STACK_SYNCHRONIZATION_REPORT.md
+GRID_LAYOUT_SYSTEM.md
+I18N_GUIDELINES.md
+HEADER_ARCHITECTURE.md
+ICON_SYSTEM.md
+LANDING_PAGE_*.md
+LOGIN_PAGE_*.md
+LOGISTICS_*.md
+MANUAL_SCREENSHOT_GUIDE.md
+MOBILE_UX_BASELINE.md
+NAVIGATION_ARCHITECTURE.md
+NEXT_STEPS.md
+PHASE_2_LOCALIZATION_REPORT.md
+PRODUCTION_READINESS_REPORT.md
+PRODUCTION_SHIP_CHECKLIST.md
+REPOSITORY_INTELLIGENCE_REPORT.md
+ROUTING_FIX_TEST_REPORT.md
+SCREENSHOT_CAPTURE_GUIDE.md
+SPACING_SYSTEM.md
+TYPOGRAPHY_SYSTEM.md
+USER_JOURNEY_ANALYSIS.md
+UX_ARCHITECTURE.md
+UX_AUDIT_*.md
+UX_STATE_SYSTEM.md
+
+# Playwright CLI state
+.playwright-cli/
+
 # Generated reports (keep directory, ignore output)
 reports/*.md
 
